@@ -332,25 +332,43 @@ namespace KontrolaWizualnaRaport
                 double ng = ((double)keyEntry.Value / (double)allLevel[keyEntry.Key]) * 100;
                 double scrap = ((double)scrapLevel[keyEntry.Key] / (double)allLevel[keyEntry.Key]) * 100;
 
-                List<string> wastePerModelToolTip = new List<string>();
+                List<string> ngPerModelToolTip = new List<string>();
+                List<Tuple<double, string>> scrapPerModelTooltip = new List<Tuple<double, string>>();
+
+                foreach (var model in scrapLevelPerModel[keyEntry.Key])
+                {
+                    scrapPerModelTooltip.Add(new Tuple<double, string>(Math.Round(model.Value/ allLevelPerModel[keyEntry.Key][model.Key]*100,1),"% - "+ model.Value + @"/" + allLevelPerModel[keyEntry.Key][model.Key] + " - " + model.Key));
+                }
+                scrapPerModelTooltip = scrapPerModelTooltip.OrderByDescending(o => o.Item1).ToList();
+
                 foreach (var model in ngLevelPerModel[keyEntry.Key])
                 {
-                    wastePerModelToolTip.Add(Math.Round((model.Value / allLevelPerModel[keyEntry.Key][model.Key]) * 100, 1).ToString() + "% - " + model.Value+@"/"+ allLevelPerModel[keyEntry.Key][model.Key]+" - " + model.Key);
+                    ngPerModelToolTip.Add(Math.Round((model.Value / allLevelPerModel[keyEntry.Key][model.Key]) * 100, 1).ToString() + "% - " + model.Value+@"/"+ allLevelPerModel[keyEntry.Key][model.Key]+" - " + model.Key);
                 }
-                wastePerModelToolTip = wastePerModelToolTip.OrderByDescending(o => o).ToList();
+                ngPerModelToolTip = ngPerModelToolTip.OrderByDescending(o => o).ToList();
 
                 string ngtoolTip = "";
-                foreach (var item in wastePerModelToolTip)
+                foreach (var item in ngPerModelToolTip)
                 {
                     ngtoolTip += item + Environment.NewLine;
                 }
                 DataPoint ngPoint = new DataPoint();
                 ngPoint.SetValueXY(keyEntry.Key, ng);
                 ngPoint.ToolTip = ngtoolTip;
-
-                //ngSeries.Points.AddXY(keyEntry.Key, ng);
                 ngSeries.Points.Add(ngPoint);
-                scrapSeries.Points.AddXY(keyEntry.Key, scrap);
+                //scrap
+
+                string scrapTooltip = "";
+                foreach (var item in scrapPerModelTooltip)
+                {
+                    scrapTooltip += item.Item1.ToString() + item.Item2 + Environment.NewLine;
+                }
+
+                DataPoint scrapPoint = new DataPoint();
+                scrapPoint.SetValueXY(keyEntry.Key, scrap);
+                scrapPoint.ToolTip = scrapTooltip;
+
+                scrapSeries.Points.Add(scrapPoint);
 
                 result.Rows.Add(keyEntry.Key, keyEntry.Value, (double)allLevel[keyEntry.Key] , Math.Round(ng, 2) + "%");
                 tempScrapTable.Rows.Add(keyEntry.Key, scrapLevel[keyEntry.Key], (double)allLevel[keyEntry.Key] , Math.Round(scrap, 2) + "%");
@@ -632,13 +650,14 @@ namespace KontrolaWizualnaRaport
             return result;
         }
 
-        public static void DrawScrapPerReason(Chart targetChart, Chart paretoChart, List<dataStructure> inputData, string reason, Dictionary<string, string> modelDictionary)
+        public static void DrawWasteLevelPerReason(Chart targetChart, Chart paretoQtyChart, string targetModel, Chart paretoPercentageChart, List<dataStructure> inputData, string reason, Dictionary<string, string> modelDictionary)
         {
             DataTable result = new DataTable();
             Dictionary<DateTime, Dictionary<string, double>> wasteInDayPerModel = new Dictionary<DateTime, Dictionary<string, double>>();
             Dictionary<DateTime, Dictionary<string, double>> scrapInDayPerModel = new Dictionary<DateTime, Dictionary<string, double>>();
             Dictionary<DateTime, Dictionary<string, double>> totalInDayPerModel = new Dictionary<DateTime, Dictionary<string, double>>();
-            Dictionary<string, double> modelPareto = new Dictionary<string, double>();
+            Dictionary<string, double> modelWastePareto = new Dictionary<string, double>();
+            Dictionary<string, double> modelProductionPareto = new Dictionary<string, double>();
 
             foreach (var record in inputData)
             {
@@ -655,12 +674,20 @@ namespace KontrolaWizualnaRaport
                 else
                     model = model.Replace("LLFML", "");
 
+
+                if (targetModel != "all")
+                    if (targetModel != model) continue;
+
                 if (!wasteInDayPerModel[record.FixedDateTime.Date].ContainsKey(model))
                 {
                     wasteInDayPerModel[record.FixedDateTime.Date].Add(model, 0);
                     totalInDayPerModel[record.FixedDateTime.Date].Add(model, 0);
                     scrapInDayPerModel[record.FixedDateTime.Date].Add(model, 0);
                 }
+
+                if (!modelProductionPareto.ContainsKey(model))
+                    modelProductionPareto.Add(model, 0);
+                modelProductionPareto[model] += record.AllQty;
 
                 var typ = typeof(dataStructure);
                 string reasonNg = "Ng" + reason;
@@ -672,8 +699,13 @@ namespace KontrolaWizualnaRaport
                     {
                         double value = double.Parse(type.GetValue(record).ToString());
                         wasteInDayPerModel[record.FixedDateTime.Date][model] += value;
-                        if (!modelPareto.ContainsKey(model)) modelPareto.Add(model, 0);
-                        modelPareto[model] += value;
+                        if (!modelWastePareto.ContainsKey(model))
+                        {
+                            modelWastePareto.Add(model, 0);
+                            
+                        }
+                        modelWastePareto[model] += value;
+                        
                     }
 
                     if (type.Name == reasonScrap)
@@ -722,13 +754,20 @@ namespace KontrolaWizualnaRaport
                 ngPoint.MarkerStyle = MarkerStyle.Circle;
                 ngPoint.MarkerSize = 10;
                 ngPoint.SetValueXY(dateEntry.Key, (totalNg / totalTotal) * 100);
-                List<string> ngToolTip = new List<string>();
+
+                //List<string> ngToolTip = new List<string>();
+                List<Tuple<double, string>> NgToolTipTupleList = new List<Tuple<double, string>>();
                 foreach (var modelEntry in wasteInDayPerModel[dateEntry.Key])
                 {
-                    ngToolTip.Add(modelEntry.Value + @"/" + totalInDayPerModel[dateEntry.Key][modelEntry.Key] + "szt. - " + modelEntry.Key);
+                    NgToolTipTupleList.Add(new Tuple<double, string>(Math.Round( modelEntry.Value/ totalInDayPerModel[dateEntry.Key][modelEntry.Key]*100,1), modelEntry.Value+@"/"+totalInDayPerModel[dateEntry.Key][modelEntry.Key] + "szt. - " + modelEntry.Key));
+                    //ngToolTip.Add(modelEntry.Value + @"/" + totalInDayPerModel[dateEntry.Key][modelEntry.Key] + "szt. - " + modelEntry.Key);
                 }
-                ngToolTip = ngToolTip.OrderByDescending(o => o).ToList(); ;
-                ngPoint.ToolTip = string.Join(Environment.NewLine, ngToolTip.ToArray());
+
+                NgToolTipTupleList = NgToolTipTupleList.OrderByDescending(o => o.Item1).ToList();
+ 
+                //ngToolTip = ngToolTip.OrderByDescending(o => o).ToList(); ;
+                string tip = string.Join(Environment.NewLine, NgToolTipTupleList.Select(t => string.Format("{0}% - {1}", t.Item1, t.Item2)));
+                ngPoint.ToolTip = tip;
                 ngSeries.Points.Add(ngPoint);
 
                 DataPoint scrapPoint = new DataPoint();
@@ -762,127 +801,470 @@ namespace KontrolaWizualnaRaport
             targetChart.Legends[0].Position = new ElementPosition(0, 0, targetChart.Legends[0].Position.Width, targetChart.Legends[0].Position.Height);
 
             //modelPareto
-            List<Tuple<double, string>> paretoList = new List<Tuple<double, string>>();
+            List<Tuple<double, string>> paretoQtyList = new List<Tuple<double, string>>();
+            List<Tuple<double, string>> paretoPercentageList = new List<Tuple<double, string>>();
             
-            foreach (var keyentry in modelPareto)
+            foreach (var keyentry in modelWastePareto)
             {
-                paretoList.Add(new Tuple<double, string>(keyentry.Value, keyentry.Key));
+                paretoQtyList.Add(new Tuple<double, string>(keyentry.Value, keyentry.Key));
+                paretoPercentageList.Add(new Tuple<double, string>(keyentry.Value / modelProductionPareto[keyentry.Key], keyentry.Key));
+            }
+
+            paretoQtyList = paretoQtyList.OrderByDescending(o => o.Item1).ToList();
+            paretoPercentageList = paretoPercentageList.OrderByDescending(o => o.Item1).ToList();
+
+            paretoQtyChart.Series.Clear();
+            paretoQtyChart.ChartAreas.Clear();
+            paretoQtyChart.Legends.Clear();
+            
+            Series seriesParetoNg = new Series();
+            seriesParetoNg.ChartType = SeriesChartType.Column;
+
+            ChartArea areaPareto = new ChartArea();
+            areaPareto.AxisX.LabelStyle.Interval = 1;
+            areaPareto.AxisX.MajorGrid.LineColor = System.Drawing.Color.Silver;
+            areaPareto.AxisY.MajorGrid.LineColor = System.Drawing.Color.Silver;
+
+            foreach (var item in paretoQtyList)
+            {
+                if (item.Item1>0)
+                seriesParetoNg.Points.AddXY(item.Item2, item.Item1);
+            }
+
+            paretoQtyChart.ChartAreas.Add(areaPareto);
+            paretoQtyChart.Series.Add(seriesParetoNg);
+
+            //
+            paretoPercentageChart.Series.Clear();
+            paretoPercentageChart.ChartAreas.Clear();
+            paretoPercentageChart.Legends.Clear();
+
+            Series seriesParetoPrcNg = new Series();
+            seriesParetoPrcNg.ChartType = SeriesChartType.Column;
+
+            ChartArea areaParetoPrc = new ChartArea();
+            areaParetoPrc.AxisX.LabelStyle.Interval = 1;
+            areaParetoPrc.AxisY.LabelStyle.Format = "{0.0}%";
+            areaParetoPrc.AxisX.MajorGrid.LineColor = System.Drawing.Color.Silver;
+            areaParetoPrc.AxisY.MajorGrid.LineColor = System.Drawing.Color.Silver;
+
+            foreach (var item in paretoPercentageList)
+            {
+                if (item.Item1 > 0)
+                    seriesParetoPrcNg.Points.AddXY(item.Item2, item.Item1*100);
+            }
+
+            paretoPercentageChart.ChartAreas.Add(areaParetoPrc);
+            paretoPercentageChart.Series.Add(seriesParetoPrcNg);
+
+        }
+
+        public static void DrawWasteParetoPerReason(Chart targetChart, Chart paretoQtyChart, string targetModel, Chart paretoPercentageChart, List<dataStructure> inputData, string reason, Dictionary<string, string> modelDictionary)
+        {
+            DataTable result = new DataTable();
+            Dictionary<DateTime, Dictionary<string, double>> wasteInDayPerModel = new Dictionary<DateTime, Dictionary<string, double>>();
+            Dictionary<DateTime, Dictionary<string, double>> scrapInDayPerModel = new Dictionary<DateTime, Dictionary<string, double>>();
+            Dictionary<DateTime, Dictionary<string, double>> totalInDayPerModel = new Dictionary<DateTime, Dictionary<string, double>>();
+            Dictionary<string, double> modelWastePareto = new Dictionary<string, double>();
+            Dictionary<string, double> modelProductionPareto = new Dictionary<string, double>();
+
+            foreach (var record in inputData)
+            {
+                if (!wasteInDayPerModel.ContainsKey(record.FixedDateTime.Date))
+                {
+                    wasteInDayPerModel.Add(record.FixedDateTime.Date, new Dictionary<string, double>());
+                    totalInDayPerModel.Add(record.FixedDateTime.Date, new Dictionary<string, double>());
+                    scrapInDayPerModel.Add(record.FixedDateTime.Date, new Dictionary<string, double>());
+                }
+                string model = "???";
+                modelDictionary.TryGetValue(record.NumerZlecenia, out model);
+                if (model == null)
+                    model = "???";
+                else
+                    model = model.Replace("LLFML", "");
+
+
+                if (targetModel != "all")
+                    if (targetModel != model) continue;
+
+                if (!wasteInDayPerModel[record.FixedDateTime.Date].ContainsKey(model))
+                {
+                    wasteInDayPerModel[record.FixedDateTime.Date].Add(model, 0);
+                    totalInDayPerModel[record.FixedDateTime.Date].Add(model, 0);
+                    scrapInDayPerModel[record.FixedDateTime.Date].Add(model, 0);
+                }
+
+                if (!modelProductionPareto.ContainsKey(model))
+                    modelProductionPareto.Add(model, 0);
+                modelProductionPareto[model] += record.AllQty;
+
+                var typ = typeof(dataStructure);
+                string reasonNg = "Ng" + reason;
+                string reasonScrap = "Scrap" + reason;
+
+                foreach (var type in typ.GetProperties())
+                {
+                    if (type.Name == reasonNg)
+                    {
+                        double value = double.Parse(type.GetValue(record).ToString());
+                        wasteInDayPerModel[record.FixedDateTime.Date][model] += value;
+                        if (!modelWastePareto.ContainsKey(model))
+                        {
+                            modelWastePareto.Add(model, 0);
+
+                        }
+                        modelWastePareto[model] += value;
+
+                    }
+
+                    if (type.Name == reasonScrap)
+                    {
+
+                        double value = double.Parse(type.GetValue(record).ToString());
+                        scrapInDayPerModel[record.FixedDateTime.Date][model] += value;
+                        //Debug.WriteLine(record.FixedDateTime.ToShortDateString() + " " + type.Name + " " + value);
+                    }
+
+                }
+                totalInDayPerModel[record.FixedDateTime.Date][model] += record.AllQty;
+
+
 
             }
 
-            paretoList = paretoList.OrderByDescending(o => o.Item1).ToList();
+            Series ngSeries = new Series();
+            ngSeries.ChartType = SeriesChartType.Line;
+            ngSeries.BorderWidth = 3;
+            ngSeries.Name = "NG [%]";
 
-            paretoChart.Series.Clear();
-            paretoChart.ChartAreas.Clear();
-            paretoChart.Legends.Clear();
+            Series scrapSeries = new Series();
+            scrapSeries.ChartType = SeriesChartType.Line;
+            scrapSeries.BorderWidth = 3;
+            scrapSeries.Name = "SCRAP [%]";
+
+            ChartArea ar = new ChartArea();
+            ar.AxisX.LabelStyle.Interval = 1;
+            ar.AxisX.MajorGrid.Interval = 1;
+            ar.AxisY.MajorGrid.Interval = 0.5;
+            ar.AxisY.MinorGrid.Interval = 0.1;
+            ar.AxisY.MinorGrid.LineColor = System.Drawing.Color.Silver;
+            ar.AxisX.MajorGrid.LineColor = System.Drawing.Color.Silver;
+            ar.AxisY.MinorGrid.Enabled = true;
+            ar.AxisX.IntervalType = DateTimeIntervalType.Days;
+            ar.AxisY.LabelStyle.Format = "{0.00} %";
+
+            foreach (var dateEntry in wasteInDayPerModel)
+            {
+                double totalNg = wasteInDayPerModel[dateEntry.Key].Select(m => m.Value).Sum(s => s);
+                double totalTotal = totalInDayPerModel[dateEntry.Key].Select(m => m.Value).Sum(s => s);
+                double totalScrap = scrapInDayPerModel[dateEntry.Key].Select(m => m.Value).Sum(s => s);
+
+                DataPoint ngPoint = new DataPoint();
+                ngPoint.MarkerStyle = MarkerStyle.Circle;
+                ngPoint.MarkerSize = 10;
+                ngPoint.SetValueXY(dateEntry.Key, (totalNg / totalTotal) * 100);
+
+                //List<string> ngToolTip = new List<string>();
+                List<Tuple<double, string>> NgToolTipTupleList = new List<Tuple<double, string>>();
+                foreach (var modelEntry in wasteInDayPerModel[dateEntry.Key])
+                {
+                    NgToolTipTupleList.Add(new Tuple<double, string>(Math.Round(modelEntry.Value / totalInDayPerModel[dateEntry.Key][modelEntry.Key] * 100, 1), modelEntry.Value + @"/" + totalInDayPerModel[dateEntry.Key][modelEntry.Key] + "szt. - " + modelEntry.Key));
+                    //ngToolTip.Add(modelEntry.Value + @"/" + totalInDayPerModel[dateEntry.Key][modelEntry.Key] + "szt. - " + modelEntry.Key);
+                }
+
+                NgToolTipTupleList = NgToolTipTupleList.OrderByDescending(o => o.Item1).ToList();
+
+                //ngToolTip = ngToolTip.OrderByDescending(o => o).ToList(); ;
+                string tip = string.Join(Environment.NewLine, NgToolTipTupleList.Select(t => string.Format("{0}% - {1}", t.Item1, t.Item2)));
+                ngPoint.ToolTip = tip;
+                ngSeries.Points.Add(ngPoint);
+
+                DataPoint scrapPoint = new DataPoint();
+                scrapPoint.MarkerStyle = MarkerStyle.Circle;
+                scrapPoint.MarkerSize = 10;
+                scrapPoint.SetValueXY(dateEntry.Key, (totalScrap / totalTotal) * 100);
+
+                List<string> scrapToolTip = new List<string>();
+                foreach (var modelEntry in scrapInDayPerModel[dateEntry.Key])
+                {
+                    scrapToolTip.Add(modelEntry.Value + @"/" + totalInDayPerModel[dateEntry.Key][modelEntry.Key] + "szt. - " + modelEntry.Key);
+                }
+                scrapToolTip = scrapToolTip.OrderByDescending(o => o).ToList(); ;
+                scrapPoint.ToolTip = string.Join(Environment.NewLine, scrapToolTip.ToArray());
+                scrapSeries.Points.Add(scrapPoint);
+            }
+
+
+
+            // var dictNg = wasteInDayPerModel.Select(item => new { Key = item.Value.Keys, wartosc = item.Value.Values }).ToDictionary(item => item, item=> item.wartosc);
+            // var dictScrap = scrapInDayPerModel.SelectMany(sel => sel.Value).ToDictionary(p => p.Key, p => p.Value);
+
+            targetChart.Series.Clear();
+            targetChart.ChartAreas.Clear();
+
+            targetChart.Series.Add(ngSeries);
+            targetChart.Series.Add(scrapSeries);
+            targetChart.ChartAreas.Add(ar);
+            targetChart.Legends[0].DockedToChartArea = targetChart.ChartAreas[0].Name;
+            //targetChart.Legends[0].BackColor = System.Drawing.Color.Transparent;
+            targetChart.Legends[0].Position = new ElementPosition(0, 0, targetChart.Legends[0].Position.Width, targetChart.Legends[0].Position.Height);
+
+            //modelPareto
+            List<Tuple<double, string>> paretoQtyList = new List<Tuple<double, string>>();
+            List<Tuple<double, string>> paretoPercentageList = new List<Tuple<double, string>>();
+
+            foreach (var keyentry in modelWastePareto)
+            {
+                paretoQtyList.Add(new Tuple<double, string>(keyentry.Value, keyentry.Key));
+                paretoPercentageList.Add(new Tuple<double, string>(keyentry.Value / modelProductionPareto[keyentry.Key], keyentry.Key));
+            }
+
+            paretoQtyList = paretoQtyList.OrderByDescending(o => o.Item1).ToList();
+            paretoPercentageList = paretoPercentageList.OrderByDescending(o => o.Item1).ToList();
+
+            paretoQtyChart.Series.Clear();
+            paretoQtyChart.ChartAreas.Clear();
+            paretoQtyChart.Legends.Clear();
 
             Series seriesParetoNg = new Series();
             seriesParetoNg.ChartType = SeriesChartType.Column;
 
             ChartArea areaPareto = new ChartArea();
             areaPareto.AxisX.LabelStyle.Interval = 1;
+            areaPareto.AxisX.MajorGrid.LineColor = System.Drawing.Color.Silver;
+            areaPareto.AxisY.MajorGrid.LineColor = System.Drawing.Color.Silver;
 
-
-            foreach (var item in paretoList)
+            foreach (var item in paretoQtyList)
             {
-                if (item.Item1>0)
-                seriesParetoNg.Points.AddXY(item.Item2, item.Item1);
+                if (item.Item1 > 0)
+                    seriesParetoNg.Points.AddXY(item.Item2, item.Item1);
             }
 
-            paretoChart.ChartAreas.Add(areaPareto);
-            paretoChart.Series.Add(seriesParetoNg);
+            paretoQtyChart.ChartAreas.Add(areaPareto);
+            paretoQtyChart.Series.Add(seriesParetoNg);
+
+            //
+            paretoPercentageChart.Series.Clear();
+            paretoPercentageChart.ChartAreas.Clear();
+            paretoPercentageChart.Legends.Clear();
+
+            Series seriesParetoPrcNg = new Series();
+            seriesParetoPrcNg.ChartType = SeriesChartType.Column;
+
+            ChartArea areaParetoPrc = new ChartArea();
+            areaParetoPrc.AxisX.LabelStyle.Interval = 1;
+            areaParetoPrc.AxisY.LabelStyle.Format = "{0.0}%";
+            areaParetoPrc.AxisX.MajorGrid.LineColor = System.Drawing.Color.Silver;
+            areaParetoPrc.AxisY.MajorGrid.LineColor = System.Drawing.Color.Silver;
+
+            foreach (var item in paretoPercentageList)
+            {
+                if (item.Item1 > 0)
+                    seriesParetoPrcNg.Points.AddXY(item.Item2, item.Item1 * 100);
+            }
+
+            paretoPercentageChart.ChartAreas.Add(areaParetoPrc);
+            paretoPercentageChart.Series.Add(seriesParetoPrcNg);
+
         }
 
-        public static void DrawWastePerModel (Chart chartLevel, Chart chartReasons, List<dataStructure> inputData, Dictionary<string, string> modelDictionary, string selectedModel)
+        public static void DrawWasteLevelPerModel (Chart chartLevel, string targetReason,List<dataStructure> inputData, Dictionary<string, string> modelDictionary, string selectedModel)
         {
             Dictionary<DateTime, double> wastePerDay = new Dictionary<DateTime, double>();
+            Dictionary<DateTime, double> scrapPerDay = new Dictionary<DateTime, double>();
             Dictionary<DateTime, double> totalPerDay = new Dictionary<DateTime, double>();
-            Dictionary<string, double> wasteReasons = new Dictionary<string, double>();
+
             double total = 0;
 
             foreach (var record in inputData)
             {
                 string model = "";
                 if (!modelDictionary.TryGetValue(record.NumerZlecenia, out model)) continue;
-                
+
+
+                //if (targetReason != "all")
+                //    if (targetReason != model) continue;
+
                 if (model.Contains(selectedModel))
                 {
                     if (!wastePerDay.ContainsKey(record.FixedDateTime.Date))
                     {
                         wastePerDay.Add(record.FixedDateTime.Date, 0);
                         totalPerDay.Add(record.FixedDateTime.Date, 0);
+                        scrapPerDay.Add(record.FixedDateTime.Date, 0);
                     }
-                    wastePerDay[record.FixedDateTime.Date] += record.AllNg;
                     totalPerDay[record.FixedDateTime.Date] += record.AllQty;
 
+                    if (targetReason == "all")
+                    {
+                        wastePerDay[record.FixedDateTime.Date] += record.AllNg;
+                        scrapPerDay[record.FixedDateTime.Date] += record.AllScrap;
+                    }
+
+                    else
+                    {
+                        var typ = typeof(dataStructure);
+                        foreach (var type in typ.GetProperties())
+                        {
+                            if (type.Name.StartsWith("Ng"))
+                            {
+                                if (type.Name == targetReason)
+                                {
+                                    wastePerDay[record.FixedDateTime.Date]+= double.Parse(type.GetValue(record).ToString());
+                                }
+                            } 
+                            else if (type.Name.StartsWith("Scrap"))
+                            {
+                                if (type.Name == targetReason)
+                                {
+                                    scrapPerDay[record.FixedDateTime.Date] += double.Parse(type.GetValue(record).ToString());
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            
+            chartLevel.Series.Clear();
+            //chartLevel.Legends.Clear();
+            chartLevel.ChartAreas.Clear();
+
+            Series seriesNg = new Series();
+            seriesNg.ChartType = SeriesChartType.Line;
+            seriesNg.BorderWidth = 3;
+            seriesNg.Name = "NG";
+
+            Series seriesScrap = new Series();
+            seriesScrap.ChartType = SeriesChartType.Line;
+            seriesScrap.BorderWidth = 3;
+            seriesScrap.Name = "Scrap";
+
+            ChartArea arLevel = new ChartArea();
+            arLevel.AxisX.MajorGrid.LineColor = System.Drawing.Color.Silver;
+            arLevel.AxisX.IntervalType = DateTimeIntervalType.Days;
+            arLevel.AxisX.Interval = 1;
+            arLevel.AxisY.MajorGrid.LineColor = System.Drawing.Color.Silver;
+            arLevel.AxisY.LabelStyle.Format = "{0.00} %";
+
+            
+
+            foreach (var dayEntry in wastePerDay)
+            {
+                DataPoint pNg = new DataPoint();
+                pNg.MarkerStyle = MarkerStyle.Circle;
+                pNg.MarkerSize = 10;
+                pNg.SetValueXY(dayEntry.Key, dayEntry.Value / totalPerDay[dayEntry.Key]*100);
+                seriesNg.Points.Add(pNg);
+
+                DataPoint pSc = new DataPoint();
+                pSc.MarkerStyle = MarkerStyle.Circle;
+                pSc.MarkerSize = 10;
+                pSc.SetValueXY(dayEntry.Key, scrapPerDay[dayEntry.Key] / totalPerDay[dayEntry.Key] * 100);
+                seriesScrap.Points.Add(pSc);
+            }
+
+            chartLevel.ChartAreas.Add(arLevel);
+            chartLevel.Series.Add(seriesNg);
+            chartLevel.Series.Add(seriesScrap);
+            chartLevel.Legends[0].DockedToChartArea = chartLevel.ChartAreas[0].Name;
+            //chartLevel.ChartAreas[0].AxisY.MajorGrid.Interval = 0.01;// (chartLevel.ChartAreas[0].AxisY.Maximum - chartLevel.ChartAreas[0].AxisY.Minimum) / 10;
+
+        }
+
+        public static void DrawWasteReasonsPerModel(Chart chartReasonsNg, Chart chartReasonsScrap, List<dataStructure> inputData, Dictionary<string, string> modelDictionary, string selectedModel)
+        {
+
+            Dictionary<string, double> wasteReasonsNg = new Dictionary<string, double>();
+            Dictionary<string, double> wasteReasonsScrap = new Dictionary<string, double>();
+
+            double total = 0;
+
+            foreach (var record in inputData)
+            {
+                string model = "";
+                if (!modelDictionary.TryGetValue(record.NumerZlecenia, out model)) continue;
+
+                if (model.Contains(selectedModel))
+                {
                     var typ = typeof(dataStructure);
 
                     foreach (var type in typ.GetProperties())
                     {
-                        if(type.Name.StartsWith("Ng"))
+                        if (type.Name.StartsWith("Ng"))
                         {
-                            if (!wasteReasons.ContainsKey(type.Name))
+                            if (!wasteReasonsNg.ContainsKey(type.Name))
                             {
-                                wasteReasons.Add(type.Name, 0);
+                                wasteReasonsNg.Add(type.Name, 0);
                             }
-                            wasteReasons[type.Name] += double.Parse(type.GetValue(record).ToString());
+                            wasteReasonsNg[type.Name] += double.Parse(type.GetValue(record).ToString());
+                        }
+                        else if (type.Name.StartsWith("Scrap"))
+                        {
+                            if (!wasteReasonsScrap.ContainsKey(type.Name))
+                            {
+                                wasteReasonsScrap.Add(type.Name, 0);
+                            }
+                            wasteReasonsScrap[type.Name] += double.Parse(type.GetValue(record).ToString());
                         }
                     }
                 }
             }
 
-            List<Tuple<double, string>> reasonsList = new List<Tuple<double, string>>();
-            foreach (var reasonEntry in wasteReasons)
+            List<Tuple<double, string>> reasonsListNg = new List<Tuple<double, string>>();
+            List<Tuple<double, string>> reasonsListScrap = new List<Tuple<double, string>>();
+
+            foreach (var reasonEntry in wasteReasonsNg)
             {
-                reasonsList.Add(new Tuple<double, string>(reasonEntry.Value, reasonEntry.Key));
+                reasonsListNg.Add(new Tuple<double, string>(reasonEntry.Value, reasonEntry.Key));
             }
-            reasonsList=reasonsList.OrderByDescending(o => o.Item1).ToList();
-
-            chartLevel.Series.Clear();
-            chartLevel.Legends.Clear();
-            chartLevel.ChartAreas.Clear();
-            chartReasons.Series.Clear();
-            chartReasons.Legends.Clear();
-            chartReasons.ChartAreas.Clear();
-
-
-            Series seriesLevel = new Series();
-            seriesLevel.ChartType = SeriesChartType.Line;
-            seriesLevel.BorderWidth = 3;
-            
-            ChartArea arLevel = new ChartArea();
-            arLevel.AxisX.MajorGrid.LineColor = System.Drawing.Color.Silver;
-            arLevel.AxisX.IntervalType = DateTimeIntervalType.Days;
-
-            arLevel.AxisY.MajorGrid.LineColor = System.Drawing.Color.Silver;
-            arLevel.AxisY.LabelStyle.Format = "{0.00} %";
-
-            foreach (var dayEntry in wastePerDay)
+            foreach (var reasonEntry in wasteReasonsScrap)
             {
-                DataPoint p = new DataPoint();
-                p.MarkerStyle = MarkerStyle.Circle;
-                p.MarkerSize = 10;
-                p.SetValueXY(dayEntry.Key, dayEntry.Value / totalPerDay[dayEntry.Key]*100);
-                seriesLevel.Points.Add(p);
+                reasonsListScrap.Add(new Tuple<double, string>(reasonEntry.Value, reasonEntry.Key));
             }
-            chartLevel.ChartAreas.Add(arLevel);
-            chartLevel.Series.Add(seriesLevel);
 
-            Series seriesReasosn = new Series();
-            seriesReasosn.ChartType = SeriesChartType.Column;
+            reasonsListNg = reasonsListNg.OrderByDescending(o => o.Item1).ToList();
+            reasonsListScrap = reasonsListScrap.OrderByDescending(o => o.Item1).ToList();
 
-            ChartArea arReasons = new ChartArea();
-            arReasons.AxisX.LabelStyle.Interval = 1;
-            arReasons.AxisX.MajorGrid.LineColor = System.Drawing.Color.Silver;
-            arReasons.AxisY.MajorGrid.LineColor = System.Drawing.Color.Silver;
+            chartReasonsNg.Series.Clear();
+            chartReasonsNg.Legends.Clear();
+            chartReasonsNg.ChartAreas.Clear();
+            ///
+            Series seriesNg = new Series();
+            seriesNg.ChartType = SeriesChartType.Column;
 
-            foreach (var item in reasonsList)
+            ChartArea arNg = new ChartArea();
+            arNg.AxisX.LabelStyle.Interval = 1;
+            arNg.AxisX.MajorGrid.LineColor = System.Drawing.Color.Silver;
+            arNg.AxisY.MajorGrid.LineColor = System.Drawing.Color.Silver;
+            arNg.AxisX.Interval = 1;
+
+            foreach (var item in reasonsListNg)
             {
-                seriesReasosn.Points.AddXY(item.Item2, item.Item1);
+                seriesNg.Points.AddXY(item.Item2, item.Item1);
             }
-            chartReasons.ChartAreas.Add(arReasons);
-            chartReasons.Series.Add(seriesReasosn);
+            chartReasonsNg.ChartAreas.Add(arNg);
+            chartReasonsNg.Series.Add(seriesNg);
+            //Scrap
+            chartReasonsScrap.Series.Clear();
+            chartReasonsScrap.Legends.Clear();
+            chartReasonsScrap.ChartAreas.Clear();
+            ///
+            Series seriesScrap = new Series();
+            seriesScrap.ChartType = SeriesChartType.Column;
+
+            ChartArea arScrap = new ChartArea();
+            arScrap.AxisX.LabelStyle.Interval = 1;
+            arScrap.AxisX.MajorGrid.LineColor = System.Drawing.Color.Silver;
+            arScrap.AxisY.MajorGrid.LineColor = System.Drawing.Color.Silver;
+            arScrap.AxisX.Interval = 1;
+
+            foreach (var item in reasonsListScrap)
+            {
+                seriesScrap.Points.AddXY(item.Item2, item.Item1);
+            }
+            chartReasonsScrap.ChartAreas.Add(arScrap);
+            chartReasonsScrap.Series.Add(seriesScrap);
         }
-        
+
     }
 }

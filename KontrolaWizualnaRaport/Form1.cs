@@ -2,12 +2,14 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
+using System.Diagnostics;
 using System.Drawing;
 using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using System.Windows.Forms.DataVisualization.Charting;
 
 namespace KontrolaWizualnaRaport
 {
@@ -44,15 +46,16 @@ namespace KontrolaWizualnaRaport
             comboBox1.SelectedIndex = comboBox1.Items.IndexOf("Wszyscy");
 
             dataGridViewDuplikaty.DataSource=  SzukajDuplikatow();
+            ColumnsAutoSize(dataGridViewDuplikaty, DataGridViewAutoSizeColumnMode.AllCells);
             dataGridViewDuplikaty.Sort(dataGridViewDuplikaty.Columns[0], ListSortDirection.Descending);
             ColumnsAutoSize(dataGridViewDuplikaty, DataGridViewAutoSizeColumnMode.AllCells);
 
             dataGridViewPomylkiIlosc.DataSource = PomylkiIlosci();
             ColumnsAutoSize(dataGridViewPomylkiIlosc, DataGridViewAutoSizeColumnMode.AllCells);
 
-            dataGridView2.DataSource = MoreThan50();
-            ColumnsAutoSize(dataGridView2, DataGridViewAutoSizeColumnMode.AllCells);
-            dataGridView2.Sort(dataGridView2.Columns["NG"], ListSortDirection.Descending);
+            dataGridViewPowyzej50.DataSource = MoreThan50();
+            ColumnsAutoSize(dataGridViewPowyzej50, DataGridViewAutoSizeColumnMode.AllCells);
+            dataGridViewPowyzej50.Sort(dataGridViewPowyzej50.Columns["Ile"], ListSortDirection.Descending);
 
             PropertyInfo[] properties = typeof(dataStructure).GetProperties();
             HashSet<string> uniqueWaste = new HashSet<string>();
@@ -66,8 +69,82 @@ namespace KontrolaWizualnaRaport
             }
             comboBox2.Items.AddRange(uniqueWaste.ToArray());
             comboBox3.Items.AddRange(modelFamilyList(inspectionData, lotModelDictionary));
-
+            
         }
+
+        private void Form1_Resize(object sender, EventArgs e)
+        {
+            //tab wydajnosc
+            chartEfficiency.Width = this.Width - panel1.Width;
+            dataGridViewEffciency.Height = panel1.Height - comboBox1.Height;
+
+            //tab przyczyny odpadu
+            chartPrzyczynyOdpaduScrap.Height = tabPage2.Height / 2;
+
+            //tab bledy
+            panel11.Width = this.Width / 2;
+            dataGridViewDuplikaty.Width = panel11.Width / 2;
+            dataGridViewPomylkiIlosc.Width = panel12.Width / 2;
+            label1.Location = new Point(dataGridViewDuplikaty.Location.X + 100, 20);
+            label2.Location = new Point(dataGridViewPomylkiIlosc.Location.X + panel12.Location.X + 100, 20);
+            panel14.Location = new Point(dataGridViewPowyzej50.Location.X + 80, 10);
+
+            //tab analiza po przyczynie
+            chartReasonLevel.Height = tabPage6.Height / 2;
+            chartReasonPareto.Width = tabPage6.Width / 2;
+
+            //tab analiza po modelu
+            chartModelLevel.Height = tabPage7.Height / 2;
+            chartModelReasonsNg.Width = panel13.Width / 2;
+        }
+
+        private void tabControl1_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            switch (tabControl1.SelectedIndex)
+            {
+                case 0://tab wydajnosc
+                    chartEfficiency.Width = this.Width - panel1.Width;
+                    dataGridViewEffciency.Height = panel1.Height - comboBox1.Height;
+                    break;
+                case 1://tab przyczyny odpadu
+                    chartPrzyczynyOdpaduScrap.Height = tabPage2.Height / 2;
+                    break;
+                case 3://tab bledy
+                    panel11.Width = this.Width / 2;
+                    dataGridViewDuplikaty.Width = panel11.Width / 2;
+                    dataGridViewPomylkiIlosc.Width = panel12.Width / 2;
+                    label1.Location = new Point(dataGridViewDuplikaty.Location.X + 100, 20);
+                    label2.Location = new Point(dataGridViewPomylkiIlosc.Location.X + panel12.Location.X+ 100, 20);
+                    panel14.Location = new Point(dataGridViewPowyzej50.Location.X + 100, 20);
+                    break;
+                case 5://tab analiza po przyczynie
+                    chartReasonLevel.Height = tabPage6.Height / 2;
+                    chartReasonPareto.Width = tabPage6.Width / 2;
+                    break;
+                case 6://tab analiza po modelu
+                    chartModelLevel.Height = tabPage7.Height / 2;
+                    chartModelReasonsNg.Width = panel13.Width / 2;
+                    break;
+            }
+            
+        }
+
+        private DataTable LotWrongNumber(List<dataStructure> inputData)
+        {
+            DataTable result = new DataTable();
+            result.Columns.Add("LOT");
+            result.Columns.Add("Operator");
+            result.Columns.Add("Data");
+
+            foreach (var record in inputData)
+            {
+                if (lotModelDictionary.ContainsKey(record.NumerZlecenia)) continue;
+                result.Rows.Add(record.NumerZlecenia, record.Oper, record.RealDateTime);
+            }
+
+            return result;
+        }
+        
 
         private string[] modelFamilyList(List<dataStructure> inputData,  Dictionary<string, string> lotModelDictionary)
         {
@@ -82,20 +159,7 @@ namespace KontrolaWizualnaRaport
             return uniquemodels.ToList().OrderBy(o => o).ToArray();
         }
 
-        private void Form1_Resize(object sender, EventArgs e)
-        {
-            chart1.Width = this.Width - panel1.Width;
-            dataGridView1.Height = panel1.Height - comboBox1.Height;
-            chartPrzyczynyOdpaduScrap.Height = tabPage2.Height / 2;
-            dataGridViewDuplikaty.Width = this.Width / 3;
-            dataGridViewPomylkiIlosc.Width = this.Width / 3;
-            chartReasonLevel.Height = tabPage6.Height / 2;
-            chartModelLevel.Height = tabPage7.Height / 2;
-
-            label1.Location = new Point(dataGridViewDuplikaty.Location.X + 100,20);
-            label2.Location = new Point(dataGridViewPomylkiIlosc.Location.X + 100,20);
-            label3.Location = new Point(dataGridView2.Location.X + 100, 20);
-        }
+        
 
         private DataTable MoreThan50()
         {
@@ -104,13 +168,20 @@ namespace KontrolaWizualnaRaport
             result.Columns.Add("Operator");
             result.Columns.Add("Model");
             result.Columns.Add("LOT");
-            result.Columns.Add("NG", typeof (int));
+            result.Columns.Add("Typ");
+            result.Columns.Add("Ile", typeof (int));
+            decimal ngThreshold = numericUpDown1.Value;
+            decimal scrapThreshold = numericUpDown2.Value;
 
             foreach (var record in inspectionData)
             {
-                if (record.AllNg > 15) 
+                if (record.AllNg >= ngThreshold) 
                 {
-                    result.Rows.Add(record.RealDateTime, record.Oper, lotModelDictionary[record.NumerZlecenia],record.NumerZlecenia, record.AllNg);
+                    result.Rows.Add(record.RealDateTime, record.Oper, lotModelDictionary[record.NumerZlecenia],record.NumerZlecenia,"NG", record.AllNg);
+                }
+                if (record.AllScrap >= scrapThreshold) 
+                {
+                    result.Rows.Add(record.RealDateTime, record.Oper, lotModelDictionary[record.NumerZlecenia], record.NumerZlecenia,"SCRAP", record.AllScrap);
                 }
             }
 
@@ -199,8 +270,8 @@ namespace KontrolaWizualnaRaport
 
         private void comboBox1_SelectedIndexChanged(object sender, EventArgs e)
         {
-           dataGridView1.DataSource = Charting.DrawCapaChart(chart1, inspectionData, comboBox1.Text, lotModelDictionary);
-            foreach (DataGridViewColumn col in dataGridView1.Columns)
+           dataGridViewEffciency.DataSource = Charting.DrawCapaChart(chartEfficiency, inspectionData, comboBox1.Text, lotModelDictionary);
+            foreach (DataGridViewColumn col in dataGridViewEffciency.Columns)
             {
                 col.AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells;
             }
@@ -276,12 +347,138 @@ namespace KontrolaWizualnaRaport
 
         private void comboBox2_SelectedIndexChanged(object sender, EventArgs e)
         {
-            Charting.DrawScrapPerReason(chartReasonLevel, chartReasonPareto, inspectionData, comboBox2.Text, lotModelDictionary);
+            Charting.DrawWasteLevelPerReason(chartReasonLevel, chartReasonPareto,"all", chartReasonsParetoPercentage, inspectionData, comboBox2.Text, lotModelDictionary);
         }
 
         private void comboBox3_SelectedIndexChanged(object sender, EventArgs e)
         {
-            Charting.DrawWastePerModel(chartModelLevel, chartModelReasons, inspectionData, lotModelDictionary, comboBox3.Text);
+            Charting.DrawWasteLevelPerModel(chartModelLevel, "all", inspectionData, lotModelDictionary, comboBox3.Text);
+            Charting.DrawWasteReasonsPerModel(chartModelReasonsNg, chartModelReasonsScrap, inspectionData, lotModelDictionary, comboBox3.Text);
+        }
+
+
+        string currentReasonOnChart = "";
+        private void chartModelReasons_MouseMove(object sender, MouseEventArgs e)
+        {
+            
+
+            var results = chartModelReasonsNg.HitTest(e.X, e.Y, false, ChartElementType.DataPoint);
+
+
+            foreach (var result in results)
+            {
+                if (result.ChartElementType != ChartElementType.DataPoint)
+                {
+                    if (currentReasonOnChart != "all")
+                    {
+                        foreach (var pt in chartModelReasonsNg.Series[0].Points)
+                        {
+                            pt.BorderWidth = 0;
+                        }
+
+                        Charting.DrawWasteLevelPerModel(chartModelLevel, "all", inspectionData, lotModelDictionary, comboBox3.Text);
+                        currentReasonOnChart = "all";
+                    }
+                    continue;
+
+                }
+
+                var p = (DataPoint)(result.Object);
+                if (currentReasonOnChart != p.AxisLabel)
+                {
+                    Charting.DrawWasteLevelPerModel(chartModelLevel, p.AxisLabel, inspectionData, lotModelDictionary, comboBox3.Text);
+                    currentReasonOnChart = p.AxisLabel;
+                    Debug.WriteLine(p.AxisLabel);
+                    p.BorderWidth = 4;
+                    p.BorderColor = System.Drawing.Color.Red;
+                }
+                break;
+
+            }
+        }
+
+        private void chartModelReasonsScrap_MouseMove(object sender, MouseEventArgs e)
+        {
+            var results = chartModelReasonsScrap.HitTest(e.X, e.Y, false, ChartElementType.DataPoint);
+
+
+            foreach (var result in results)
+            {
+                if (result.ChartElementType != ChartElementType.DataPoint)
+                {
+                    if (currentReasonOnChart != "all")
+                    {
+                        foreach (var pt in chartModelReasonsScrap.Series[0].Points)
+                        {
+                            pt.BorderWidth = 0;
+                        }
+
+                        Charting.DrawWasteLevelPerModel(chartModelLevel, "all", inspectionData, lotModelDictionary, comboBox3.Text);
+                        currentReasonOnChart = "all";
+                    }
+                    continue;
+
+                }
+
+                var p = (DataPoint)(result.Object);
+                if (currentReasonOnChart != p.AxisLabel)
+                {
+                    Charting.DrawWasteLevelPerModel(chartModelLevel, p.AxisLabel, inspectionData, lotModelDictionary, comboBox3.Text);
+                    currentReasonOnChart = p.AxisLabel;
+                    Debug.WriteLine(p.AxisLabel);
+                    p.BorderWidth = 4;
+                    p.BorderColor = System.Drawing.Color.Red;
+                }
+                break;
+
+            }
+        }
+
+        private void numericUpDown1_ValueChanged(object sender, EventArgs e)
+        {
+            dataGridViewPowyzej50.DataSource = MoreThan50();
+        }
+
+        private void numericUpDown2_ValueChanged(object sender, EventArgs e)
+        {
+            dataGridViewPowyzej50.DataSource = MoreThan50();
+        }
+
+        private void chartReasonPareto_MouseMove(object sender, MouseEventArgs e)
+        {
+            var results = chartReasonPareto.HitTest(e.X, e.Y, false, ChartElementType.DataPoint);
+
+
+            foreach (var result in results)
+            {
+                if (result.ChartElementType != ChartElementType.DataPoint)
+                {
+                    if (currentReasonOnChart != "all")
+                    {
+                        foreach (var pt in chartReasonPareto.Series[0].Points)
+                        {
+                            pt.BorderWidth = 0;
+                        }
+
+                        Charting.DrawWasteLevelPerReason(chartReasonLevel, chartReasonPareto, "all", chartReasonsParetoPercentage, inspectionData, comboBox2.Text, lotModelDictionary);
+                        currentReasonOnChart = "all";
+                    }
+                    continue;
+
+                }
+
+                var p = (DataPoint)(result.Object);
+                if (currentReasonOnChart != p.AxisLabel)
+                {
+                    Charting.DrawWasteLevelPerReason(chartReasonLevel, chartReasonPareto, p.AxisLabel, chartReasonsParetoPercentage, inspectionData, comboBox2.Text, lotModelDictionary);
+                    currentReasonOnChart = p.AxisLabel;
+                    //Debug.WriteLine(p.AxisLabel);
+                    p.BorderWidth = 4;
+                    p.BorderColor = System.Drawing.Color.Red;
+                }
+                break;
+
+            }
         }
     }
-}
+    }
