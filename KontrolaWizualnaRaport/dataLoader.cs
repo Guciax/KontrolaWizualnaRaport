@@ -4,6 +4,7 @@ using System.Data;
 using System.Diagnostics;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 namespace KontrolaWizualnaRaport
@@ -26,6 +27,7 @@ namespace KontrolaWizualnaRaport
                 string numerZlecenia;
                 int allNg = 0;
                 int allScrap = 0;
+
 
                 int NgBrakLutowia;
                 int NgBrakDiodyLed;
@@ -64,7 +66,10 @@ namespace KontrolaWizualnaRaport
                 oper = row["Operator"].ToString();
                 goodQty = int.Parse(row["iloscDobrych"].ToString());
                 allQty = goodQty;
-                numerZlecenia = row["numerZlecenia"].ToString();
+
+                Regex rgx = new Regex("[^a-zA-Z0-9 -]");
+                string digitsLot = rgx.Replace(row["numerZlecenia"].ToString(), "");
+                numerZlecenia = digitsLot.Trim();
 
                  NgBrakLutowia = int.Parse(row["NgBrakLutowia"].ToString());
                 allQty += NgBrakLutowia;
@@ -152,7 +157,7 @@ namespace KontrolaWizualnaRaport
 
                 //Debug.WriteLine(allQty + " " + allNg + " " + allScrap);
 
-                dataStructure recordToAdd = new dataStructure(id, fixedDateTime, realDateTime, shiftNumber, oper, goodQty, allQty,allNg,allScrap, numerZlecenia, NgBrakLutowia, NgBrakDiodyLed, NgBrakResConn, NgPrzesuniecieLed, NgPrzesuniecieResConn, NgZabrudzenieLed, NgUszkodzenieMechaniczneLed, NgUszkodzenieConn, NgWadaFabrycznaDiody, NgUszkodzonePcb, NgWadaNaklejki, NgSpalonyConn, NgInne, ScrapBrakLutowia, ScrapBrakDiodyLed, ScrapBrakResConn, ScrapPrzesuniecieLed, ScrapPrzesuniecieResConn, ScrapZabrudzenieLed, ScrapUszkodzenieMechaniczneLed, ScrapUszkodzenieConn, ScrapWadaFabrycznaDiody, ScrapUszkodzonePcb, ScrapWadaNaklejki, ScrapSpalonyConn, ScrapInne, NgTestElektryczny);
+                dataStructure recordToAdd = new dataStructure(id, fixedDateTime, realDateTime, shiftNumber, oper, goodQty, allQty,allNg,allScrap, numerZlecenia, NgBrakLutowia, NgBrakDiodyLed, NgBrakResConn, NgPrzesuniecieLed, NgPrzesuniecieResConn, NgZabrudzenieLed, NgUszkodzenieMechaniczneLed, NgUszkodzenieConn, NgWadaFabrycznaDiody, NgUszkodzonePcb, NgWadaNaklejki, NgSpalonyConn, NgInne, ScrapBrakLutowia, ScrapBrakDiodyLed, ScrapBrakResConn, ScrapPrzesuniecieLed, ScrapPrzesuniecieResConn, ScrapZabrudzenieLed, ScrapUszkodzenieMechaniczneLed, ScrapUszkodzenieConn, ScrapWadaFabrycznaDiody, ScrapUszkodzonePcb, ScrapWadaNaklejki, ScrapSpalonyConn, ScrapInne, NgTestElektryczny,"");
                 result.Add(recordToAdd);
             }
 

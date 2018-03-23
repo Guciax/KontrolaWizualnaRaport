@@ -8,7 +8,7 @@ namespace KontrolaWizualnaRaport
 {
     class dataStructure
     {
-        public dataStructure(int id, DateTime fixedDateTime, DateTime realDateTime, int shiftNumber, string oper, int goodQty,int allQty,int allNg, int allScrap,string numerZlecenia,int ngBrakLutowia,int ngBrakDiodyLed,int ngBrakResConn,int ngPrzesuniecieLed,int ngPrzesuniecieResConn,int ngZabrudzenieLed,int ngUszkodzenieMechaniczneLed,int ngUszkodzenieConn,int ngWadaFabrycznaDiody,int ngUszkodzonePcb,int ngWadaNaklejki,int ngSpalonyConn,int ngInne,int scrapBrakLutowia,int scrapBrakDiodyLed,int scrapBrakResConn,int scrapPrzesuniecieLed,int scrapPrzesuniecieResConn,int scrapZabrudzenieLed,int scrapUszkodzenieMechaniczneLed,int scrapUszkodzenieConn,int scrapWadaFabrycznaDiody,int scrapUszkodzonePcb,int scrapWadaNaklejki,int scrapSpalonyConn,int scrapInne,int ngTestElektryczny)
+        public dataStructure(int id, DateTime fixedDateTime, DateTime realDateTime, int shiftNumber, string oper, int goodQty,int allQty,int allNg, int allScrap,string numerZlecenia,int ngBrakLutowia,int ngBrakDiodyLed,int ngBrakResConn,int ngPrzesuniecieLed,int ngPrzesuniecieResConn,int ngZabrudzenieLed,int ngUszkodzenieMechaniczneLed,int ngUszkodzenieConn,int ngWadaFabrycznaDiody,int ngUszkodzonePcb,int ngWadaNaklejki,int ngSpalonyConn,int ngInne,int scrapBrakLutowia,int scrapBrakDiodyLed,int scrapBrakResConn,int scrapPrzesuniecieLed,int scrapPrzesuniecieResConn,int scrapZabrudzenieLed,int scrapUszkodzenieMechaniczneLed,int scrapUszkodzenieConn,int scrapWadaFabrycznaDiody,int scrapUszkodzonePcb,int scrapWadaNaklejki,int scrapSpalonyConn,int scrapInne,int ngTestElektryczny, string smtLine)
         {
             sqlId = id;
             FixedDateTime = fixedDateTime;
@@ -48,6 +48,7 @@ namespace KontrolaWizualnaRaport
             ScrapSpalonyConn = scrapSpalonyConn;
             ScrapInne = scrapInne;
             NgTestElektryczny = ngTestElektryczny;
+            SmtLine = smtLine;
         }
 
         public int sqlId { get; }
@@ -91,5 +92,6 @@ namespace KontrolaWizualnaRaport
         public int ScrapInne { get; }
 
         public int NgTestElektryczny { get; }
+        public string SmtLine { get; set; }
     }
 }
