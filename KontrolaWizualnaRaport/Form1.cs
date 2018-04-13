@@ -29,12 +29,13 @@ namespace KontrolaWizualnaRaport
         Dictionary<string, string> lotModelDictionary = new Dictionary<string, string>();
         Dictionary<string, string> lotToOrderedQty = new Dictionary<string, string>();
         Dictionary<string, string> lotToSmtLine = new Dictionary<string, string>();
-
+        List<excelOperations.order12NC> mstOrders = new List<excelOperations.order12NC>();
         private SQLoperations sqloperations;
 
         private void Form1_Load(object sender, EventArgs e)
         {
-            masterTable = SQLoperations.DownloadFromSQL(120);
+            mstOrders = excelOperations.loadExcel();
+            masterTable = SQLoperations.DownloadFromSQL(45);
             textBox1.Text += "SQL table: " + masterTable.Rows.Count + " rows" + Environment.NewLine;
             comboBox1.Items.AddRange(CreateOperatorsList(masterTable).ToArray());
 
@@ -324,7 +325,7 @@ namespace KontrolaWizualnaRaport
 
         private void comboBox1_SelectedIndexChanged(object sender, EventArgs e)
         {
-           dataGridViewEffciency.DataSource = Charting.DrawCapaChart(chartEfficiency, inspectionData, comboBox1.Text, lotModelDictionary);
+           dataGridViewEffciency.DataSource = Charting.DrawCapaChart(chartEfficiency, inspectionData, comboBox1.Text, lotModelDictionary, radioButtonCapaLGI.Checked, mstOrders);
             foreach (DataGridViewColumn col in dataGridViewEffciency.Columns)
             {
                 col.AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells;
@@ -683,6 +684,15 @@ namespace KontrolaWizualnaRaport
         {
             Charting.DrawWasteLevelPerReason(chartReasonLevel, "all", inspectionData, comboBoxReasonAnalyses.Text, lotModelDictionary, comboBoxReasonSmtLine.Text, lotToSmtLine);
             Charting.DrawWasteParetoPerReason(chartReasonPareto, chartReasonsParetoPercentage, inspectionData, comboBoxReasonAnalyses.Text, lotModelDictionary, comboBoxReasonSmtLine.Text, lotToSmtLine);
+        }
+
+        private void radioButtonCapaLGI_CheckedChanged(object sender, EventArgs e)
+        {
+            dataGridViewEffciency.DataSource = Charting.DrawCapaChart(chartEfficiency, inspectionData, comboBox1.Text, lotModelDictionary, radioButtonCapaLGI.Checked, mstOrders);
+            foreach (DataGridViewColumn col in dataGridViewEffciency.Columns)
+            {
+                col.AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells;
+            }
         }
     }
     }

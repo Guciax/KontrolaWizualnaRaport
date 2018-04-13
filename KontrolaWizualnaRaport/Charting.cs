@@ -12,16 +12,12 @@ using System.Windows.Forms.DataVisualization.Charting;
 
 namespace KontrolaWizualnaRaport
 {
-
-
     class Charting
     {
-        public static DataTable DrawCapaChart(Chart chart, List<dataStructure> inputData, string oper, Dictionary<string, string> modelDictionary)
+        public static DataTable DrawCapaChart(Chart chart, List<dataStructure> inputData, string oper, Dictionary<string, string> modelDictionary, bool customerLGI, List<excelOperations.order12NC> mstOrders)
         {
             chart.Series.Clear();
             chart.ChartAreas.Clear();
-
-            
 
             Series serColumn = new Series();
             serColumn.IsVisibleInLegend = false;
@@ -57,7 +53,11 @@ namespace KontrolaWizualnaRaport
                 {
                     if (item.Oper == oper || oper == "Wszyscy")
                     {
-                        string model = "???";
+                       // string orderList = string.Join(Environment.NewLine, mstOrders.Select(o => o.order).ToArray());
+                        if (customerLGI & mstOrders.Select(o => o.order).ToList().Contains(item.NumerZlecenia)) continue;
+                        if (!customerLGI & !mstOrders.Select(o => o.order).ToList().Contains(item.NumerZlecenia)) continue;
+
+                            string model = "???";
                         if (modelDictionary.ContainsKey(item.NumerZlecenia))
                             model = modelDictionary[item.NumerZlecenia];
 
@@ -88,7 +88,11 @@ namespace KontrolaWizualnaRaport
 
                 foreach (var item in inputData)
                 {
-                    if (item.Oper == oper)
+                    if (customerLGI & mstOrders.Select(o => o.order).ToList().Contains(item.NumerZlecenia)) continue;
+                    if (!customerLGI & !mstOrders.Select(o => o.order).ToList().Contains(item.NumerZlecenia)) continue;
+                    if (item.Oper != oper) continue;
+
+                        if (item.Oper == oper)
                     {
                         if (!qtyPerDayPerModel.ContainsKey(item.FixedDateTime.Date))
                         {
@@ -131,7 +135,6 @@ namespace KontrolaWizualnaRaport
                         string model = "??";
                         if (modelDictionary.ContainsKey(item.NumerZlecenia))
                             model = modelDictionary[item.NumerZlecenia].Replace("LLFML", "");
-
                         dictFirstModelThenDate[model][item.FixedDateTime.Date] += item.AllQty;
                         qtyPerDayPerOperator[item.FixedDateTime.Date] += item.AllQty;
                     }
@@ -151,7 +154,6 @@ namespace KontrolaWizualnaRaport
 
                     foreach (var date in model.Value)
                     {
-                        
                         {
                             //DataPoint point = new DataPoint();
                             //point.SetValueXY(date.Key, date.Value);
@@ -174,16 +176,10 @@ namespace KontrolaWizualnaRaport
                 area.AxisY.MinorGrid.Interval = 100;
                 area.AxisY.MajorGrid.Interval = 500;
             }
-
             chart.ChartAreas.Add(area);
-
-
             //chart.Legends[0].DockedToChartArea = chart.ChartAreas[0].Name;
             //chart.Legends[0].TableStyle = LegendTableStyle.Auto;
             chart.Legends.Clear();
-
-
-
             return gridTable;
         }
 
@@ -486,6 +482,7 @@ namespace KontrolaWizualnaRaport
 
             foreach (var dataRecord in inputData)
             {
+
                 string smt = "";
                 lotToSmtLine.TryGetValue(dataRecord.NumerZlecenia, out smt);
                 if (smt != smtLine & smtLine != "Wszystkie") continue;

@@ -49,6 +49,7 @@ namespace KontrolaWizualnaRaport
             ScrapInne = scrapInne;
             NgTestElektryczny = ngTestElektryczny;
             SmtLine = smtLine;
+
         }
 
         public int sqlId { get; }
@@ -93,5 +94,6 @@ namespace KontrolaWizualnaRaport
 
         public int NgTestElektryczny { get; }
         public string SmtLine { get; set; }
+        public string Customer { get; }
     }
 }
