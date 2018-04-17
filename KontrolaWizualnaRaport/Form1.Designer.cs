@@ -28,6 +28,7 @@
         /// </summary>
         private void InitializeComponent()
         {
+            this.components = new System.ComponentModel.Container();
             System.Windows.Forms.DataVisualization.Charting.ChartArea chartArea1 = new System.Windows.Forms.DataVisualization.Charting.ChartArea();
             System.Windows.Forms.DataVisualization.Charting.Legend legend1 = new System.Windows.Forms.DataVisualization.Charting.Legend();
             System.Windows.Forms.DataVisualization.Charting.Series series1 = new System.Windows.Forms.DataVisualization.Charting.Series();
@@ -72,9 +73,14 @@
             this.tabPage2 = new System.Windows.Forms.TabPage();
             this.panel4 = new System.Windows.Forms.Panel();
             this.chartPrzyczynyOdpaduNg = new System.Windows.Forms.DataVisualization.Charting.Chart();
+            this.contextMenuStripPrintPrzyczynyOdpadu = new System.Windows.Forms.ContextMenuStrip(this.components);
+            this.toolStripMenuItem1 = new System.Windows.Forms.ToolStripMenuItem();
             this.chartPrzyczynyOdpaduScrap = new System.Windows.Forms.DataVisualization.Charting.Chart();
             this.panel3 = new System.Windows.Forms.Panel();
             this.dataGridViewNgScrapReasons = new System.Windows.Forms.DataGridView();
+            this.panel17 = new System.Windows.Forms.Panel();
+            this.radioButtonReasonsLg = new System.Windows.Forms.RadioButton();
+            this.radioButtonReasonsMst = new System.Windows.Forms.RadioButton();
             this.panel2 = new System.Windows.Forms.Panel();
             this.label7 = new System.Windows.Forms.Label();
             this.comboBoxPrzyczynySmtLine = new System.Windows.Forms.ComboBox();
@@ -140,10 +146,11 @@
             this.tabControl3 = new System.Windows.Forms.TabControl();
             this.tabPage10 = new System.Windows.Forms.TabPage();
             this.dataGridView1 = new System.Windows.Forms.DataGridView();
+            this.panel18 = new System.Windows.Forms.Panel();
+            this.label1SelectedSum = new System.Windows.Forms.Label();
             this.tabPage11 = new System.Windows.Forms.TabPage();
-            this.panel17 = new System.Windows.Forms.Panel();
-            this.radioButtonReasonsLg = new System.Windows.Forms.RadioButton();
-            this.radioButtonReasonsMst = new System.Windows.Forms.RadioButton();
+            this.contextMenuStripPrintPoziomOdpadu = new System.Windows.Forms.ContextMenuStrip(this.components);
+            this.toolStripMenuItem2 = new System.Windows.Forms.ToolStripMenuItem();
             ((System.ComponentModel.ISupportInitialize)(this.chartEfficiency)).BeginInit();
             this.tabControl1.SuspendLayout();
             this.tabPage1.SuspendLayout();
@@ -153,9 +160,11 @@
             this.tabPage2.SuspendLayout();
             this.panel4.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.chartPrzyczynyOdpaduNg)).BeginInit();
+            this.contextMenuStripPrintPrzyczynyOdpadu.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.chartPrzyczynyOdpaduScrap)).BeginInit();
             this.panel3.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.dataGridViewNgScrapReasons)).BeginInit();
+            this.panel17.SuspendLayout();
             this.panel2.SuspendLayout();
             this.tabPage3.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.chartWasteLevel)).BeginInit();
@@ -194,7 +203,8 @@
             this.tabControl3.SuspendLayout();
             this.tabPage10.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.dataGridView1)).BeginInit();
-            this.panel17.SuspendLayout();
+            this.panel18.SuspendLayout();
+            this.contextMenuStripPrintPoziomOdpadu.SuspendLayout();
             this.SuspendLayout();
             // 
             // comboBox1
@@ -351,6 +361,7 @@
             // 
             chartArea2.Name = "ChartArea1";
             this.chartPrzyczynyOdpaduNg.ChartAreas.Add(chartArea2);
+            this.chartPrzyczynyOdpaduNg.ContextMenuStrip = this.contextMenuStripPrintPrzyczynyOdpadu;
             this.chartPrzyczynyOdpaduNg.Dock = System.Windows.Forms.DockStyle.Fill;
             legend2.Name = "Legend1";
             this.chartPrzyczynyOdpaduNg.Legends.Add(legend2);
@@ -363,7 +374,21 @@
             this.chartPrzyczynyOdpaduNg.Size = new System.Drawing.Size(970, 227);
             this.chartPrzyczynyOdpaduNg.TabIndex = 3;
             this.chartPrzyczynyOdpaduNg.Text = "chart3";
-            this.chartPrzyczynyOdpaduNg.MouseDown += new System.Windows.Forms.MouseEventHandler(this.chartPrzyczynyOdpaduNg_MouseDown);
+            // 
+            // contextMenuStripPrintPrzyczynyOdpadu
+            // 
+            this.contextMenuStripPrintPrzyczynyOdpadu.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.toolStripMenuItem1});
+            this.contextMenuStripPrintPrzyczynyOdpadu.Name = "contextMenuStripPrint";
+            this.contextMenuStripPrintPrzyczynyOdpadu.Size = new System.Drawing.Size(110, 26);
+            this.contextMenuStripPrintPrzyczynyOdpadu.Text = "Drukuj";
+            this.contextMenuStripPrintPrzyczynyOdpadu.ItemClicked += new System.Windows.Forms.ToolStripItemClickedEventHandler(this.contextMenuStripPrint_ItemClicked);
+            // 
+            // toolStripMenuItem1
+            // 
+            this.toolStripMenuItem1.Name = "toolStripMenuItem1";
+            this.toolStripMenuItem1.Size = new System.Drawing.Size(109, 22);
+            this.toolStripMenuItem1.Text = "Drukuj";
             // 
             // chartPrzyczynyOdpaduScrap
             // 
@@ -407,6 +432,39 @@
             this.dataGridViewNgScrapReasons.RowHeadersVisible = false;
             this.dataGridViewNgScrapReasons.Size = new System.Drawing.Size(205, 503);
             this.dataGridViewNgScrapReasons.TabIndex = 0;
+            // 
+            // panel17
+            // 
+            this.panel17.BackColor = System.Drawing.Color.White;
+            this.panel17.Controls.Add(this.radioButtonReasonsLg);
+            this.panel17.Controls.Add(this.radioButtonReasonsMst);
+            this.panel17.Dock = System.Windows.Forms.DockStyle.Top;
+            this.panel17.Location = new System.Drawing.Point(0, 0);
+            this.panel17.Name = "panel17";
+            this.panel17.Size = new System.Drawing.Size(205, 24);
+            this.panel17.TabIndex = 1;
+            // 
+            // radioButtonReasonsLg
+            // 
+            this.radioButtonReasonsLg.AutoSize = true;
+            this.radioButtonReasonsLg.Checked = true;
+            this.radioButtonReasonsLg.Location = new System.Drawing.Point(14, 3);
+            this.radioButtonReasonsLg.Name = "radioButtonReasonsLg";
+            this.radioButtonReasonsLg.Size = new System.Drawing.Size(42, 17);
+            this.radioButtonReasonsLg.TabIndex = 3;
+            this.radioButtonReasonsLg.TabStop = true;
+            this.radioButtonReasonsLg.Text = "LGI";
+            this.radioButtonReasonsLg.UseVisualStyleBackColor = true;
+            // 
+            // radioButtonReasonsMst
+            // 
+            this.radioButtonReasonsMst.AutoSize = true;
+            this.radioButtonReasonsMst.Location = new System.Drawing.Point(71, 3);
+            this.radioButtonReasonsMst.Name = "radioButtonReasonsMst";
+            this.radioButtonReasonsMst.Size = new System.Drawing.Size(48, 17);
+            this.radioButtonReasonsMst.TabIndex = 2;
+            this.radioButtonReasonsMst.Text = "MST";
+            this.radioButtonReasonsMst.UseVisualStyleBackColor = true;
             // 
             // panel2
             // 
@@ -470,6 +528,7 @@
             // 
             chartArea4.Name = "ChartArea1";
             this.chartWasteLevel.ChartAreas.Add(chartArea4);
+            this.chartWasteLevel.ContextMenuStrip = this.contextMenuStripPrintPoziomOdpadu;
             this.chartWasteLevel.Dock = System.Windows.Forms.DockStyle.Fill;
             legend4.Name = "Legend1";
             this.chartWasteLevel.Legends.Add(legend4);
@@ -1122,6 +1181,7 @@
             // tabPage10
             // 
             this.tabPage10.Controls.Add(this.dataGridView1);
+            this.tabPage10.Controls.Add(this.panel18);
             this.tabPage10.Location = new System.Drawing.Point(4, 22);
             this.tabPage10.Name = "tabPage10";
             this.tabPage10.Padding = new System.Windows.Forms.Padding(3);
@@ -1139,9 +1199,28 @@
             this.dataGridView1.EditMode = System.Windows.Forms.DataGridViewEditMode.EditProgrammatically;
             this.dataGridView1.Location = new System.Drawing.Point(3, 3);
             this.dataGridView1.Name = "dataGridView1";
-            this.dataGridView1.Size = new System.Drawing.Size(1175, 554);
+            this.dataGridView1.Size = new System.Drawing.Size(1175, 529);
             this.dataGridView1.TabIndex = 0;
             this.dataGridView1.CellDoubleClick += new System.Windows.Forms.DataGridViewCellEventHandler(this.dataGridView1_CellDoubleClick);
+            this.dataGridView1.SelectionChanged += new System.EventHandler(this.dataGridView1_SelectionChanged);
+            // 
+            // panel18
+            // 
+            this.panel18.Controls.Add(this.label1SelectedSum);
+            this.panel18.Dock = System.Windows.Forms.DockStyle.Bottom;
+            this.panel18.Location = new System.Drawing.Point(3, 532);
+            this.panel18.Name = "panel18";
+            this.panel18.Size = new System.Drawing.Size(1175, 25);
+            this.panel18.TabIndex = 1;
+            // 
+            // label1SelectedSum
+            // 
+            this.label1SelectedSum.AutoSize = true;
+            this.label1SelectedSum.Location = new System.Drawing.Point(8, 5);
+            this.label1SelectedSum.Name = "label1SelectedSum";
+            this.label1SelectedSum.Size = new System.Drawing.Size(108, 13);
+            this.label1SelectedSum.TabIndex = 0;
+            this.label1SelectedSum.Text = "Suma zaznaczonych:";
             // 
             // tabPage11
             // 
@@ -1153,38 +1232,20 @@
             this.tabPage11.Text = "tabPage11";
             this.tabPage11.UseVisualStyleBackColor = true;
             // 
-            // panel17
+            // contextMenuStripPrintPoziomOdpadu
             // 
-            this.panel17.BackColor = System.Drawing.Color.White;
-            this.panel17.Controls.Add(this.radioButtonReasonsLg);
-            this.panel17.Controls.Add(this.radioButtonReasonsMst);
-            this.panel17.Dock = System.Windows.Forms.DockStyle.Top;
-            this.panel17.Location = new System.Drawing.Point(0, 0);
-            this.panel17.Name = "panel17";
-            this.panel17.Size = new System.Drawing.Size(205, 24);
-            this.panel17.TabIndex = 1;
+            this.contextMenuStripPrintPoziomOdpadu.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.toolStripMenuItem2});
+            this.contextMenuStripPrintPoziomOdpadu.Name = "contextMenuStripPrint";
+            this.contextMenuStripPrintPoziomOdpadu.Size = new System.Drawing.Size(181, 48);
+            this.contextMenuStripPrintPoziomOdpadu.Text = "Drukuj";
+            this.contextMenuStripPrintPoziomOdpadu.ItemClicked += new System.Windows.Forms.ToolStripItemClickedEventHandler(this.contextMenuStripPrintPoziomOdpadu_ItemClicked);
             // 
-            // radioButtonReasonsLg
+            // toolStripMenuItem2
             // 
-            this.radioButtonReasonsLg.AutoSize = true;
-            this.radioButtonReasonsLg.Checked = true;
-            this.radioButtonReasonsLg.Location = new System.Drawing.Point(14, 3);
-            this.radioButtonReasonsLg.Name = "radioButtonReasonsLg";
-            this.radioButtonReasonsLg.Size = new System.Drawing.Size(42, 17);
-            this.radioButtonReasonsLg.TabIndex = 3;
-            this.radioButtonReasonsLg.TabStop = true;
-            this.radioButtonReasonsLg.Text = "LGI";
-            this.radioButtonReasonsLg.UseVisualStyleBackColor = true;
-            // 
-            // radioButtonReasonsMst
-            // 
-            this.radioButtonReasonsMst.AutoSize = true;
-            this.radioButtonReasonsMst.Location = new System.Drawing.Point(71, 3);
-            this.radioButtonReasonsMst.Name = "radioButtonReasonsMst";
-            this.radioButtonReasonsMst.Size = new System.Drawing.Size(48, 17);
-            this.radioButtonReasonsMst.TabIndex = 2;
-            this.radioButtonReasonsMst.Text = "MST";
-            this.radioButtonReasonsMst.UseVisualStyleBackColor = true;
+            this.toolStripMenuItem2.Name = "toolStripMenuItem2";
+            this.toolStripMenuItem2.Size = new System.Drawing.Size(180, 22);
+            this.toolStripMenuItem2.Text = "Drukuj";
             // 
             // Form1
             // 
@@ -1207,9 +1268,12 @@
             this.tabPage2.ResumeLayout(false);
             this.panel4.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)(this.chartPrzyczynyOdpaduNg)).EndInit();
+            this.contextMenuStripPrintPrzyczynyOdpadu.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)(this.chartPrzyczynyOdpaduScrap)).EndInit();
             this.panel3.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)(this.dataGridViewNgScrapReasons)).EndInit();
+            this.panel17.ResumeLayout(false);
+            this.panel17.PerformLayout();
             this.panel2.ResumeLayout(false);
             this.panel2.PerformLayout();
             this.tabPage3.ResumeLayout(false);
@@ -1254,8 +1318,9 @@
             this.tabControl3.ResumeLayout(false);
             this.tabPage10.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)(this.dataGridView1)).EndInit();
-            this.panel17.ResumeLayout(false);
-            this.panel17.PerformLayout();
+            this.panel18.ResumeLayout(false);
+            this.panel18.PerformLayout();
+            this.contextMenuStripPrintPoziomOdpadu.ResumeLayout(false);
             this.ResumeLayout(false);
 
         }
@@ -1347,6 +1412,12 @@
         private System.Windows.Forms.Panel panel17;
         private System.Windows.Forms.RadioButton radioButtonReasonsLg;
         private System.Windows.Forms.RadioButton radioButtonReasonsMst;
+        private System.Windows.Forms.Panel panel18;
+        private System.Windows.Forms.Label label1SelectedSum;
+        private System.Windows.Forms.ContextMenuStrip contextMenuStripPrintPrzyczynyOdpadu;
+        private System.Windows.Forms.ToolStripMenuItem toolStripMenuItem1;
+        private System.Windows.Forms.ContextMenuStrip contextMenuStripPrintPoziomOdpadu;
+        private System.Windows.Forms.ToolStripMenuItem toolStripMenuItem2;
     }
 }
 

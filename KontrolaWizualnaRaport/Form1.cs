@@ -4,6 +4,7 @@ using System.ComponentModel;
 using System.Data;
 using System.Diagnostics;
 using System.Drawing;
+using System.Drawing.Printing;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -58,14 +59,14 @@ namespace KontrolaWizualnaRaport
             comboBoxReasonSmtLine.Text = "Wszystkie";
             comboBoxReasonSmtLine.Items.AddRange(smtLines);
 
-            
-            comboBoxModel.Items.AddRange(lotModelDictionary.Select(m => m.Value.Replace("LLFML","")).Distinct().OrderBy(o=>o).ToArray());
+
+            comboBoxModel.Items.AddRange(lotModelDictionary.Select(m => m.Value.Replace("LLFML", "")).Distinct().OrderBy(o => o).ToArray());
 
             dateTimePickerPrzyczynyOdpaduOd.Value = DateTime.Now.AddDays(-30);
             dateTimePickerWasteLevelBegin.Value = DateTime.Now.AddDays(-30);
             comboBox1.SelectedIndex = comboBox1.Items.IndexOf("Wszyscy");
 
-            dataGridViewDuplikaty.DataSource=  SzukajDuplikatow();
+            dataGridViewDuplikaty.DataSource = SzukajDuplikatow();
             ColumnsAutoSize(dataGridViewDuplikaty, DataGridViewAutoSizeColumnMode.AllCells);
             dataGridViewDuplikaty.Sort(dataGridViewDuplikaty.Columns[0], ListSortDirection.Descending);
             ColumnsAutoSize(dataGridViewDuplikaty, DataGridViewAutoSizeColumnMode.AllCells);
@@ -112,7 +113,7 @@ namespace KontrolaWizualnaRaport
             dataGridViewPomylkiIlosc.Width = panel12.Width / 2;
             label1.Location = new Point(dataGridViewDuplikaty.Location.X + 100, 20);
             label2.Location = new Point(dataGridViewPomylkiIlosc.Location.X + panel12.Location.X + 100, 20);
-            label6.Location = new Point( panel12.Location.X + 10, 20);
+            label6.Location = new Point(panel12.Location.X + 10, 20);
             panel14.Location = new Point(dataGridViewPowyzej50.Location.X + 80, 10);
 
             //tab analiza po przyczynie
@@ -156,7 +157,7 @@ namespace KontrolaWizualnaRaport
                     dataGridViewDuplikaty.Width = panel11.Width / 2;
                     dataGridViewPomylkiIlosc.Width = panel12.Width / 2;
                     label1.Location = new Point(dataGridViewDuplikaty.Location.X + 100, 20);
-                    label2.Location = new Point(dataGridViewPomylkiIlosc.Location.X + panel12.Location.X+ 100, 20);
+                    label2.Location = new Point(dataGridViewPomylkiIlosc.Location.X + panel12.Location.X + 100, 20);
                     label6.Location = new Point(panel12.Location.X + 50, 20);
                     panel14.Location = new Point(dataGridViewPowyzej50.Location.X + 100, 20);
                     break;
@@ -185,7 +186,7 @@ namespace KontrolaWizualnaRaport
             }
             return result;
         }
-        
+
         private string[] uniqueModelsList(List<dataStructure> inputData, Dictionary<string, string> lotModelDictionary)
         {
             HashSet<string> uniquemodels = new HashSet<string>();
@@ -195,23 +196,23 @@ namespace KontrolaWizualnaRaport
                     uniquemodels.Add(lotModelDictionary[item.NumerZlecenia]);
             }
 
-            return uniquemodels.OrderBy(o=>o).ToArray();
+            return uniquemodels.OrderBy(o => o).ToArray();
         }
 
-        private string[] modelFamilyList(List<dataStructure> inputData,  Dictionary<string, string> lotModelDictionary)
+        private string[] modelFamilyList(List<dataStructure> inputData, Dictionary<string, string> lotModelDictionary)
         {
 
             HashSet<string> uniquemodels = new HashSet<string>();
             foreach (var item in inputData)
             {
                 if (lotModelDictionary.ContainsKey(item.NumerZlecenia))
-                uniquemodels.Add(lotModelDictionary[item.NumerZlecenia].Substring(0,6));
+                    uniquemodels.Add(lotModelDictionary[item.NumerZlecenia].Substring(0, 6));
             }
 
             return uniquemodels.ToList().OrderBy(o => o).ToArray();
         }
 
-        
+
 
         private DataTable MoreThan50()
         {
@@ -221,7 +222,7 @@ namespace KontrolaWizualnaRaport
             result.Columns.Add("Model");
             result.Columns.Add("LOT");
             result.Columns.Add("Typ");
-            result.Columns.Add("Ile", typeof (int));
+            result.Columns.Add("Ile", typeof(int));
             decimal ngThreshold = numericUpDown1.Value;
             decimal scrapThreshold = numericUpDown2.Value;
 
@@ -258,7 +259,7 @@ namespace KontrolaWizualnaRaport
             result.Columns.Add("Numer zlecenia");
             result.Columns.Add("Operator");
             result.Columns.Add("Data");
-            
+
             result.Columns.Add("NG");
             result.Columns.Add("Wszystkie");
             result.Columns.Add("Zlecone");
@@ -276,9 +277,9 @@ namespace KontrolaWizualnaRaport
 
 
 
-                if ((allQty>0 & orderedQtyInt>0) & (allQty>orderedQtyInt))
+                if ((allQty > 0 & orderedQtyInt > 0) & (allQty > orderedQtyInt))
                 {
-                    result.Rows.Add(record.NumerZlecenia, record.Oper, record.RealDateTime, record.AllNg, record.AllQty, orderedQty,(allQty-orderedQtyInt).ToString() );
+                    result.Rows.Add(record.NumerZlecenia, record.Oper, record.RealDateTime, record.AllNg, record.AllQty, orderedQty, (allQty - orderedQtyInt).ToString());
                 }
 
             }
@@ -304,7 +305,7 @@ namespace KontrolaWizualnaRaport
             {
                 if (duplicateKeys.Contains(record.NumerZlecenia))
                 {
-                    result.Rows.Add(record.NumerZlecenia, record.Oper, record.RealDateTime,record.GoodQty,(record.AllNg).ToString());
+                    result.Rows.Add(record.NumerZlecenia, record.Oper, record.RealDateTime, record.GoodQty, (record.AllNg).ToString());
                 }
             }
 
@@ -320,35 +321,35 @@ namespace KontrolaWizualnaRaport
                 result.Add(row["Operator"].ToString());
             }
 
-            return result.OrderBy(o=>o).ToList();
+            return result.OrderBy(o => o).ToList();
         }
 
         private void comboBox1_SelectedIndexChanged(object sender, EventArgs e)
         {
-           dataGridViewEffciency.DataSource = Charting.DrawCapaChart(chartEfficiency, inspectionData, comboBox1.Text, lotModelDictionary, radioButtonCapaLGI.Checked, mstOrders);
+            dataGridViewEffciency.DataSource = Charting.DrawCapaChart(chartEfficiency, inspectionData, comboBox1.Text, lotModelDictionary, radioButtonCapaLGI.Checked, mstOrders);
             foreach (DataGridViewColumn col in dataGridViewEffciency.Columns)
             {
                 col.AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells;
             }
         }
-        
+
         private void dateTimePickerPrzyczynyOdpaduOd_ValueChanged(object sender, EventArgs e)
         {
-            dataGridViewNgScrapReasons.DataSource= Charting.DrawWasteReasonsCHart(chartPrzyczynyOdpaduNg, chartPrzyczynyOdpaduScrap, inspectionData, dateTimePickerPrzyczynyOdpaduOd.Value, dateTimePickerPrzyczynyOdpaduDo.Value, lotModelDictionary, comboBoxPrzyczynySmtLine.Text,lotToSmtLine);
+            dataGridViewNgScrapReasons.DataSource = Charting.DrawWasteReasonsCHart(chartPrzyczynyOdpaduNg, chartPrzyczynyOdpaduScrap, inspectionData, dateTimePickerPrzyczynyOdpaduOd.Value, dateTimePickerPrzyczynyOdpaduDo.Value, lotModelDictionary, comboBoxPrzyczynySmtLine.Text, lotToSmtLine);
             dataGridViewNgScrapReasons.Columns[0].Width = 150;
             dataGridViewNgScrapReasons.Columns[1].Width = 35;
         }
 
         private void dateTimePickerPrzyczynyOdpaduDo_ValueChanged(object sender, EventArgs e)
         {
-            dataGridViewNgScrapReasons.DataSource = Charting.DrawWasteReasonsCHart(chartPrzyczynyOdpaduNg, chartPrzyczynyOdpaduScrap, inspectionData, dateTimePickerPrzyczynyOdpaduOd.Value, dateTimePickerPrzyczynyOdpaduDo.Value, lotModelDictionary, comboBoxPrzyczynySmtLine.Text,lotToSmtLine);
+            dataGridViewNgScrapReasons.DataSource = Charting.DrawWasteReasonsCHart(chartPrzyczynyOdpaduNg, chartPrzyczynyOdpaduScrap, inspectionData, dateTimePickerPrzyczynyOdpaduOd.Value, dateTimePickerPrzyczynyOdpaduDo.Value, lotModelDictionary, comboBoxPrzyczynySmtLine.Text, lotToSmtLine);
             dataGridViewNgScrapReasons.Columns[0].Width = 150;
             dataGridViewNgScrapReasons.Columns[1].Width = 35;
         }
 
         private void dateTimePickerWasteLevelBegin_ValueChanged(object sender, EventArgs e)
         {
-            dataGridViewWasteLevel.DataSource = Charting.DrawWasteLevel(radioButtonWeekly.Checked, chartWasteLevel, inspectionData, dateTimePickerWasteLevelBegin.Value, dateTimePickerWasteLevelEnd.Value, lotModelDictionary, comboBoxModel, comboBoxPoziomOdpaduSmtLine.Text,lotToSmtLine);
+            dataGridViewWasteLevel.DataSource = Charting.DrawWasteLevel(radioButtonWeekly.Checked, chartWasteLevel, inspectionData, dateTimePickerWasteLevelBegin.Value, dateTimePickerWasteLevelEnd.Value, lotModelDictionary, comboBoxModel, comboBoxPoziomOdpaduSmtLine.Text, lotToSmtLine);
             ColumnsAutoSize(dataGridViewWasteLevel, DataGridViewAutoSizeColumnMode.DisplayedCellsExceptHeader);
 
         }
@@ -362,6 +363,8 @@ namespace KontrolaWizualnaRaport
                 Clipboard.SetImage(bm);
             }
         }
+
+
 
         private void radioButtonDaily_CheckedChanged(object sender, EventArgs e)
         {
@@ -391,7 +394,7 @@ namespace KontrolaWizualnaRaport
 
             foreach (var record in inspectionData)
             {
-                if (record.NumerZlecenia==textBox2.Text)
+                if (record.NumerZlecenia == textBox2.Text)
                 {
                     string model = "nieznany";
                     lotModelDictionary.TryGetValue(record.NumerZlecenia, out model);
@@ -416,7 +419,7 @@ namespace KontrolaWizualnaRaport
 
         private void comboBox2_SelectedIndexChanged(object sender, EventArgs e)
         {
-            Charting.DrawWasteLevelPerReason(chartReasonLevel, "all",  inspectionData, comboBoxReasonAnalyses.Text, lotModelDictionary, comboBoxReasonSmtLine.Text,lotToSmtLine);
+            Charting.DrawWasteLevelPerReason(chartReasonLevel, "all", inspectionData, comboBoxReasonAnalyses.Text, lotModelDictionary, comboBoxReasonSmtLine.Text, lotToSmtLine);
             Charting.DrawWasteParetoPerReason(chartReasonPareto, chartReasonsParetoPercentage, inspectionData, comboBoxReasonAnalyses.Text, lotModelDictionary, comboBoxReasonSmtLine.Text, lotToSmtLine);
         }
 
@@ -444,7 +447,7 @@ namespace KontrolaWizualnaRaport
                             pt.BorderWidth = 0;
                         }
 
-                        
+
                         Charting.DrawWasteLevelPerModel(chartModelLevel, "all", inspectionData, lotModelDictionary, model);
                         currentReasonOnChart = "all";
                     }
@@ -595,10 +598,7 @@ namespace KontrolaWizualnaRaport
 
         private void chartPrzyczynyOdpaduNg_MouseDown(object sender, MouseEventArgs e)
         {
-            if (e.Button == MouseButtons.Right)
-            {
-                copyChartToClipboard(chartPrzyczynyOdpaduNg);
-            }
+
         }
 
         private void chartWasteLevel_MouseDown(object sender, MouseEventArgs e)
@@ -615,17 +615,17 @@ namespace KontrolaWizualnaRaport
             {
                 copyChartToClipboard(chartEfficiency);
             }
-            
+
         }
 
         private void richTextBox1_TextChanged(object sender, EventArgs e)
         {
-            
+
         }
 
         private void listBox1_SelectedIndexChanged(object sender, EventArgs e)
         {
-            
+
         }
 
         private void button1_Click(object sender, EventArgs e)
@@ -660,7 +660,7 @@ namespace KontrolaWizualnaRaport
         {
             DataGridViewCell cell = dataGridView1.Rows[e.RowIndex].Cells[e.ColumnIndex];
             DataTable dt = (DataTable)cell.Tag;
-            if (dt!=null)
+            if (dt != null)
             {
                 SmtShiftDetails detailsForm = new SmtShiftDetails(dt);
                 detailsForm.Show();
@@ -694,5 +694,129 @@ namespace KontrolaWizualnaRaport
                 col.AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells;
             }
         }
+
+        private void dataGridView1_SelectionChanged(object sender, EventArgs e)
+        {
+            Int32 sum = 0;
+            foreach (DataGridViewCell cell in dataGridView1.SelectedCells)
+            {
+                Int32 cellValue = 0;
+                if (cell.ColumnIndex > 1)
+                {
+                    Int32.TryParse(cell.Value.ToString(), out cellValue);
+                }
+                sum += cellValue;
+            }
+            label1SelectedSum.Text = "Suma zaznaczonych: " + sum;
+        }
+        public static Bitmap chartToBitmap(Chart chrt)
+        {
+            using (MemoryStream ms = new MemoryStream())
+            {
+                chrt.SaveImage(ms, ChartImageFormat.Bmp);
+                Bitmap bm = new Bitmap(ms);
+                return bm;
+            }
+        }
+        private void contextMenuStripPrint_ItemClicked(object sender, ToolStripItemClickedEventArgs e)
+        {
+            if (e.ClickedItem.Text == "Drukuj")
+            {
+                //Drukuj printForm = new Drukuj(chartPrzyczynyOdpaduNg);
+                //printForm.ShowDialog();
+
+                System.IO.MemoryStream myStream = new System.IO.MemoryStream();
+                Chart chartCopy = new Chart();
+                chartPrzyczynyOdpaduNg.Serializer.Save(myStream);
+                chartCopy.Serializer.Load(myStream);
+
+                PrintDocument pd = new PrintDocument();
+                pd.DefaultPageSettings.Landscape = true;
+
+                chartCopy.Width = pd.DefaultPageSettings.PaperSize.Height;
+                chartCopy.Height = pd.DefaultPageSettings.PaperSize.Width - 50;
+
+                chartCopy.Tag = "Przyczyny odpadu okres: " + dateTimePickerPrzyczynyOdpaduOd.Value.ToShortDateString() + " - " + dateTimePickerPrzyczynyOdpaduDo.Value.ToShortDateString();
+                pd.PrintPage += (sender2, args) => printing_PrintPage(chartCopy, args);
+
+                PrintDialog printdlg = new PrintDialog();
+                PrintPreviewDialog printPrvDlg = new PrintPreviewDialog();
+
+
+                printPrvDlg.Document = pd;
+                printPrvDlg.ShowDialog(); 
+
+                printdlg.Document = pd;
+
+                if (printdlg.ShowDialog() == DialogResult.OK)
+                {
+                    pd.Print();
+                }
+
+            }
+        }
+
+        private void printing_PrintPage(object sender, PrintPageEventArgs e)
+        {
+            Chart chart = sender as Chart;
+            Single yPos = 0;
+            Single leftMargin = e.MarginBounds.Left;
+            Single topMargin = e.MarginBounds.Top;
+            Image img = Form1.chartToBitmap(chart);
+            int textYPos = 20;
+            int w = e.PageBounds.Width;
+            int h = e.PageBounds.Height;
+            int rect1locX = 70;
+            int rect2locX = 70;
+            string title = chart.Tag.ToString();
+
+            using (Font printFont = new Font("Arial", 20.0f))
+            {
+                e.Graphics.DrawImage(img, new Point(5, 55));
+                e.Graphics.DrawRectangle(new Pen(Color.Black, 2), new Rectangle(5, 5, 70, 70));
+                e.Graphics.DrawRectangle(new Pen(Color.Black, 2), new Rectangle(5, 5, w-100, 70));
+                e.Graphics.DrawRectangle(new Pen(Color.Black, 2), new Rectangle(5, 5, w-10, 70));
+                e.Graphics.DrawString("MST", printFont, Brushes.Black, 6, textYPos, new StringFormat());
+                e.Graphics.DrawString(title, printFont, Brushes.Black, 100, textYPos, new StringFormat());
+            }
+
+        }
+
+        private void contextMenuStripPrintPoziomOdpadu_ItemClicked(object sender, ToolStripItemClickedEventArgs e)
+        {
+            if (e.ClickedItem.Text == "Drukuj")
+            {
+                //Drukuj printForm = new Drukuj(chartPrzyczynyOdpaduNg);
+                //printForm.ShowDialog();
+                System.IO.MemoryStream myStream = new System.IO.MemoryStream();
+                Chart chartCopy = new Chart();
+                chartWasteLevel.Serializer.Save(myStream);
+                chartCopy.Serializer.Load(myStream);
+                chartCopy.Series.RemoveAt(2);
+                PrintDocument pd = new PrintDocument();
+                pd.DefaultPageSettings.Landscape = true;
+
+                chartCopy.Width = pd.DefaultPageSettings.PaperSize.Height;
+                chartCopy.Height = pd.DefaultPageSettings.PaperSize.Width - 50;
+
+                chartCopy.Tag = "Tygodniowy poziom odpadu " + dateTimePickerWasteLevelBegin.Value.ToShortDateString() + " - " + dateTimePickerWasteLevelEnd.Value.ToShortDateString();
+                pd.PrintPage += (sender2, args) => printing_PrintPage(chartCopy, args);
+
+                PrintDialog printdlg = new PrintDialog();
+                PrintPreviewDialog printPrvDlg = new PrintPreviewDialog();
+
+
+                printPrvDlg.Document = pd;
+                printPrvDlg.ShowDialog();
+
+                printdlg.Document = pd;
+
+                if (printdlg.ShowDialog() == DialogResult.OK)
+                {
+                    pd.Print();
+                }
+
+            }
+        }
     }
-    }
+}
