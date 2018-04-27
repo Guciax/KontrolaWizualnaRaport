@@ -23,7 +23,7 @@ namespace KontrolaWizualnaRaport
             this.console = console;
         }
 
-        public static DataTable DownloadFromSQL(int daysAgo)
+        public static DataTable DownloadVisInspFromSQL(int daysAgo)
         {
             DateTime tillDate = System.DateTime.Now.AddDays(daysAgo * (-1));
             HashSet<string> result = new HashSet<string>();
@@ -49,6 +49,24 @@ namespace KontrolaWizualnaRaport
             return tabletoFill;
         }
 
+        public static DataTable lotTable()
+        {
+            DataTable result = new DataTable();
+
+            SqlConnection conn = new SqlConnection();
+            conn.ConnectionString = @"Data Source=MSTMS010;Initial Catalog=MES;User Id=mes;Password=mes;";
+
+            SqlCommand command = new SqlCommand();
+            command.Connection = conn;
+            command.CommandText =
+                @"SELECT Nr_Zlecenia_Produkcyjnego,NC12_wyrobu,Ilosc_wyrobu_zlecona,LiniaProdukcyjna,DataCzasWydruku,Data_Konca_Zlecenia FROM tb_Zlecenia_produkcyjne;";
+
+            SqlDataAdapter adapter = new SqlDataAdapter(command);
+            adapter.Fill(result);
+
+            return result;
+        }
+
         public static Dictionary<string,string>[] LotList()
         {
             Dictionary<string, string> result1 = new Dictionary<string, string>();
@@ -62,7 +80,7 @@ namespace KontrolaWizualnaRaport
             SqlCommand command = new SqlCommand();
             command.Connection = conn;
             command.CommandText =
-                @"SELECT Nr_Zlecenia_Produkcyjnego,NC12_wyrobu,Ilosc_wyrobu_zlecona,LiniaProdukcyjna FROM tb_Zlecenia_produkcyjne;";
+                @"SELECT Nr_Zlecenia_Produkcyjnego,NC12_wyrobu,Ilosc_wyrobu_zlecona,LiniaProdukcyjna,DataCzasWydruku FROM tb_Zlecenia_produkcyjne order by DataCzasWydruku;";
 
             SqlDataAdapter adapter = new SqlDataAdapter(command);
             adapter.Fill(sqlTable);
@@ -117,6 +135,7 @@ namespace KontrolaWizualnaRaport
             command.Parameters.AddWithValue("@until", untilDay);
             SqlDataAdapter adapter = new SqlDataAdapter(command);
             adapter.Fill(sqlTable);
+
             foreach (DataRow row in sqlTable.Rows)
             {
                 if (!result.ContainsKey(row["NrZlecenia"].ToString()))
@@ -124,8 +143,6 @@ namespace KontrolaWizualnaRaport
                     result.Add(row["NrZlecenia"].ToString(), row["LiniaSMT"].ToString());
                 }
             }
-
-            
 
             return result;
         }

@@ -12,6 +12,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Windows.Forms.DataVisualization.Charting;
+using static KontrolaWizualnaRaport.SMTOperations;
 
 namespace KontrolaWizualnaRaport
 {
@@ -25,76 +26,126 @@ namespace KontrolaWizualnaRaport
             sqloperations = new SQLoperations(this, textBox1);
         }
 
-        DataTable masterTable = new DataTable();
+        DataTable masterVITable = new DataTable();
         List<dataStructure> inspectionData = new List<dataStructure>();
         Dictionary<string, string> lotModelDictionary = new Dictionary<string, string>();
         Dictionary<string, string> lotToOrderedQty = new Dictionary<string, string>();
         Dictionary<string, string> lotToSmtLine = new Dictionary<string, string>();
         List<excelOperations.order12NC> mstOrders = new List<excelOperations.order12NC>();
         private SQLoperations sqloperations;
+        Dictionary<string, Dictionary<string, List<durationQuantity>>> smtModelLineQuantity = new Dictionary<string, Dictionary<string, List<durationQuantity>>>();
+        DataTable lotTable = new DataTable();
 
         private void Form1_Load(object sender, EventArgs e)
         {
-            mstOrders = excelOperations.loadExcel();
-            masterTable = SQLoperations.DownloadFromSQL(45);
-            textBox1.Text += "SQL table: " + masterTable.Rows.Count + " rows" + Environment.NewLine;
-            comboBox1.Items.AddRange(CreateOperatorsList(masterTable).ToArray());
-
-            inspectionData = dataLoader.LoadData(masterTable);
-            lotModelDictionary = SQLoperations.LotList()[0];
-            lotToOrderedQty = SQLoperations.LotList()[1];
-            lotToSmtLine = SQLoperations.lotToSmtLine(30);
-
-            string[] smtLines = lotToSmtLine.Select(l => l.Value).Distinct().OrderBy(o => o).ToArray();
-
-            comboBoxPrzyczynySmtLine.Items.Add("Wszystkie");
-            comboBoxPrzyczynySmtLine.Text = "Wszystkie";
-            comboBoxPrzyczynySmtLine.Items.AddRange(smtLines);
-
-            comboBoxPoziomOdpaduSmtLine.Items.Add("Wszystkie");
-            comboBoxPoziomOdpaduSmtLine.Text = "Wszystkie";
-            comboBoxPoziomOdpaduSmtLine.Items.AddRange(smtLines);
-
-            comboBoxReasonSmtLine.Items.Add("Wszystkie");
-            comboBoxReasonSmtLine.Text = "Wszystkie";
-            comboBoxReasonSmtLine.Items.AddRange(smtLines);
+            lotTable = SQLoperations.lotTable();
 
 
-            comboBoxModel.Items.AddRange(lotModelDictionary.Select(m => m.Value.Replace("LLFML", "")).Distinct().OrderBy(o => o).ToArray());
+        }
 
-            dateTimePickerPrzyczynyOdpaduOd.Value = DateTime.Now.AddDays(-30);
-            dateTimePickerWasteLevelBegin.Value = DateTime.Now.AddDays(-30);
-            comboBox1.SelectedIndex = comboBox1.Items.IndexOf("Wszyscy");
-
-            dataGridViewDuplikaty.DataSource = SzukajDuplikatow();
-            ColumnsAutoSize(dataGridViewDuplikaty, DataGridViewAutoSizeColumnMode.AllCells);
-            dataGridViewDuplikaty.Sort(dataGridViewDuplikaty.Columns[0], ListSortDirection.Descending);
-            ColumnsAutoSize(dataGridViewDuplikaty, DataGridViewAutoSizeColumnMode.AllCells);
-
-            dataGridViewPomylkiIlosc.DataSource = PomylkiIlosci();
-            ColumnsAutoSize(dataGridViewPomylkiIlosc, DataGridViewAutoSizeColumnMode.AllCellsExceptHeader);
-
-            dataGridViewPowyzej50.DataSource = MoreThan50();
-            ColumnsAutoSize(dataGridViewPowyzej50, DataGridViewAutoSizeColumnMode.AllCells);
-            dataGridViewPowyzej50.Sort(dataGridViewPowyzej50.Columns["Ile"], ListSortDirection.Descending);
-
-            PropertyInfo[] properties = typeof(dataStructure).GetProperties();
-            HashSet<string> uniqueWaste = new HashSet<string>();
-
-            foreach (PropertyInfo property in properties)
+        private void tabControl2_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            switch (tabControl2.SelectedTab.Text)
             {
-                if (property.Name.StartsWith("Ng") || property.Name.StartsWith("Scrap"))
-                {
-                    uniqueWaste.Add(property.Name.Replace("Ng", "").Replace("Scrap", ""));
-                }
+                case "SMT":
+                    {
+                        if (smtModelLineQuantity.Count < 1)
+                        {
+                            DataTable smtRecords = SQLoperations.GetSmtRecordsFromDbQuantityOnly(90);
+                            SMTOperations.shiftSummaryDataSource(SMTOperations.sortTableByDayAndShift(smtRecords, "DataCzasKoniec"), dataGridViewSmtProduction);
+
+                            smtModelLineQuantity = SMTOperations.smtQtyPerModelPerLine(smtRecords);
+                            comboBoxSmtModels.Items.AddRange(smtModelLineQuantity.Select(m => m.Key).OrderBy(m => m).ToArray());
+                        }
+                            break;
+                    }
+                case "KITTING":
+                    {
+                        if (dataGridViewKitting.Rows.Count == 0)
+                        {
+                            KittingOperations.FillGrid(lotTable, dataGridViewKitting);
+                        }
+                        break;
+                    }
+                case "SPLITTING":
+                    {
+                        if (dataGridViewSplitting.Rows.Count == 0)
+                        {
+                            SplittingOperations.FillGrid(lotTable, dataGridViewSplitting);
+                        }
+                        break;
+                    }
+                case "KONTROLA WZROKOWA":
+                    {
+                        if (inspectionData.Count < 1)
+                        {
+                            mstOrders = excelOperations.loadExcel();
+                            if (masterVITable.Rows.Count < 1)
+                            {
+                                masterVITable = SQLoperations.DownloadVisInspFromSQL(45);
+                            }
+                            //textBox1.Text += "SQL table: " + masterVITable.Rows.Count + " rows" + Environment.NewLine;
+                            comboBox1.Items.AddRange(CreateOperatorsList(masterVITable).ToArray());
+
+                            inspectionData = dataLoader.LoadData(masterVITable);
+                            Dictionary<string, string>[] lotList = VIOperations.lotArray(lotTable);
+                            lotModelDictionary = lotList[0];
+                            lotToOrderedQty = lotList[1];
+                            lotToSmtLine = SQLoperations.lotToSmtLine(30);
+
+                            string[] smtLines = lotToSmtLine.Select(l => l.Value).Distinct().OrderBy(o => o).ToArray();
+
+                            comboBoxPrzyczynySmtLine.Items.Add("Wszystkie");
+                            comboBoxPrzyczynySmtLine.Text = "Wszystkie";
+                            comboBoxPrzyczynySmtLine.Items.AddRange(smtLines);
+
+                            comboBoxPoziomOdpaduSmtLine.Items.Add("Wszystkie");
+                            comboBoxPoziomOdpaduSmtLine.Text = "Wszystkie";
+                            comboBoxPoziomOdpaduSmtLine.Items.AddRange(smtLines);
+
+                            comboBoxReasonSmtLine.Items.Add("Wszystkie");
+                            comboBoxReasonSmtLine.Text = "Wszystkie";
+                            comboBoxReasonSmtLine.Items.AddRange(smtLines);
+
+                            comboBoxModel.Items.AddRange(lotModelDictionary.Select(m => m.Value.Replace("LLFML", "")).Distinct().OrderBy(o => o).ToArray());
+
+                            dateTimePickerPrzyczynyOdpaduOd.Value = DateTime.Now.AddDays(-30);
+                            dateTimePickerWasteLevelBegin.Value = DateTime.Now.AddDays(-30);
+                            comboBox1.SelectedIndex = comboBox1.Items.IndexOf("Wszyscy");
+
+                            dataGridViewDuplikaty.DataSource = SzukajDuplikatow();
+                            ColumnsAutoSize(dataGridViewDuplikaty, DataGridViewAutoSizeColumnMode.AllCells);
+                            dataGridViewDuplikaty.Sort(dataGridViewDuplikaty.Columns[0], ListSortDirection.Descending);
+                            ColumnsAutoSize(dataGridViewDuplikaty, DataGridViewAutoSizeColumnMode.AllCells);
+
+                            dataGridViewPomylkiIlosc.DataSource = PomylkiIlosci();
+                            ColumnsAutoSize(dataGridViewPomylkiIlosc, DataGridViewAutoSizeColumnMode.AllCellsExceptHeader);
+
+                            dataGridViewPowyzej50.DataSource = MoreThan50();
+                            ColumnsAutoSize(dataGridViewPowyzej50, DataGridViewAutoSizeColumnMode.AllCells);
+                            dataGridViewPowyzej50.Sort(dataGridViewPowyzej50.Columns["Ile"], ListSortDirection.Descending);
+
+                            PropertyInfo[] properties = typeof(dataStructure).GetProperties();
+                            HashSet<string> uniqueWaste = new HashSet<string>();
+
+                            foreach (PropertyInfo property in properties)
+                            {
+                                if (property.Name.StartsWith("Ng") || property.Name.StartsWith("Scrap"))
+                                {
+                                    uniqueWaste.Add(property.Name.Replace("Ng", "").Replace("Scrap", ""));
+                                }
+                            }
+
+                            comboBoxReasonAnalyses.Items.AddRange(uniqueWaste.ToArray());
+                            comboBox3.Items.AddRange(modelFamilyList(inspectionData, lotModelDictionary));
+                            comboBox4.Items.AddRange(uniqueModelsList(inspectionData, lotModelDictionary));
+
+                            dataGridView2.DataSource = UnknownOrderNumberTable();
+                        }
+                        break;
+                        
+                    }
             }
-
-            comboBoxReasonAnalyses.Items.AddRange(uniqueWaste.ToArray());
-            comboBox3.Items.AddRange(modelFamilyList(inspectionData, lotModelDictionary));
-            comboBox4.Items.AddRange(uniqueModelsList(inspectionData, lotModelDictionary));
-
-            dataGridView2.DataSource = UnknownOrderNumberTable();
-            SMTOperations.shiftSummaryDataSource(SMTOperations.sortTableByDayAndShift(SQLoperations.GetSmtRecordsFromDbQuantityOnly(30)), dataGridView1);
 
         }
 
@@ -656,15 +707,58 @@ namespace KontrolaWizualnaRaport
                 textBox2.Text = listView1.Items[listView1.SelectedItems[0].Index].Name;
         }
 
-        private void dataGridView1_CellDoubleClick(object sender, DataGridViewCellEventArgs e)
+
+
+        private DataGridViewCell[] GetCellsFromOneDay(DataGridViewCell dateCell, DataGridView grid)
         {
-            DataGridViewCell cell = dataGridView1.Rows[e.RowIndex].Cells[e.ColumnIndex];
-            DataTable dt = (DataTable)cell.Tag;
-            if (dt != null)
+            List<DataGridViewCell> cellsList = new List<DataGridViewCell>();
+            int rowIndex = dateCell.RowIndex;
+            int upLimit = rowIndex;
+            int bottomLimit = rowIndex;
+
+            Color cellColor = dateCell.Style.BackColor;
+            if (TryGetCellColor(rowIndex + 1, grid) == cellColor)
             {
-                SmtShiftDetails detailsForm = new SmtShiftDetails(dt);
-                detailsForm.Show();
+                upLimit++;
+                if (TryGetCellColor(rowIndex + 2, grid) == cellColor)
+                {
+                    upLimit++;
+                }
             }
+
+            if (TryGetCellColor(rowIndex - 1, grid) == cellColor)
+            {
+                bottomLimit--;
+                if (TryGetCellColor(rowIndex - 2, grid) == cellColor)
+                {
+                    bottomLimit--;
+                }
+            }
+
+            for (int r = bottomLimit; r <= upLimit; r++) 
+            {
+                foreach (DataGridViewCell cell in grid.Rows[r].Cells)
+                {
+                    if (cell.Tag!=null)
+                    {
+                        cellsList.Add(cell);
+                    }
+                }
+            }
+
+            return cellsList.ToArray();
+        }
+
+        private Color TryGetCellColor(int row, DataGridView grid)
+        {
+            Color result = Color.Black;
+            try
+            {
+                result = grid.Rows[row].Cells[0].Style.BackColor;
+            }
+            catch(Exception exc) { }
+
+            return result;
         }
 
         private void comboBoxSmtLine_SelectedIndexChanged(object sender, EventArgs e)
@@ -697,18 +791,25 @@ namespace KontrolaWizualnaRaport
 
         private void dataGridView1_SelectionChanged(object sender, EventArgs e)
         {
+            SumOfSelectedCells(dataGridViewSmtProduction, label1SmtSelectedSum);
+        }
+
+        private void SumOfSelectedCells(DataGridView grid, Label lbl)
+        {
             Int32 sum = 0;
-            foreach (DataGridViewCell cell in dataGridView1.SelectedCells)
+            foreach (DataGridViewCell cell in grid.SelectedCells)
             {
                 Int32 cellValue = 0;
-                if (cell.ColumnIndex > 1)
+                if (cell.Tag!=null)
                 {
                     Int32.TryParse(cell.Value.ToString(), out cellValue);
                 }
                 sum += cellValue;
             }
-            label1SelectedSum.Text = "Suma zaznaczonych: " + sum;
+            lbl.Text = "Suma zaznaczonych: " + sum;
         }
+
+
         public static Bitmap chartToBitmap(Chart chrt)
         {
             using (MemoryStream ms = new MemoryStream())
@@ -817,6 +918,100 @@ namespace KontrolaWizualnaRaport
                 }
 
             }
+        }
+
+        private void comboBoxSmtModels_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            dataGridViewSmtModelStats.DataSource = SMTOperations.MakeTableForModel(smtModelLineQuantity, comboBoxSmtModels.Text);
+        }
+
+        private void dataGridView1_CellDoubleClick(object sender, DataGridViewCellEventArgs e)
+        {
+            showJobDetails(e, dataGridViewSmtProduction, "SMT");
+        }
+
+        private void dataGridViewKitting_CellDoubleClick(object sender, DataGridViewCellEventArgs e)
+        {
+            showJobDetails(e, dataGridViewKitting, "Kitting");
+        }
+
+        private void showJobDetails(DataGridViewCellEventArgs e, DataGridView grid, string station)
+        {
+            DataGridViewCell cell = grid.Rows[e.RowIndex].Cells[e.ColumnIndex];
+            if (cell.Value != null)
+            {
+                if (cell.Value.ToString() != "0")
+                {
+                    if (cell.ColumnIndex > 0)
+                    {
+                        DataTable dt = (DataTable)cell.Tag;
+                        if (dt.Columns.Contains("NC12_wyrobu"))
+                            dt.Columns["NC12_wyrobu"].ColumnName = "model";
+                        if (dt.Columns.Contains("Ilosc_wyrobu_zlecona"))
+                            dt.Columns["Ilosc_wyrobu_zlecona"].ColumnName = "Ilosc";
+                        if (dt.Columns.Contains("IloscWykonana"))
+                            dt.Columns["IloscWykonana"].ColumnName = "Ilosc";
+
+                        string description = "";
+                        if (cell.OwningColumn.Name.Contains("SMT"))
+                        {
+                            description = cell.OwningColumn.Name + " " + dataGridViewSmtProduction.Rows[e.RowIndex].Cells[0].Value.ToString() + " Zm." + dataGridViewSmtProduction.Rows[e.RowIndex].Cells[1].Value.ToString();
+                        }
+                        else
+                        {
+                            description = station + " " + grid.Rows[e.RowIndex].Cells[0].Value.ToString() + " Zm." + grid.Rows[e.RowIndex].Cells[1].Value.ToString();
+                        }
+                        SmtShiftDetails detailsForm = new SmtShiftDetails(dt, description);
+                        detailsForm.Show();
+                    }
+                    else
+                    {
+                        DataGridViewCell[] dayCells = GetCellsFromOneDay(cell, grid);
+                        Dictionary<string, double> quantityPerModel = new Dictionary<string, double>();
+                        DataTable combinedTable = new DataTable();
+                        foreach (var c in dayCells)
+                        {
+                            DataTable table = (DataTable)c.Tag;
+                            if (table.Columns.Contains("NC12_wyrobu"))
+                                table.Columns["NC12_wyrobu"].ColumnName = "model";
+                            if (table.Columns.Contains("Ilosc_wyrobu_zlecona"))
+                                table.Columns["Ilosc_wyrobu_zlecona"].ColumnName = "Ilosc";
+                            if (table.Columns.Contains("IloscWykonana"))
+                                table.Columns["IloscWykonana"].ColumnName = "Ilosc";
+                            if (combinedTable.Columns.Count == 0)
+                            {
+                                combinedTable = table.Clone();
+                            }
+
+                            foreach (DataRow row in table.Rows)
+                            {
+                                combinedTable.Rows.Add(row.ItemArray);
+                            }
+                        }
+
+                        string description = "";
+                        description = station + " " + grid.Rows[e.RowIndex].Cells[0].Value.ToString();
+
+                        SmtShiftDetails detailsForm = new SmtShiftDetails(combinedTable, description);
+                        detailsForm.Show();
+                    }
+                }
+            }
+        }
+
+        private void dataGridViewSplitting_CellDoubleClick(object sender, DataGridViewCellEventArgs e)
+        {
+            showJobDetails(e, dataGridViewSplitting, "Splitting");
+        }
+
+        private void dataGridViewKitting_SelectionChanged(object sender, EventArgs e)
+        {
+            SumOfSelectedCells(dataGridViewKitting, labelKittingSelectedSum);
+        }
+
+        private void dataGridViewSplitting_SelectionChanged(object sender, EventArgs e)
+        {
+            SumOfSelectedCells(dataGridViewSplitting, labelSplittingSelectedSum);
         }
     }
 }

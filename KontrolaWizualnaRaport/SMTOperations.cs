@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
 using System.Text;
@@ -11,30 +12,29 @@ namespace KontrolaWizualnaRaport
 {
     class SMTOperations
     {
-        public static Dictionary<DateTime, Dictionary<int, DataTable>> sortTableByDayAndShift(DataTable sqlTable)
+        public static SortedDictionary<DateTime, SortedDictionary<int, DataTable>> sortTableByDayAndShift(DataTable sqlTable,string dateColumnName)
         {
             //DataCzasStart,DataCzasKoniec,LiniaSMT,OperatorSMT,NrZlecenia,Model,IloscWykonana,NGIlosc,ScrapIlosc
-            Dictionary<DateTime, Dictionary<int, DataTable>> summaryDic = new Dictionary<DateTime, Dictionary<int, DataTable>>();
+            SortedDictionary<DateTime, SortedDictionary<int, DataTable>> summaryDic = new SortedDictionary<DateTime, SortedDictionary<int, DataTable>>();
 
             foreach (DataRow row in sqlTable.Rows)
             {
-                string dateString = row["DataCzasKoniec"].ToString();
+                string dateString = row[dateColumnName].ToString();
+                if (dateString == "") continue;
                 //DateTime endDate = DateTime.ParseExact(dateString, "dd.MM.yyyy HH:mm:ss", CultureInfo.InvariantCulture);
                 DateTime endDate = DateTime.Parse(dateString);
                 dateShiftNo endDateShiftInfo = whatDayShiftIsit(endDate);
 
                 if (!summaryDic.ContainsKey(endDateShiftInfo.date.Date))
                 {
-                    summaryDic.Add(endDateShiftInfo.date.Date, new Dictionary<int, DataTable>());
+                    summaryDic.Add(endDateShiftInfo.date.Date, new SortedDictionary<int, DataTable>());
                 }
                 if (!summaryDic[endDateShiftInfo.date.Date].ContainsKey(endDateShiftInfo.shift))
                 {
                     summaryDic[endDateShiftInfo.date.Date].Add(endDateShiftInfo.shift, new DataTable());
                     summaryDic[endDateShiftInfo.date.Date][endDateShiftInfo.shift] = sqlTable.Clone();
                 }
-
                 summaryDic[endDateShiftInfo.date.Date][endDateShiftInfo.shift].Rows.Add(row.ItemArray);
-
             }
 
             return summaryDic;
@@ -57,7 +57,7 @@ namespace KontrolaWizualnaRaport
 
             if (hourNow < 6)
             {
-                resultDate = new DateTime(inputDate.Date.Year, inputDate.Date.Month, inputDate.Date.Day - 1, 22, 0, 0);
+                resultDate = new DateTime(inputDate.Date.AddDays(-1).Year, inputDate.Date.AddDays(-1).Month, inputDate.Date.AddDays(-1).Day , 22, 0, 0);
                 resultShift = 3;
             }
 
@@ -86,7 +86,7 @@ namespace KontrolaWizualnaRaport
             return result;
         }
 
-        public static void shiftSummaryDataSource(Dictionary<DateTime, Dictionary<int, DataTable>> sourceDic, DataGridView grid)
+        public static void shiftSummaryDataSource(SortedDictionary<DateTime, SortedDictionary<int, DataTable>> sourceDic, DataGridView grid)
         {
             DataTable result = new DataTable();
             grid.Rows.Clear();
@@ -167,6 +167,7 @@ namespace KontrolaWizualnaRaport
                 }
             }
             autoSizeGridColumns(grid);
+            grid.FirstDisplayedScrollingRowIndex = grid.RowCount - 1;
         }
 
         public static void autoSizeGridColumns(DataGridView grid)
@@ -177,5 +178,86 @@ namespace KontrolaWizualnaRaport
             }
         }
 
+        public static Dictionary<string, Dictionary<string, List<durationQuantity>>> smtQtyPerModelPerLine (DataTable smtRecords)
+        {
+            Dictionary<string, Dictionary<string, List<durationQuantity>>> result = new Dictionary<string, Dictionary<string, List<durationQuantity>>>();
+
+            foreach (DataRow row in smtRecords.Rows)
+            {
+                string model = row["Model"].ToString();
+                string modelShort = model.Substring(0, 6) + "X0X" + model.Substring(9, 1);
+                string line = row["LiniaSMT"].ToString();
+                double qty = 0;
+                if (!double.TryParse(row["IloscWykonana"].ToString(), out qty)) continue;
+                //DataCzasStart,DataCzasKoniec
+                DateTime dateStart = new DateTime();
+                DateTime dateEnd = new DateTime();
+                if (!DateTime.TryParse(row["DataCzasStart"].ToString(), out dateStart) || !DateTime.TryParse(row["DataCzasKoniec"].ToString(), out dateEnd)) continue;
+                var lotDuration = (dateEnd - dateStart).TotalHours;
+                if (lotDuration < 0.15) continue;
+                //Debug.WriteLine(lotDuration);
+                if (!result.ContainsKey(model))
+                {
+                    result.Add(model, new Dictionary<string, List<durationQuantity>>());
+                }
+                if (!result.ContainsKey(modelShort))
+                {
+                    result.Add(modelShort, new Dictionary<string, List<durationQuantity>>());
+                }
+                if (!result[model].ContainsKey(line))
+                {
+                    result[model].Add(line, new List<durationQuantity>());
+                }
+                if (!result[modelShort].ContainsKey(line))
+                {
+                    result[modelShort].Add(line, new List<durationQuantity>());
+                }
+
+                durationQuantity newItem = new durationQuantity();
+                newItem.duration = lotDuration;
+                newItem.quantity = qty;
+
+                result[model][line].Add(newItem);
+                result[modelShort][line].Add(newItem);
+            }
+
+            return result;
+        }
+
+        public struct durationQuantity
+        {
+            public double duration;
+            public double quantity;
+        }
+
+        public static DataTable MakeTableForModel(Dictionary<string, Dictionary<string, List<durationQuantity>>> inputData,string model)
+        {
+            DataTable result = new DataTable();
+            result.Columns.Add("Linia");
+            result.Columns.Add("Ilość całkowita");
+            result.Columns.Add("Średnia/h");
+            result.Columns.Add("Min/h");
+            result.Columns.Add("Max/h");
+            
+
+            foreach (var modelEntry in inputData)
+            {
+                if (modelEntry.Key != model) continue;
+                foreach (var lineEntry in modelEntry.Value)
+                {
+                    
+                    double totalQty = lineEntry.Value.Select(q => q.quantity).Sum();
+                    double min = Math.Round(lineEntry.Value.Select(q => q.quantity / q.duration).Min(),0);
+                    double max = Math.Round(lineEntry.Value.Select(q => q.quantity / q.duration).Max(), 0);
+                    double avg = Math.Round(lineEntry.Value.Select(q => q.quantity / q.duration).Average(), 0);
+                    double median = Math.Round(lineEntry.Value[Convert.ToInt16(Math.Truncate((decimal)(lineEntry.Value.Count / 2)))].quantity / lineEntry.Value[Convert.ToInt16(Math.Truncate((decimal)(lineEntry.Value.Count / 2)))].duration, 0);
+
+                    result.Rows.Add(lineEntry.Key, totalQty, median ,min, max);
+
+                }
+            }
+
+            return result;
+        }
     }
 }

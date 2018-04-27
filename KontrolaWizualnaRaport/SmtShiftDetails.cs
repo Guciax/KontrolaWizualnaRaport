@@ -13,43 +13,58 @@ namespace KontrolaWizualnaRaport
     public partial class SmtShiftDetails : Form
     {
         private readonly DataTable dtSource;
+        private readonly string description;
 
-        public SmtShiftDetails(DataTable dtSource)
+        public SmtShiftDetails(DataTable dtSource, string description)
         {
             InitializeComponent();
             this.dtSource = dtSource;
+            this.description = description;
         }
 
         private void SmtShiftDetails_Load(object sender, EventArgs e)
         {
             dataGridViewShiftDetails.DataSource = dtSource;
-
-            Dictionary<string, double> qtyPerModel = new Dictionary<string, double>();
-            double totalQty=0;
-            foreach (DataRow row in dtSource.Rows)
+            if (dtSource.Columns.Count > 2 & dtSource.Columns.Contains("model"))
             {
-                string model = row["model"].ToString();
-                if (!qtyPerModel.ContainsKey(model))
+                Dictionary<string, double> qtyPerModel = new Dictionary<string, double>();
+                double totalQty = 0;
+                foreach (DataRow row in dtSource.Rows)
                 {
-                    qtyPerModel.Add(model, 0);
+                    string model = row["model"].ToString();
+                    if (!qtyPerModel.ContainsKey(model))
+                    {
+                        qtyPerModel.Add(model, 0);
+                    }
+
+                    double qty = double.Parse(row["Ilosc"].ToString());
+
+                    qtyPerModel[model] += qty;
+                    totalQty += qty;
                 }
 
-                double qty = double.Parse(row["IloscWykonana"].ToString());
-
-                qtyPerModel[model] += qty;
-                totalQty += qty;
+                dataGridViewSummary.Columns.Add("Model", "Model");
+                dataGridViewSummary.Columns.Add("Ilosc", "Ilosc");
+                foreach (var modelEntry in qtyPerModel)
+                {
+                    dataGridViewSummary.Rows.Add(modelEntry.Key, modelEntry.Value);
+                }
+                dataGridViewSummary.Rows.Add("Razem", totalQty);
+                SMTOperations.autoSizeGridColumns(dataGridViewSummary);
+                
             }
-
-            dataGridViewSummary.Columns.Add("Model", "Model");
-            dataGridViewSummary.Columns.Add("Ilosc", "Ilosc");
-            foreach (var modelEntry in qtyPerModel)
+            else
             {
-                dataGridViewSummary.Rows.Add(modelEntry.Key, modelEntry.Value);
+                double sum = 0;
+                foreach (DataRow row in dtSource.Rows)
+                {
+                    sum += double.Parse(row["Ilosc"].ToString());
+                }
+                dtSource.Rows.Add("Razem", sum);
             }
-            dataGridViewSummary.Rows.Add("Razem", totalQty);
-            SMTOperations.autoSizeGridColumns(dataGridViewSummary);
+
             SMTOperations.autoSizeGridColumns(dataGridViewShiftDetails);
-            
+            label1.Text = description;
         }
 
         private void dataGridViewShiftDetails_RowPostPaint(object sender, DataGridViewRowPostPaintEventArgs e)
