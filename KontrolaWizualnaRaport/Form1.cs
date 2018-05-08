@@ -33,14 +33,13 @@ namespace KontrolaWizualnaRaport
         Dictionary<string, string> lotToSmtLine = new Dictionary<string, string>();
         List<excelOperations.order12NC> mstOrders = new List<excelOperations.order12NC>();
         private SQLoperations sqloperations;
+        DataTable smtRecords = new DataTable();
         Dictionary<string, Dictionary<string, List<durationQuantity>>> smtModelLineQuantity = new Dictionary<string, Dictionary<string, List<durationQuantity>>>();
         DataTable lotTable = new DataTable();
 
         private void Form1_Load(object sender, EventArgs e)
         {
             lotTable = SQLoperations.lotTable();
-
-
         }
 
         private void tabControl2_SelectedIndexChanged(object sender, EventArgs e)
@@ -51,7 +50,7 @@ namespace KontrolaWizualnaRaport
                     {
                         if (smtModelLineQuantity.Count < 1)
                         {
-                            DataTable smtRecords = SQLoperations.GetSmtRecordsFromDbQuantityOnly(90);
+                            smtRecords = SQLoperations.GetSmtRecordsFromDbQuantityOnly(90);
                             SMTOperations.shiftSummaryDataSource(SMTOperations.sortTableByDayAndShift(smtRecords, "DataCzasKoniec"), dataGridViewSmtProduction);
 
                             smtModelLineQuantity = SMTOperations.smtQtyPerModelPerLine(smtRecords);
@@ -457,9 +456,13 @@ namespace KontrolaWizualnaRaport
                     PropertyInfo[] properties = typeof(dataStructure).GetProperties();
                     foreach (PropertyInfo property in properties)
                     {
-                        string name = property.Name;
-                        string value = property.GetValue(record, null).ToString();
-                        gridSource.Rows.Add(name, value);
+                        try
+                        {
+                            string name = property.Name;
+                            string value = property.GetValue(record, null).ToString();
+                            gridSource.Rows.Add(name, value);
+                        }
+                        catch(Exception ex) { }
                     }
                     break;
                 }
@@ -693,9 +696,7 @@ namespace KontrolaWizualnaRaport
                 listView1.Items.Add(itm);
             }
         }
-
-
-
+        
         private void listBox1_DrawItem(object sender, DrawItemEventArgs e)
         {
 
@@ -1012,6 +1013,30 @@ namespace KontrolaWizualnaRaport
         private void dataGridViewSplitting_SelectionChanged(object sender, EventArgs e)
         {
             SumOfSelectedCells(dataGridViewSplitting, labelSplittingSelectedSum);
+        }
+
+        private void buttonShowOneLot_Click(object sender, EventArgs e)
+        {
+            DataTable oneLotDt = smtRecords.Clone();
+
+            foreach (DataRow row in smtRecords.Rows)
+            {
+                if (row["NrZlecenia"].ToString() == textBoxSmtLot.Text)
+                {
+                    oneLotDt.Rows.Add(row.ItemArray);
+                    break;
+                }
+            }
+
+            if (oneLotDt.Rows.Count > 0)
+            {
+                oneLotDt.Columns["IloscWykonana"].ColumnName = "Ilosc";
+
+                SmtShiftDetails detailsForm = new SmtShiftDetails(oneLotDt, "LOT: " + textBoxSmtLot.Text);
+                detailsForm.ShowDialog();
+            }
+            else
+            { MessageBox.Show("Brak zlecenia " + textBoxSmtLot.Text + " w bazie danych"); }
         }
     }
 }
