@@ -14,6 +14,7 @@ namespace KontrolaWizualnaRaport
             Dictionary<string, string> result1 = new Dictionary<string, string>();
             Dictionary<string, string> result2 = new Dictionary<string, string>();
             Dictionary<string, string> result3 = new Dictionary<string, string>();
+            Dictionary<string, string> result4 = new Dictionary<string, string>();
 
             foreach (DataRow row in lotTable.Rows)
             {
@@ -21,9 +22,10 @@ namespace KontrolaWizualnaRaport
                 result1.Add(row["Nr_Zlecenia_Produkcyjnego"].ToString(), row["NC12_wyrobu"].ToString().Replace("LLFML", ""));
                 result2.Add(row["Nr_Zlecenia_Produkcyjnego"].ToString(), row["Ilosc_wyrobu_zlecona"].ToString());
                 result3.Add(row["Nr_Zlecenia_Produkcyjnego"].ToString(), row["LiniaProdukcyjna"].ToString());
+
             }
 
-            return new Dictionary<string, string>[] { result1, result2, result3 };
+            return new Dictionary<string, string>[] { result1, result2, result3, result4 };
         }
     }
 }

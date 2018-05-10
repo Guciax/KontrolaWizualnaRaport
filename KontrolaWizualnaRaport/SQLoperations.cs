@@ -93,9 +93,52 @@ namespace KontrolaWizualnaRaport
                 result2.Add(row["Nr_Zlecenia_Produkcyjnego"].ToString(), row["Ilosc_wyrobu_zlecona"].ToString());
                 result3.Add(row["Nr_Zlecenia_Produkcyjnego"].ToString(), row["LiniaProdukcyjna"].ToString());
             }
-
             Dictionary<string, string>[] result = new Dictionary<string, string>[] { result1, result2, result3 };
+            return result;
+        }
 
+        public static Dictionary<DateTime, SortedDictionary<int,Dictionary<string, DataTable>>> GetBoxing(int daysAgo)
+        {
+            DataTable sqlTable = new DataTable();
+            DateTime untilDay = DateTime.Now.Date.AddDays(daysAgo * (-1)).AddHours(6);
+
+            SqlConnection conn = new SqlConnection();
+            conn.ConnectionString = @"Data Source=MSTMS010;Initial Catalog=MES;User Id=mes;Password=mes;";
+
+            SqlCommand command = new SqlCommand();
+            command.Connection = conn;
+            command.CommandText = String.Format(@"SELECT Boxing_Date,NC12_wyrobu,Wysylki_Nr FROM v_WyrobLG_opakowanie_all WHERE Boxing_Date>@until order by Boxing_Date;");
+            command.Parameters.AddWithValue("@until", untilDay);
+
+            SqlDataAdapter adapter = new SqlDataAdapter(command);
+            adapter.Fill(sqlTable);
+
+            sqlTable.Columns["Boxing_Date"].ColumnName = "Data";
+            sqlTable.Columns["NC12_wyrobu"].ColumnName = "Model";
+
+            Dictionary<DateTime, SortedDictionary<int, Dictionary<string, DataTable>>> result = new Dictionary<DateTime, SortedDictionary<int, Dictionary<string, DataTable>>>();
+            foreach (DataRow row in sqlTable.Rows)
+            {
+
+                DateTime inspTime = DateTime.Parse(row["Data"].ToString());
+                dateShiftNo shiftInfo = SMTOperations.whatDayShiftIsit(inspTime);
+                string model = row["Model"].ToString();
+
+                if (!result.ContainsKey(shiftInfo.date.Date))
+                {
+                    result.Add(shiftInfo.date.Date, new SortedDictionary<int, Dictionary<string, DataTable>>());
+                }
+                if (!result[shiftInfo.date.Date].ContainsKey(shiftInfo.shift))
+                {
+                    result[shiftInfo.date.Date].Add(shiftInfo.shift, new Dictionary<string, DataTable>());
+                }
+                if (!result[shiftInfo.date.Date][shiftInfo.shift].ContainsKey(model))
+                {
+                    result[shiftInfo.date.Date][shiftInfo.shift].Add(model, sqlTable.Clone());
+
+                }
+                result[shiftInfo.date.Date][shiftInfo.shift][model].Rows.Add(row.ItemArray);
+            }
 
             return result;
         }

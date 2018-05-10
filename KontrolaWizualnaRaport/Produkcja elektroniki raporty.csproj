@@ -7,7 +7,7 @@
     <ProjectGuid>{6E1A1896-8976-4D48-B93A-DEF7B5C5818D}</ProjectGuid>
     <OutputType>WinExe</OutputType>
     <RootNamespace>KontrolaWizualnaRaport</RootNamespace>
-    <AssemblyName>KontrolaWizualnaRaport</AssemblyName>
+    <AssemblyName>ProdukcjaElektronikiRaporty</AssemblyName>
     <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
@@ -50,6 +50,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="BoxingOperations.cs" />
     <Compile Include="Charting.cs" />
     <Compile Include="dataLoader.cs" />
     <Compile Include="dataStructure.cs" />

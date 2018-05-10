@@ -30,6 +30,7 @@ namespace KontrolaWizualnaRaport
         DataTable masterVITable = new DataTable();
         List<dataStructure> inspectionData = new List<dataStructure>();
         Dictionary<string, string> lotModelDictionary = new Dictionary<string, string>();
+        Dictionary<string, string> planModelDictionary = new Dictionary<string, string>();
         Dictionary<string, string> lotToOrderedQty = new Dictionary<string, string>();
         Dictionary<string, string> lotToSmtLine = new Dictionary<string, string>();
         List<excelOperations.order12NC> mstOrders = new List<excelOperations.order12NC>();
@@ -38,6 +39,7 @@ namespace KontrolaWizualnaRaport
         Dictionary<string, Dictionary<string, List<durationQuantity>>> smtModelLineQuantity = new Dictionary<string, Dictionary<string, List<durationQuantity>>>();
         DataTable lotTable = new DataTable();
         Dictionary<DateTime, SortedDictionary<int, Dictionary<string, Dictionary<string, DataTable>>>> testData = new Dictionary<DateTime, SortedDictionary<int, Dictionary<string, Dictionary<string, DataTable>>>>();
+        Dictionary<DateTime, SortedDictionary<int, Dictionary<string, DataTable>>> boxingData = new Dictionary<DateTime, SortedDictionary<int, Dictionary<string, DataTable>>>();
 
         private void Form1_Load(object sender, EventArgs e)
         {
@@ -45,6 +47,7 @@ namespace KontrolaWizualnaRaport
             Dictionary<string, string>[] lotList = VIOperations.lotArray(lotTable);
             lotModelDictionary = lotList[0];
             lotToOrderedQty = lotList[1];
+            planModelDictionary = lotList[3];
         }
 
         private void tabControl2_SelectedIndexChanged(object sender, EventArgs e)
@@ -68,6 +71,31 @@ namespace KontrolaWizualnaRaport
                         if (dataGridViewKitting.Rows.Count == 0)
                         {
                             KittingOperations.FillGrid(lotTable, dataGridViewKitting);
+                        }
+                        break;
+                    }
+                case "BOXING":
+                    {
+                        if (dataGridViewBoxing.Rows.Count == 0)
+                        {
+                            loadDone = false;
+                            PictureBox loadPB = new PictureBox();
+                            Image loadImg = KontrolaWizualnaRaport.Properties.Resources.load;
+
+                            loadPB.Size = loadImg.Size;
+                            loadPB.Parent = dataGridViewBoxing;
+                            loadPB.Location = new Point(0, 0);
+                            loadPB.Image = loadImg;
+                            timerBoxLoadDone.Enabled = true;
+                            dataGridViewBoxing.Tag = loadPB;
+                            new Thread(() =>
+                            {
+                                Thread.CurrentThread.IsBackground = true;
+                                boxingData = SQLoperations.GetBoxing(20);
+                                
+                                loadDone = true;
+                            }).Start();
+                            
                         }
                         break;
                     }
@@ -181,6 +209,17 @@ namespace KontrolaWizualnaRaport
                 timerTestLoadDone.Enabled = false;
                 PictureBox loadPB = (PictureBox)dataGridViewTest.Tag;
                 dataGridViewTest.Controls.Remove(loadPB);
+            }
+        }
+
+        private void timerBoxLoadDone_Tick(object sender, EventArgs e)
+        {
+            if (loadDone)
+            {
+                BoxingOperations.FillOutBoxingTable(boxingData, dataGridViewBoxing);
+                timerBoxLoadDone.Enabled = false;
+                PictureBox loadPB = (PictureBox)dataGridViewBoxing.Tag;
+                dataGridViewBoxing.Controls.Remove(loadPB);
             }
         }
 
@@ -1084,5 +1123,17 @@ namespace KontrolaWizualnaRaport
         {
             SumOfSelectedCells(dataGridViewTest, labelTest);
         }
+
+        private void dataGridViewBoxing_CellDoubleClick(object sender, DataGridViewCellEventArgs e)
+        {
+            showJobDetails(e, dataGridViewBoxing, "BOXING");
+        }
+
+        private void dataGridViewBoxing_SelectionChanged(object sender, EventArgs e)
+        {
+            SumOfSelectedCells(dataGridViewBoxing, labelBoxing);
+        }
+
+        
     }
 }
