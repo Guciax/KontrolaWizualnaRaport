@@ -9,6 +9,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Windows.Forms.DataVisualization.Charting;
@@ -36,10 +37,14 @@ namespace KontrolaWizualnaRaport
         DataTable smtRecords = new DataTable();
         Dictionary<string, Dictionary<string, List<durationQuantity>>> smtModelLineQuantity = new Dictionary<string, Dictionary<string, List<durationQuantity>>>();
         DataTable lotTable = new DataTable();
+        Dictionary<DateTime, SortedDictionary<int, Dictionary<string, Dictionary<string, DataTable>>>> testData = new Dictionary<DateTime, SortedDictionary<int, Dictionary<string, Dictionary<string, DataTable>>>>();
 
         private void Form1_Load(object sender, EventArgs e)
         {
             lotTable = SQLoperations.lotTable();
+            Dictionary<string, string>[] lotList = VIOperations.lotArray(lotTable);
+            lotModelDictionary = lotList[0];
+            lotToOrderedQty = lotList[1];
         }
 
         private void tabControl2_SelectedIndexChanged(object sender, EventArgs e)
@@ -66,6 +71,29 @@ namespace KontrolaWizualnaRaport
                         }
                         break;
                     }
+                case "TEST":
+                    {
+                        if (dataGridViewTest.Rows.Count == 0)
+                        {
+                            loadDone = false;
+                            PictureBox loadPB = new PictureBox();
+                            Image loadImg = KontrolaWizualnaRaport.Properties.Resources.load;
+
+                            loadPB.Size = loadImg.Size;
+                            loadPB.Parent = dataGridViewTest;
+                            loadPB.Location = new Point(0,0);
+                            loadPB.Image = loadImg;
+                            timerTestLoadDone.Enabled = true;
+                            dataGridViewTest.Tag = loadPB;
+                            new Thread(() => 
+                            {
+                                Thread.CurrentThread.IsBackground = true;
+                                testData = SQLoperations.GetTestMeasurements(20);
+                                loadDone = true;
+                            }).Start();
+                        }
+                        break;
+                    }
                 case "SPLITTING":
                     {
                         if (dataGridViewSplitting.Rows.Count == 0)
@@ -87,9 +115,7 @@ namespace KontrolaWizualnaRaport
                             comboBox1.Items.AddRange(CreateOperatorsList(masterVITable).ToArray());
 
                             inspectionData = dataLoader.LoadData(masterVITable);
-                            Dictionary<string, string>[] lotList = VIOperations.lotArray(lotTable);
-                            lotModelDictionary = lotList[0];
-                            lotToOrderedQty = lotList[1];
+
                             lotToSmtLine = SQLoperations.lotToSmtLine(30);
 
                             string[] smtLines = lotToSmtLine.Select(l => l.Value).Distinct().OrderBy(o => o).ToArray();
@@ -142,10 +168,20 @@ namespace KontrolaWizualnaRaport
                             dataGridView2.DataSource = UnknownOrderNumberTable();
                         }
                         break;
-                        
                     }
             }
 
+        }
+        bool loadDone = false;
+        private void timerTestLoadDone_Tick(object sender, EventArgs e)
+        {
+            if (loadDone)
+            {
+                TestOperations.FillOutTesterTable(testData, dataGridViewTest, lotModelDictionary);
+                timerTestLoadDone.Enabled = false;
+                PictureBox loadPB = (PictureBox)dataGridViewTest.Tag;
+                dataGridViewTest.Controls.Remove(loadPB);
+            }
         }
 
         private void Form1_Resize(object sender, EventArgs e)
@@ -1037,6 +1073,16 @@ namespace KontrolaWizualnaRaport
             }
             else
             { MessageBox.Show("Brak zlecenia " + textBoxSmtLot.Text + " w bazie danych"); }
+        }
+
+        private void dataGridViewTest_CellDoubleClick(object sender, DataGridViewCellEventArgs e)
+        {
+            showJobDetails(e, dataGridViewTest, "TEST");
+        }
+
+        private void dataGridViewTest_SelectionChanged(object sender, EventArgs e)
+        {
+            SumOfSelectedCells(dataGridViewTest, labelTest);
         }
     }
 }

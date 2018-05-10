@@ -7,6 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using static KontrolaWizualnaRaport.SMTOperations;
 
 namespace KontrolaWizualnaRaport
 {
@@ -95,6 +96,90 @@ namespace KontrolaWizualnaRaport
 
             Dictionary<string, string>[] result = new Dictionary<string, string>[] { result1, result2, result3 };
 
+
+            return result;
+        }
+
+        public static Dictionary<DateTime, SortedDictionary<int, Dictionary<string, Dictionary<string, DataTable>>>> GetTestMeasurements (int daysAgo)
+        {
+            DataTable sqlTable = new DataTable();
+            string untilDay = DateTime.Now.Date.AddDays(daysAgo * (-1)).AddHours(6).ToString("yyyy-MM-dd") ;
+
+            SqlConnection conn = new SqlConnection();
+            conn.ConnectionString = @"Data Source=MSTMS010;Initial Catalog=MES;User Id=mes;Password=mes;";
+
+            SqlCommand command = new SqlCommand();
+            command.Connection = conn;
+            command.CommandText = String.Format(@"SELECT serial_no,inspection_time,wip_entity_name,tester_id,result FROM tb_tester_measurements WHERE inspection_time>@until and tester_id<>'0' order by inspection_time;");
+            command.Parameters.AddWithValue("@until", untilDay);
+
+            SqlDataAdapter adapter = new SqlDataAdapter(command);
+            adapter.Fill(sqlTable);
+
+            sqlTable.Columns["inspection_time"].ColumnName = "Data";
+            sqlTable.Columns["tester_id"].ColumnName = "Tester";
+            //sqlTable.Columns["NC12_wyrobu"].ColumnName = "Model";
+            sqlTable.Columns["serial_no"].ColumnName = "PCB";
+            sqlTable.Columns["wip_entity_name"].ColumnName = "LOT";
+
+            Dictionary<DateTime, SortedDictionary<int, Dictionary<string, Dictionary<string, DataTable>>>> result = new Dictionary<DateTime, SortedDictionary<int, Dictionary<string, Dictionary<string, DataTable>>>>();
+            foreach (DataRow row in sqlTable.Rows)
+            {
+                string lineID = row["Tester"].ToString();
+                string testerID = "";
+                switch (lineID)
+                {
+                    case "1":
+                        {
+                            testerID = "Optical";
+                            break;
+                        }
+                    case "2":
+                        {
+                            testerID = "Manual-2";
+                            break;
+                        }
+                    case "3":
+                        {
+                            testerID = "Manual-1";
+                            break;
+                        }
+                    case "4":
+                        {
+                            testerID = "SMT5";
+                            break;
+                        }
+                    case "5":
+                        {
+                            testerID = "SMT6";
+                            break;
+                        }
+                }
+                if (testerID == "") continue;
+
+                DateTime inspTime = DateTime.Parse(row["Data"].ToString());
+                dateShiftNo shiftInfo = SMTOperations.whatDayShiftIsit(inspTime);
+                string lot = row["LOT"].ToString();
+                
+                if (!result.ContainsKey(shiftInfo.date.Date))
+                {
+                    result.Add(shiftInfo.date.Date, new SortedDictionary<int, Dictionary<string, Dictionary<string, DataTable>>>());
+                }
+                if (!result[shiftInfo.date.Date].ContainsKey(shiftInfo.shift))
+                {
+                    result[shiftInfo.date.Date].Add(shiftInfo.shift, new Dictionary<string, Dictionary<string, DataTable>>());
+                }
+                if (!result[shiftInfo.date.Date][shiftInfo.shift].ContainsKey(testerID))
+                {
+                    result[shiftInfo.date.Date][shiftInfo.shift].Add(testerID, new Dictionary<string, DataTable>());
+                }
+                if (!result[shiftInfo.date.Date][shiftInfo.shift][testerID].ContainsKey(lot))
+                {
+                    result[shiftInfo.date.Date][shiftInfo.shift][testerID].Add(lot, sqlTable.Clone());
+                }
+
+                result[shiftInfo.date.Date][shiftInfo.shift][testerID][lot].Rows.Add(row.ItemArray);
+            }
 
             return result;
         }

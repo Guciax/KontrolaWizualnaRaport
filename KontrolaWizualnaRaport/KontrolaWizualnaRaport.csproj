@@ -78,6 +78,7 @@
     </Compile>
     <Compile Include="SplittingOperations.cs" />
     <Compile Include="SQLoperations.cs" />
+    <Compile Include="TestOperations.cs" />
     <Compile Include="VIOperations.cs" />
     <EmbeddedResource Include="Drukuj.resx">
       <DependentUpon>Drukuj.cs</DependentUpon>
@@ -113,6 +114,9 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="Resources\ReelID.jpg" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\load.gif" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
