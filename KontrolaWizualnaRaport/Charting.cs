@@ -9,6 +9,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Windows.Forms.DataVisualization.Charting;
+using static KontrolaWizualnaRaport.SMTOperations;
 
 namespace KontrolaWizualnaRaport
 {
@@ -1115,5 +1116,85 @@ namespace KontrolaWizualnaRaport
             chartReasonsScrap.Series.Add(seriesScrap);
         }
 
+        public static void DrawSmtEfficiencyHistogramForModel(Chart chart, Dictionary<string, List<durationQuantity>> inputData, bool perHour)
+        {
+            double frequency = 1;
+            if (!perHour) frequency = 8;
+            double minValue = 99999999;
+            double maxValue = 0;
+            foreach (var lineEntry in inputData)
+            {
+                foreach (var lot in lineEntry.Value)
+                {
+                    double eff = lot.quantity / lot.duration * frequency;
+                    if (eff > maxValue) maxValue = eff;
+                    if (eff < minValue) minValue = eff;
+                }
+            }
+            int step = (int)Math.Round((maxValue - minValue) / 15, 0);
+            List<int> histogramValues = new List<int>();
+            for (int i = 0; i < 15; i++) 
+            {
+                histogramValues.Add((int)Math.Round(minValue + step * i, 0));
+            }
+
+            Dictionary<string, SortedDictionary<int, int>> pointsPerLine = new Dictionary<string, SortedDictionary<int, int>>();
+            foreach (var lineEntry in inputData)
+            {
+                if (!pointsPerLine.ContainsKey(lineEntry.Key))
+                {
+                    pointsPerLine.Add(lineEntry.Key, new SortedDictionary<int, int>());
+                }
+                foreach (var lot in lineEntry.Value)
+                {
+                    int value = GetClosetsPOint(lot.quantity/ lot.duration * frequency, histogramValues);
+                    if (pointsPerLine[lineEntry.Key].ContainsKey(value))
+                    {
+                        pointsPerLine[lineEntry.Key][value]++;
+                    }
+                    else
+                    {
+                        pointsPerLine[lineEntry.Key][value] = 1;
+                    }
+                }
+            }
+
+            chart.Series.Clear();
+            chart.ChartAreas.Clear();
+            ChartArea area = new ChartArea();
+            //area.AxisX.LabelStyle.Interval = 1;
+            area.AxisX.MajorGrid.LineColor = System.Drawing.Color.Silver;
+            area.AxisY.MajorGrid.LineColor = System.Drawing.Color.Silver;
+            //area.AxisX.Interval = 1;
+            area.Position = new ElementPosition(0, 0, 100, 100);
+
+            chart.ChartAreas.Add(area);
+
+            foreach (var lineEntry in pointsPerLine)
+            {
+                Series newSeries = new Series();
+                newSeries.Name = lineEntry.Key;
+                newSeries.ChartType = SeriesChartType.FastLine;
+                newSeries.BorderWidth = 3;
+                foreach (var point in lineEntry.Value)
+                {
+                    newSeries.Points.AddXY(point.Key, point.Value);
+                }
+                chart.Series.Add(newSeries);
+
+            }
+        }
+
+        public static int GetClosetsPOint(double inputValue, List<int> valuesArray)
+        {
+            List<Tuple<int, int>> substractionList = new List<Tuple<int, int>>();
+
+            foreach (var arrayValue in valuesArray)
+            {
+                substractionList.Add(new Tuple<int, int>(arrayValue, (int)Math.Round(Math.Abs(arrayValue - inputValue),0)));
+            }
+            substractionList.Sort((x, y) => y.Item2.CompareTo(x.Item2));
+            return substractionList[substractionList.Count-1].Item1;
+        }
     }
 }

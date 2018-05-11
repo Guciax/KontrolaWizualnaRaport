@@ -20,7 +20,6 @@ namespace KontrolaWizualnaRaport
     public partial class Form1 : Form
     {
 
-
         public Form1()
         {
             InitializeComponent();
@@ -58,10 +57,10 @@ namespace KontrolaWizualnaRaport
                     {
                         if (smtModelLineQuantity.Count < 1)
                         {
-                            smtRecords = SQLoperations.GetSmtRecordsFromDbQuantityOnly(90);
+                            smtRecords = SQLoperations.GetSmtRecordsFromDbQuantityOnly((int)numericUpDownSmtDaysAgo.Value);
                             SMTOperations.shiftSummaryDataSource(SMTOperations.sortTableByDayAndShift(smtRecords, "DataCzasKoniec"), dataGridViewSmtProduction);
 
-                            smtModelLineQuantity = SMTOperations.smtQtyPerModelPerLine(smtRecords);
+                            smtModelLineQuantity = SMTOperations.smtQtyPerModelPerLine(smtRecords, radioButtonSmtShowAllModels.Checked);
                             comboBoxSmtModels.Items.AddRange(smtModelLineQuantity.Select(m => m.Key).OrderBy(m => m).ToArray());
                         }
                             break;
@@ -998,7 +997,17 @@ namespace KontrolaWizualnaRaport
 
         private void comboBoxSmtModels_SelectedIndexChanged(object sender, EventArgs e)
         {
-            dataGridViewSmtModelStats.DataSource = SMTOperations.MakeTableForModel(smtModelLineQuantity, comboBoxSmtModels.Text);
+
+            ShowSmtStatistics();
+        }
+
+        private void ShowSmtStatistics()
+        {
+            if (comboBoxSmtModels.Text != "")
+            {
+                dataGridViewSmtModelStats.DataSource = SMTOperations.MakeTableForModel(smtModelLineQuantity, comboBoxSmtModels.Text);
+                Charting.DrawSmtEfficiencyHistogramForModel(chartSmt, smtModelLineQuantity[comboBoxSmtModels.Text], radioButtonSmtPerHour.Checked);
+            }
         }
 
         private void dataGridView1_CellDoubleClick(object sender, DataGridViewCellEventArgs e)
@@ -1134,6 +1143,39 @@ namespace KontrolaWizualnaRaport
             SumOfSelectedCells(dataGridViewBoxing, labelBoxing);
         }
 
-        
+        private void buttonSmtRefresh_Click(object sender, EventArgs e)
+        {
+            smtRecords = SQLoperations.GetSmtRecordsFromDbQuantityOnly((int)numericUpDownSmtDaysAgo.Value);
+            SMTOperations.shiftSummaryDataSource(SMTOperations.sortTableByDayAndShift(smtRecords, "DataCzasKoniec"), dataGridViewSmtProduction);
+
+            smtModelLineQuantity = SMTOperations.smtQtyPerModelPerLine(smtRecords, radioButtonSmtShowAllModels.Checked);
+            comboBoxSmtModels.Items.Clear();
+            comboBoxSmtModels.Items.AddRange(smtModelLineQuantity.Select(m => m.Key).OrderBy(m => m).ToArray());
+        }
+
+        private void tableLayoutPanel1_Paint(object sender, PaintEventArgs e)
+        {
+
+        }
+
+        private void radioButtonSmtPerHour_CheckedChanged(object sender, EventArgs e)
+        {
+            ShowSmtStatistics();
+        }
+
+        private void radioButton2_CheckedChanged(object sender, EventArgs e)
+        {
+           
+        }
+
+        private void radioButtonSmtShowAllModels_CheckedChanged(object sender, EventArgs e)
+        {
+            if (smtModelLineQuantity.Count > 0)
+            {
+                smtModelLineQuantity = SMTOperations.smtQtyPerModelPerLine(smtRecords, radioButtonSmtShowAllModels.Checked);
+                comboBoxSmtModels.Items.Clear();
+                comboBoxSmtModels.Items.AddRange(smtModelLineQuantity.Select(m => m.Key).OrderBy(m => m).ToArray());
+            }
+        }
     }
 }

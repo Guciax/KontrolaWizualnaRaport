@@ -29,28 +29,22 @@
         private void InitializeComponent()
         {
             this.components = new System.ComponentModel.Container();
-            System.Windows.Forms.DataVisualization.Charting.ChartArea chartArea19 = new System.Windows.Forms.DataVisualization.Charting.ChartArea();
-            System.Windows.Forms.DataVisualization.Charting.Legend legend19 = new System.Windows.Forms.DataVisualization.Charting.Legend();
-            System.Windows.Forms.DataVisualization.Charting.Series series19 = new System.Windows.Forms.DataVisualization.Charting.Series();
-            System.Windows.Forms.DataVisualization.Charting.ChartArea chartArea20 = new System.Windows.Forms.DataVisualization.Charting.ChartArea();
-            System.Windows.Forms.DataVisualization.Charting.Legend legend20 = new System.Windows.Forms.DataVisualization.Charting.Legend();
-            System.Windows.Forms.DataVisualization.Charting.Series series20 = new System.Windows.Forms.DataVisualization.Charting.Series();
-            System.Windows.Forms.DataVisualization.Charting.ChartArea chartArea12 = new System.Windows.Forms.DataVisualization.Charting.ChartArea();
-            System.Windows.Forms.DataVisualization.Charting.Legend legend12 = new System.Windows.Forms.DataVisualization.Charting.Legend();
-            System.Windows.Forms.DataVisualization.Charting.Series series12 = new System.Windows.Forms.DataVisualization.Charting.Series();
-            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle3 = new System.Windows.Forms.DataGridViewCellStyle();
             System.Windows.Forms.DataVisualization.Charting.ChartArea chartArea21 = new System.Windows.Forms.DataVisualization.Charting.ChartArea();
             System.Windows.Forms.DataVisualization.Charting.Legend legend21 = new System.Windows.Forms.DataVisualization.Charting.Legend();
             System.Windows.Forms.DataVisualization.Charting.Series series21 = new System.Windows.Forms.DataVisualization.Charting.Series();
-            System.Windows.Forms.DataVisualization.Charting.ChartArea chartArea13 = new System.Windows.Forms.DataVisualization.Charting.ChartArea();
-            System.Windows.Forms.DataVisualization.Charting.Legend legend13 = new System.Windows.Forms.DataVisualization.Charting.Legend();
-            System.Windows.Forms.DataVisualization.Charting.Series series13 = new System.Windows.Forms.DataVisualization.Charting.Series();
             System.Windows.Forms.DataVisualization.Charting.ChartArea chartArea22 = new System.Windows.Forms.DataVisualization.Charting.ChartArea();
             System.Windows.Forms.DataVisualization.Charting.Legend legend22 = new System.Windows.Forms.DataVisualization.Charting.Legend();
             System.Windows.Forms.DataVisualization.Charting.Series series22 = new System.Windows.Forms.DataVisualization.Charting.Series();
+            System.Windows.Forms.DataVisualization.Charting.ChartArea chartArea13 = new System.Windows.Forms.DataVisualization.Charting.ChartArea();
+            System.Windows.Forms.DataVisualization.Charting.Legend legend13 = new System.Windows.Forms.DataVisualization.Charting.Legend();
+            System.Windows.Forms.DataVisualization.Charting.Series series13 = new System.Windows.Forms.DataVisualization.Charting.Series();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle3 = new System.Windows.Forms.DataGridViewCellStyle();
             System.Windows.Forms.DataVisualization.Charting.ChartArea chartArea23 = new System.Windows.Forms.DataVisualization.Charting.ChartArea();
             System.Windows.Forms.DataVisualization.Charting.Legend legend23 = new System.Windows.Forms.DataVisualization.Charting.Legend();
             System.Windows.Forms.DataVisualization.Charting.Series series23 = new System.Windows.Forms.DataVisualization.Charting.Series();
+            System.Windows.Forms.DataVisualization.Charting.ChartArea chartArea14 = new System.Windows.Forms.DataVisualization.Charting.ChartArea();
+            System.Windows.Forms.DataVisualization.Charting.Legend legend14 = new System.Windows.Forms.DataVisualization.Charting.Legend();
+            System.Windows.Forms.DataVisualization.Charting.Series series14 = new System.Windows.Forms.DataVisualization.Charting.Series();
             System.Windows.Forms.DataVisualization.Charting.ChartArea chartArea24 = new System.Windows.Forms.DataVisualization.Charting.ChartArea();
             System.Windows.Forms.DataVisualization.Charting.Legend legend24 = new System.Windows.Forms.DataVisualization.Charting.Legend();
             System.Windows.Forms.DataVisualization.Charting.Series series24 = new System.Windows.Forms.DataVisualization.Charting.Series();
@@ -60,6 +54,15 @@
             System.Windows.Forms.DataVisualization.Charting.ChartArea chartArea26 = new System.Windows.Forms.DataVisualization.Charting.ChartArea();
             System.Windows.Forms.DataVisualization.Charting.Legend legend26 = new System.Windows.Forms.DataVisualization.Charting.Legend();
             System.Windows.Forms.DataVisualization.Charting.Series series26 = new System.Windows.Forms.DataVisualization.Charting.Series();
+            System.Windows.Forms.DataVisualization.Charting.ChartArea chartArea27 = new System.Windows.Forms.DataVisualization.Charting.ChartArea();
+            System.Windows.Forms.DataVisualization.Charting.Legend legend27 = new System.Windows.Forms.DataVisualization.Charting.Legend();
+            System.Windows.Forms.DataVisualization.Charting.Series series27 = new System.Windows.Forms.DataVisualization.Charting.Series();
+            System.Windows.Forms.DataVisualization.Charting.ChartArea chartArea28 = new System.Windows.Forms.DataVisualization.Charting.ChartArea();
+            System.Windows.Forms.DataVisualization.Charting.Legend legend28 = new System.Windows.Forms.DataVisualization.Charting.Legend();
+            System.Windows.Forms.DataVisualization.Charting.Series series28 = new System.Windows.Forms.DataVisualization.Charting.Series();
+            System.Windows.Forms.DataVisualization.Charting.ChartArea chartArea29 = new System.Windows.Forms.DataVisualization.Charting.ChartArea();
+            System.Windows.Forms.DataVisualization.Charting.Legend legend29 = new System.Windows.Forms.DataVisualization.Charting.Legend();
+            System.Windows.Forms.DataVisualization.Charting.Series series29 = new System.Windows.Forms.DataVisualization.Charting.Series();
             this.comboBox1 = new System.Windows.Forms.ComboBox();
             this.chartEfficiency = new System.Windows.Forms.DataVisualization.Charting.Chart();
             this.tabControl1 = new System.Windows.Forms.TabControl();
@@ -163,11 +166,11 @@
             this.label1SmtSelectedSum = new System.Windows.Forms.Label();
             this.tabPage11 = new System.Windows.Forms.TabPage();
             this.dataGridViewSmtModelStats = new System.Windows.Forms.DataGridView();
-            this.panel19 = new System.Windows.Forms.Panel();
             this.comboBoxSmtModels = new System.Windows.Forms.ComboBox();
             this.tabPage16 = new System.Windows.Forms.TabPage();
             this.dataGridViewTest = new System.Windows.Forms.DataGridView();
             this.panel25 = new System.Windows.Forms.Panel();
+            this.labelTest = new System.Windows.Forms.Label();
             this.panel24 = new System.Windows.Forms.Panel();
             this.tabPage8 = new System.Windows.Forms.TabPage();
             this.tabPage15 = new System.Windows.Forms.TabPage();
@@ -178,14 +181,24 @@
             this.panel21 = new System.Windows.Forms.Panel();
             this.labelSplittingSelectedSum = new System.Windows.Forms.Label();
             this.panel20 = new System.Windows.Forms.Panel();
-            this.timerTestLoadDone = new System.Windows.Forms.Timer(this.components);
-            this.labelTest = new System.Windows.Forms.Label();
             this.BOXING = new System.Windows.Forms.TabPage();
-            this.panel26 = new System.Windows.Forms.Panel();
-            this.panel27 = new System.Windows.Forms.Panel();
             this.dataGridViewBoxing = new System.Windows.Forms.DataGridView();
+            this.panel27 = new System.Windows.Forms.Panel();
             this.labelBoxing = new System.Windows.Forms.Label();
+            this.panel26 = new System.Windows.Forms.Panel();
+            this.timerTestLoadDone = new System.Windows.Forms.Timer(this.components);
             this.timerBoxLoadDone = new System.Windows.Forms.Timer(this.components);
+            this.numericUpDownSmtDaysAgo = new System.Windows.Forms.NumericUpDown();
+            this.label11 = new System.Windows.Forms.Label();
+            this.buttonSmtRefresh = new System.Windows.Forms.Button();
+            this.tableLayoutPanel1 = new System.Windows.Forms.TableLayoutPanel();
+            this.chartSmt = new System.Windows.Forms.DataVisualization.Charting.Chart();
+            this.radioButtonSmtPerHour = new System.Windows.Forms.RadioButton();
+            this.panel19 = new System.Windows.Forms.Panel();
+            this.radioButton2 = new System.Windows.Forms.RadioButton();
+            this.radioButtonSmtShowAllModels = new System.Windows.Forms.RadioButton();
+            this.groupBox1 = new System.Windows.Forms.GroupBox();
+            this.radioButton3 = new System.Windows.Forms.RadioButton();
             ((System.ComponentModel.ISupportInitialize)(this.chartEfficiency)).BeginInit();
             this.tabControl1.SuspendLayout();
             this.tabPage1.SuspendLayout();
@@ -245,7 +258,6 @@
             this.panel18.SuspendLayout();
             this.tabPage11.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.dataGridViewSmtModelStats)).BeginInit();
-            this.panel19.SuspendLayout();
             this.tabPage16.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.dataGridViewTest)).BeginInit();
             this.panel25.SuspendLayout();
@@ -254,8 +266,13 @@
             ((System.ComponentModel.ISupportInitialize)(this.dataGridViewSplitting)).BeginInit();
             this.panel21.SuspendLayout();
             this.BOXING.SuspendLayout();
-            this.panel27.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.dataGridViewBoxing)).BeginInit();
+            this.panel27.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.numericUpDownSmtDaysAgo)).BeginInit();
+            this.tableLayoutPanel1.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.chartSmt)).BeginInit();
+            this.panel19.SuspendLayout();
+            this.groupBox1.SuspendLayout();
             this.SuspendLayout();
             // 
             // comboBox1
@@ -271,17 +288,17 @@
             // 
             // chartEfficiency
             // 
-            chartArea19.Name = "ChartArea1";
-            this.chartEfficiency.ChartAreas.Add(chartArea19);
+            chartArea21.Name = "ChartArea1";
+            this.chartEfficiency.ChartAreas.Add(chartArea21);
             this.chartEfficiency.Dock = System.Windows.Forms.DockStyle.Right;
-            legend19.Name = "Legend1";
-            this.chartEfficiency.Legends.Add(legend19);
+            legend21.Name = "Legend1";
+            this.chartEfficiency.Legends.Add(legend21);
             this.chartEfficiency.Location = new System.Drawing.Point(264, 3);
             this.chartEfficiency.Name = "chartEfficiency";
-            series19.ChartArea = "ChartArea1";
-            series19.Legend = "Legend1";
-            series19.Name = "Series1";
-            this.chartEfficiency.Series.Add(series19);
+            series21.ChartArea = "ChartArea1";
+            series21.Legend = "Legend1";
+            series21.Name = "Series1";
+            this.chartEfficiency.Series.Add(series21);
             this.chartEfficiency.Size = new System.Drawing.Size(914, 554);
             this.chartEfficiency.TabIndex = 2;
             this.chartEfficiency.Text = "chart1";
@@ -411,18 +428,18 @@
             // 
             // chartPrzyczynyOdpaduNg
             // 
-            chartArea20.Name = "ChartArea1";
-            this.chartPrzyczynyOdpaduNg.ChartAreas.Add(chartArea20);
+            chartArea22.Name = "ChartArea1";
+            this.chartPrzyczynyOdpaduNg.ChartAreas.Add(chartArea22);
             this.chartPrzyczynyOdpaduNg.ContextMenuStrip = this.contextMenuStripPrintPrzyczynyOdpadu;
             this.chartPrzyczynyOdpaduNg.Dock = System.Windows.Forms.DockStyle.Fill;
-            legend20.Name = "Legend1";
-            this.chartPrzyczynyOdpaduNg.Legends.Add(legend20);
+            legend22.Name = "Legend1";
+            this.chartPrzyczynyOdpaduNg.Legends.Add(legend22);
             this.chartPrzyczynyOdpaduNg.Location = new System.Drawing.Point(0, 0);
             this.chartPrzyczynyOdpaduNg.Name = "chartPrzyczynyOdpaduNg";
-            series20.ChartArea = "ChartArea1";
-            series20.Legend = "Legend1";
-            series20.Name = "Series1";
-            this.chartPrzyczynyOdpaduNg.Series.Add(series20);
+            series22.ChartArea = "ChartArea1";
+            series22.Legend = "Legend1";
+            series22.Name = "Series1";
+            this.chartPrzyczynyOdpaduNg.Series.Add(series22);
             this.chartPrzyczynyOdpaduNg.Size = new System.Drawing.Size(970, 227);
             this.chartPrzyczynyOdpaduNg.TabIndex = 3;
             this.chartPrzyczynyOdpaduNg.Text = "chart3";
@@ -444,17 +461,17 @@
             // 
             // chartPrzyczynyOdpaduScrap
             // 
-            chartArea12.Name = "ChartArea1";
-            this.chartPrzyczynyOdpaduScrap.ChartAreas.Add(chartArea12);
+            chartArea13.Name = "ChartArea1";
+            this.chartPrzyczynyOdpaduScrap.ChartAreas.Add(chartArea13);
             this.chartPrzyczynyOdpaduScrap.Dock = System.Windows.Forms.DockStyle.Bottom;
-            legend12.Name = "Legend1";
-            this.chartPrzyczynyOdpaduScrap.Legends.Add(legend12);
+            legend13.Name = "Legend1";
+            this.chartPrzyczynyOdpaduScrap.Legends.Add(legend13);
             this.chartPrzyczynyOdpaduScrap.Location = new System.Drawing.Point(0, 227);
             this.chartPrzyczynyOdpaduScrap.Name = "chartPrzyczynyOdpaduScrap";
-            series12.ChartArea = "ChartArea1";
-            series12.Legend = "Legend1";
-            series12.Name = "Series1";
-            this.chartPrzyczynyOdpaduScrap.Series.Add(series12);
+            series13.ChartArea = "ChartArea1";
+            series13.Legend = "Legend1";
+            series13.Name = "Series1";
+            this.chartPrzyczynyOdpaduScrap.Series.Add(series13);
             this.chartPrzyczynyOdpaduScrap.Size = new System.Drawing.Size(970, 300);
             this.chartPrzyczynyOdpaduScrap.TabIndex = 0;
             this.chartPrzyczynyOdpaduScrap.Text = "chart2";
@@ -578,18 +595,18 @@
             // 
             // chartWasteLevel
             // 
-            chartArea21.Name = "ChartArea1";
-            this.chartWasteLevel.ChartAreas.Add(chartArea21);
+            chartArea23.Name = "ChartArea1";
+            this.chartWasteLevel.ChartAreas.Add(chartArea23);
             this.chartWasteLevel.ContextMenuStrip = this.contextMenuStripPrintPoziomOdpadu;
             this.chartWasteLevel.Dock = System.Windows.Forms.DockStyle.Fill;
-            legend21.Name = "Legend1";
-            this.chartWasteLevel.Legends.Add(legend21);
+            legend23.Name = "Legend1";
+            this.chartWasteLevel.Legends.Add(legend23);
             this.chartWasteLevel.Location = new System.Drawing.Point(240, 27);
             this.chartWasteLevel.Name = "chartWasteLevel";
-            series21.ChartArea = "ChartArea1";
-            series21.Legend = "Legend1";
-            series21.Name = "Series1";
-            this.chartWasteLevel.Series.Add(series21);
+            series23.ChartArea = "ChartArea1";
+            series23.Legend = "Legend1";
+            series23.Name = "Series1";
+            this.chartWasteLevel.Series.Add(series23);
             this.chartWasteLevel.Size = new System.Drawing.Size(941, 533);
             this.chartWasteLevel.TabIndex = 6;
             this.chartWasteLevel.Text = "chartWasteLevel";
@@ -998,17 +1015,17 @@
             // 
             // chartReasonsParetoPercentage
             // 
-            chartArea13.Name = "ChartArea1";
-            this.chartReasonsParetoPercentage.ChartAreas.Add(chartArea13);
+            chartArea14.Name = "ChartArea1";
+            this.chartReasonsParetoPercentage.ChartAreas.Add(chartArea14);
             this.chartReasonsParetoPercentage.Dock = System.Windows.Forms.DockStyle.Fill;
-            legend13.Name = "Legend1";
-            this.chartReasonsParetoPercentage.Legends.Add(legend13);
+            legend14.Name = "Legend1";
+            this.chartReasonsParetoPercentage.Legends.Add(legend14);
             this.chartReasonsParetoPercentage.Location = new System.Drawing.Point(642, 0);
             this.chartReasonsParetoPercentage.Name = "chartReasonsParetoPercentage";
-            series13.ChartArea = "ChartArea1";
-            series13.Legend = "Legend1";
-            series13.Name = "Series1";
-            this.chartReasonsParetoPercentage.Series.Add(series13);
+            series14.ChartArea = "ChartArea1";
+            series14.Legend = "Legend1";
+            series14.Name = "Series1";
+            this.chartReasonsParetoPercentage.Series.Add(series14);
             this.chartReasonsParetoPercentage.Size = new System.Drawing.Size(533, 178);
             this.chartReasonsParetoPercentage.TabIndex = 5;
             this.chartReasonsParetoPercentage.Text = "chart3";
@@ -1016,17 +1033,17 @@
             // 
             // chartReasonPareto
             // 
-            chartArea22.Name = "ChartArea1";
-            this.chartReasonPareto.ChartAreas.Add(chartArea22);
+            chartArea24.Name = "ChartArea1";
+            this.chartReasonPareto.ChartAreas.Add(chartArea24);
             this.chartReasonPareto.Dock = System.Windows.Forms.DockStyle.Left;
-            legend22.Name = "Legend1";
-            this.chartReasonPareto.Legends.Add(legend22);
+            legend24.Name = "Legend1";
+            this.chartReasonPareto.Legends.Add(legend24);
             this.chartReasonPareto.Location = new System.Drawing.Point(0, 0);
             this.chartReasonPareto.Name = "chartReasonPareto";
-            series22.ChartArea = "ChartArea1";
-            series22.Legend = "Legend1";
-            series22.Name = "Series1";
-            this.chartReasonPareto.Series.Add(series22);
+            series24.ChartArea = "ChartArea1";
+            series24.Legend = "Legend1";
+            series24.Name = "Series1";
+            this.chartReasonPareto.Series.Add(series24);
             this.chartReasonPareto.Size = new System.Drawing.Size(642, 178);
             this.chartReasonPareto.TabIndex = 4;
             this.chartReasonPareto.Text = "chart3";
@@ -1034,17 +1051,17 @@
             // 
             // chartReasonLevel
             // 
-            chartArea23.Name = "ChartArea1";
-            this.chartReasonLevel.ChartAreas.Add(chartArea23);
+            chartArea25.Name = "ChartArea1";
+            this.chartReasonLevel.ChartAreas.Add(chartArea25);
             this.chartReasonLevel.Dock = System.Windows.Forms.DockStyle.Top;
-            legend23.Name = "Legend1";
-            this.chartReasonLevel.Legends.Add(legend23);
+            legend25.Name = "Legend1";
+            this.chartReasonLevel.Legends.Add(legend25);
             this.chartReasonLevel.Location = new System.Drawing.Point(3, 31);
             this.chartReasonLevel.Name = "chartReasonLevel";
-            series23.ChartArea = "ChartArea1";
-            series23.Legend = "Legend1";
-            series23.Name = "Series1";
-            this.chartReasonLevel.Series.Add(series23);
+            series25.ChartArea = "ChartArea1";
+            series25.Legend = "Legend1";
+            series25.Name = "Series1";
+            this.chartReasonLevel.Series.Add(series25);
             this.chartReasonLevel.Size = new System.Drawing.Size(1175, 348);
             this.chartReasonLevel.TabIndex = 3;
             this.chartReasonLevel.Text = "chart2";
@@ -1121,17 +1138,17 @@
             // 
             // chartModelReasonsScrap
             // 
-            chartArea24.Name = "ChartArea1";
-            this.chartModelReasonsScrap.ChartAreas.Add(chartArea24);
+            chartArea26.Name = "ChartArea1";
+            this.chartModelReasonsScrap.ChartAreas.Add(chartArea26);
             this.chartModelReasonsScrap.Dock = System.Windows.Forms.DockStyle.Fill;
-            legend24.Name = "Legend1";
-            this.chartModelReasonsScrap.Legends.Add(legend24);
+            legend26.Name = "Legend1";
+            this.chartModelReasonsScrap.Legends.Add(legend26);
             this.chartModelReasonsScrap.Location = new System.Drawing.Point(562, 0);
             this.chartModelReasonsScrap.Name = "chartModelReasonsScrap";
-            series24.ChartArea = "ChartArea1";
-            series24.Legend = "Legend1";
-            series24.Name = "Series1";
-            this.chartModelReasonsScrap.Series.Add(series24);
+            series26.ChartArea = "ChartArea1";
+            series26.Legend = "Legend1";
+            series26.Name = "Series1";
+            this.chartModelReasonsScrap.Series.Add(series26);
             this.chartModelReasonsScrap.Size = new System.Drawing.Size(619, 229);
             this.chartModelReasonsScrap.TabIndex = 3;
             this.chartModelReasonsScrap.Text = "chart3";
@@ -1139,17 +1156,17 @@
             // 
             // chartModelReasonsNg
             // 
-            chartArea25.Name = "ChartArea1";
-            this.chartModelReasonsNg.ChartAreas.Add(chartArea25);
+            chartArea27.Name = "ChartArea1";
+            this.chartModelReasonsNg.ChartAreas.Add(chartArea27);
             this.chartModelReasonsNg.Dock = System.Windows.Forms.DockStyle.Left;
-            legend25.Name = "Legend1";
-            this.chartModelReasonsNg.Legends.Add(legend25);
+            legend27.Name = "Legend1";
+            this.chartModelReasonsNg.Legends.Add(legend27);
             this.chartModelReasonsNg.Location = new System.Drawing.Point(0, 0);
             this.chartModelReasonsNg.Name = "chartModelReasonsNg";
-            series25.ChartArea = "ChartArea1";
-            series25.Legend = "Legend1";
-            series25.Name = "Series1";
-            this.chartModelReasonsNg.Series.Add(series25);
+            series27.ChartArea = "ChartArea1";
+            series27.Legend = "Legend1";
+            series27.Name = "Series1";
+            this.chartModelReasonsNg.Series.Add(series27);
             this.chartModelReasonsNg.Size = new System.Drawing.Size(562, 229);
             this.chartModelReasonsNg.TabIndex = 2;
             this.chartModelReasonsNg.Text = "chart3";
@@ -1157,17 +1174,17 @@
             // 
             // chartModelLevel
             // 
-            chartArea26.Name = "ChartArea1";
-            this.chartModelLevel.ChartAreas.Add(chartArea26);
+            chartArea28.Name = "ChartArea1";
+            this.chartModelLevel.ChartAreas.Add(chartArea28);
             this.chartModelLevel.Dock = System.Windows.Forms.DockStyle.Top;
-            legend26.Name = "Legend1";
-            this.chartModelLevel.Legends.Add(legend26);
+            legend28.Name = "Legend1";
+            this.chartModelLevel.Legends.Add(legend28);
             this.chartModelLevel.Location = new System.Drawing.Point(0, 31);
             this.chartModelLevel.Name = "chartModelLevel";
-            series26.ChartArea = "ChartArea1";
-            series26.Legend = "Legend1";
-            series26.Name = "Series1";
-            this.chartModelLevel.Series.Add(series26);
+            series28.ChartArea = "ChartArea1";
+            series28.Legend = "Legend1";
+            series28.Name = "Series1";
+            this.chartModelLevel.Series.Add(series28);
             this.chartModelLevel.Size = new System.Drawing.Size(1181, 300);
             this.chartModelLevel.TabIndex = 1;
             this.chartModelLevel.Text = "chart2";
@@ -1356,6 +1373,9 @@
             // 
             // panel23
             // 
+            this.panel23.Controls.Add(this.buttonSmtRefresh);
+            this.panel23.Controls.Add(this.label11);
+            this.panel23.Controls.Add(this.numericUpDownSmtDaysAgo);
             this.panel23.Controls.Add(this.buttonShowOneLot);
             this.panel23.Controls.Add(this.textBoxSmtLot);
             this.panel23.Dock = System.Windows.Forms.DockStyle.Top;
@@ -1401,7 +1421,7 @@
             // 
             // tabPage11
             // 
-            this.tabPage11.Controls.Add(this.dataGridViewSmtModelStats);
+            this.tabPage11.Controls.Add(this.tableLayoutPanel1);
             this.tabPage11.Controls.Add(this.panel19);
             this.tabPage11.Location = new System.Drawing.Point(4, 22);
             this.tabPage11.Name = "tabPage11";
@@ -1417,24 +1437,15 @@
             this.dataGridViewSmtModelStats.AllowUserToDeleteRows = false;
             this.dataGridViewSmtModelStats.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             this.dataGridViewSmtModelStats.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.dataGridViewSmtModelStats.Location = new System.Drawing.Point(3, 32);
+            this.dataGridViewSmtModelStats.Location = new System.Drawing.Point(3, 29);
             this.dataGridViewSmtModelStats.Name = "dataGridViewSmtModelStats";
-            this.dataGridViewSmtModelStats.Size = new System.Drawing.Size(1175, 525);
+            this.dataGridViewSmtModelStats.Size = new System.Drawing.Size(699, 501);
             this.dataGridViewSmtModelStats.TabIndex = 0;
-            // 
-            // panel19
-            // 
-            this.panel19.Controls.Add(this.comboBoxSmtModels);
-            this.panel19.Dock = System.Windows.Forms.DockStyle.Top;
-            this.panel19.Location = new System.Drawing.Point(3, 3);
-            this.panel19.Name = "panel19";
-            this.panel19.Size = new System.Drawing.Size(1175, 29);
-            this.panel19.TabIndex = 1;
             // 
             // comboBoxSmtModels
             // 
             this.comboBoxSmtModels.FormattingEnabled = true;
-            this.comboBoxSmtModels.Location = new System.Drawing.Point(3, 3);
+            this.comboBoxSmtModels.Location = new System.Drawing.Point(175, 3);
             this.comboBoxSmtModels.Name = "comboBoxSmtModels";
             this.comboBoxSmtModels.Size = new System.Drawing.Size(258, 21);
             this.comboBoxSmtModels.TabIndex = 0;
@@ -1474,6 +1485,15 @@
             this.panel25.Name = "panel25";
             this.panel25.Size = new System.Drawing.Size(1189, 29);
             this.panel25.TabIndex = 1;
+            // 
+            // labelTest
+            // 
+            this.labelTest.AutoSize = true;
+            this.labelTest.Location = new System.Drawing.Point(14, 7);
+            this.labelTest.Name = "labelTest";
+            this.labelTest.Size = new System.Drawing.Size(103, 13);
+            this.labelTest.TabIndex = 0;
+            this.labelTest.Text = "Ilość zaznaczonych:";
             // 
             // panel24
             // 
@@ -1568,19 +1588,6 @@
             this.panel20.Size = new System.Drawing.Size(1189, 38);
             this.panel20.TabIndex = 0;
             // 
-            // timerTestLoadDone
-            // 
-            this.timerTestLoadDone.Tick += new System.EventHandler(this.timerTestLoadDone_Tick);
-            // 
-            // labelTest
-            // 
-            this.labelTest.AutoSize = true;
-            this.labelTest.Location = new System.Drawing.Point(14, 7);
-            this.labelTest.Name = "labelTest";
-            this.labelTest.Size = new System.Drawing.Size(103, 13);
-            this.labelTest.TabIndex = 0;
-            this.labelTest.Text = "Ilość zaznaczonych:";
-            // 
             // BOXING
             // 
             this.BOXING.Controls.Add(this.dataGridViewBoxing);
@@ -1592,23 +1599,6 @@
             this.BOXING.TabIndex = 6;
             this.BOXING.Text = "BOXING";
             this.BOXING.UseVisualStyleBackColor = true;
-            // 
-            // panel26
-            // 
-            this.panel26.Dock = System.Windows.Forms.DockStyle.Top;
-            this.panel26.Location = new System.Drawing.Point(0, 0);
-            this.panel26.Name = "panel26";
-            this.panel26.Size = new System.Drawing.Size(1195, 29);
-            this.panel26.TabIndex = 1;
-            // 
-            // panel27
-            // 
-            this.panel27.Controls.Add(this.labelBoxing);
-            this.panel27.Dock = System.Windows.Forms.DockStyle.Bottom;
-            this.panel27.Location = new System.Drawing.Point(0, 563);
-            this.panel27.Name = "panel27";
-            this.panel27.Size = new System.Drawing.Size(1195, 29);
-            this.panel27.TabIndex = 2;
             // 
             // dataGridViewBoxing
             // 
@@ -1623,6 +1613,15 @@
             this.dataGridViewBoxing.CellDoubleClick += new System.Windows.Forms.DataGridViewCellEventHandler(this.dataGridViewBoxing_CellDoubleClick);
             this.dataGridViewBoxing.SelectionChanged += new System.EventHandler(this.dataGridViewBoxing_SelectionChanged);
             // 
+            // panel27
+            // 
+            this.panel27.Controls.Add(this.labelBoxing);
+            this.panel27.Dock = System.Windows.Forms.DockStyle.Bottom;
+            this.panel27.Location = new System.Drawing.Point(0, 563);
+            this.panel27.Name = "panel27";
+            this.panel27.Size = new System.Drawing.Size(1195, 29);
+            this.panel27.TabIndex = 2;
+            // 
             // labelBoxing
             // 
             this.labelBoxing.AutoSize = true;
@@ -1632,9 +1631,156 @@
             this.labelBoxing.TabIndex = 1;
             this.labelBoxing.Text = "Ilość zaznaczonych:";
             // 
+            // panel26
+            // 
+            this.panel26.Dock = System.Windows.Forms.DockStyle.Top;
+            this.panel26.Location = new System.Drawing.Point(0, 0);
+            this.panel26.Name = "panel26";
+            this.panel26.Size = new System.Drawing.Size(1195, 29);
+            this.panel26.TabIndex = 1;
+            // 
+            // timerTestLoadDone
+            // 
+            this.timerTestLoadDone.Tick += new System.EventHandler(this.timerTestLoadDone_Tick);
+            // 
             // timerBoxLoadDone
             // 
             this.timerBoxLoadDone.Tick += new System.EventHandler(this.timerBoxLoadDone_Tick);
+            // 
+            // numericUpDownSmtDaysAgo
+            // 
+            this.numericUpDownSmtDaysAgo.Location = new System.Drawing.Point(419, 4);
+            this.numericUpDownSmtDaysAgo.Name = "numericUpDownSmtDaysAgo";
+            this.numericUpDownSmtDaysAgo.Size = new System.Drawing.Size(49, 20);
+            this.numericUpDownSmtDaysAgo.TabIndex = 2;
+            this.numericUpDownSmtDaysAgo.Value = new decimal(new int[] {
+            20,
+            0,
+            0,
+            0});
+            // 
+            // label11
+            // 
+            this.label11.AutoSize = true;
+            this.label11.Location = new System.Drawing.Point(331, 7);
+            this.label11.Name = "label11";
+            this.label11.Size = new System.Drawing.Size(82, 13);
+            this.label11.TabIndex = 3;
+            this.label11.Text = "Ilość dni wstecz";
+            // 
+            // buttonSmtRefresh
+            // 
+            this.buttonSmtRefresh.Location = new System.Drawing.Point(474, 2);
+            this.buttonSmtRefresh.Name = "buttonSmtRefresh";
+            this.buttonSmtRefresh.Size = new System.Drawing.Size(41, 23);
+            this.buttonSmtRefresh.TabIndex = 4;
+            this.buttonSmtRefresh.Text = "OK";
+            this.buttonSmtRefresh.UseVisualStyleBackColor = true;
+            this.buttonSmtRefresh.Click += new System.EventHandler(this.buttonSmtRefresh_Click);
+            // 
+            // tableLayoutPanel1
+            // 
+            this.tableLayoutPanel1.ColumnCount = 2;
+            this.tableLayoutPanel1.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 60F));
+            this.tableLayoutPanel1.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 40F));
+            this.tableLayoutPanel1.Controls.Add(this.dataGridViewSmtModelStats, 0, 0);
+            this.tableLayoutPanel1.Controls.Add(this.chartSmt, 1, 0);
+            this.tableLayoutPanel1.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.tableLayoutPanel1.Location = new System.Drawing.Point(3, 31);
+            this.tableLayoutPanel1.Name = "tableLayoutPanel1";
+            this.tableLayoutPanel1.RowCount = 2;
+            this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100F));
+            this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 20F));
+            this.tableLayoutPanel1.Size = new System.Drawing.Size(1175, 526);
+            this.tableLayoutPanel1.TabIndex = 2;
+            this.tableLayoutPanel1.Paint += new System.Windows.Forms.PaintEventHandler(this.tableLayoutPanel1_Paint);
+            // 
+            // chartSmt
+            // 
+            chartArea29.Name = "ChartArea1";
+            this.chartSmt.ChartAreas.Add(chartArea29);
+            this.chartSmt.Dock = System.Windows.Forms.DockStyle.Fill;
+            legend29.Name = "Legend1";
+            this.chartSmt.Legends.Add(legend29);
+            this.chartSmt.Location = new System.Drawing.Point(708, 29);
+            this.chartSmt.Name = "chartSmt";
+            series29.ChartArea = "ChartArea1";
+            series29.Legend = "Legend1";
+            series29.Name = "Series1";
+            this.chartSmt.Series.Add(series29);
+            this.chartSmt.Size = new System.Drawing.Size(464, 501);
+            this.chartSmt.TabIndex = 1;
+            this.chartSmt.Text = "chart1";
+            // 
+            // radioButtonSmtPerHour
+            // 
+            this.radioButtonSmtPerHour.AutoSize = true;
+            this.radioButtonSmtPerHour.Checked = true;
+            this.radioButtonSmtPerHour.Location = new System.Drawing.Point(795, 4);
+            this.radioButtonSmtPerHour.Name = "radioButtonSmtPerHour";
+            this.radioButtonSmtPerHour.Size = new System.Drawing.Size(79, 17);
+            this.radioButtonSmtPerHour.TabIndex = 2;
+            this.radioButtonSmtPerHour.TabStop = true;
+            this.radioButtonSmtPerHour.Text = "Na godzinę";
+            this.radioButtonSmtPerHour.UseVisualStyleBackColor = true;
+            this.radioButtonSmtPerHour.CheckedChanged += new System.EventHandler(this.radioButtonSmtPerHour_CheckedChanged);
+            // 
+            // panel19
+            // 
+            this.panel19.Controls.Add(this.groupBox1);
+            this.panel19.Controls.Add(this.radioButton2);
+            this.panel19.Controls.Add(this.comboBoxSmtModels);
+            this.panel19.Controls.Add(this.radioButtonSmtPerHour);
+            this.panel19.Dock = System.Windows.Forms.DockStyle.Top;
+            this.panel19.Location = new System.Drawing.Point(3, 3);
+            this.panel19.Name = "panel19";
+            this.panel19.Size = new System.Drawing.Size(1175, 28);
+            this.panel19.TabIndex = 3;
+            // 
+            // radioButton2
+            // 
+            this.radioButton2.AutoSize = true;
+            this.radioButton2.Location = new System.Drawing.Point(905, 4);
+            this.radioButton2.Name = "radioButton2";
+            this.radioButton2.Size = new System.Drawing.Size(75, 17);
+            this.radioButton2.TabIndex = 3;
+            this.radioButton2.Text = "Na zmianę";
+            this.radioButton2.UseVisualStyleBackColor = true;
+            this.radioButton2.CheckedChanged += new System.EventHandler(this.radioButton2_CheckedChanged);
+            // 
+            // radioButtonSmtShowAllModels
+            // 
+            this.radioButtonSmtShowAllModels.AutoSize = true;
+            this.radioButtonSmtShowAllModels.Location = new System.Drawing.Point(6, 5);
+            this.radioButtonSmtShowAllModels.Name = "radioButtonSmtShowAllModels";
+            this.radioButtonSmtShowAllModels.Size = new System.Drawing.Size(73, 17);
+            this.radioButtonSmtShowAllModels.TabIndex = 4;
+            this.radioButtonSmtShowAllModels.Text = "Wszystkie";
+            this.radioButtonSmtShowAllModels.UseVisualStyleBackColor = true;
+            this.radioButtonSmtShowAllModels.CheckedChanged += new System.EventHandler(this.radioButtonSmtShowAllModels_CheckedChanged);
+            // 
+            // groupBox1
+            // 
+            this.groupBox1.Controls.Add(this.radioButton3);
+            this.groupBox1.Controls.Add(this.radioButtonSmtShowAllModels);
+            this.groupBox1.Dock = System.Windows.Forms.DockStyle.Left;
+            this.groupBox1.Location = new System.Drawing.Point(0, 0);
+            this.groupBox1.Name = "groupBox1";
+            this.groupBox1.Size = new System.Drawing.Size(171, 28);
+            this.groupBox1.TabIndex = 5;
+            this.groupBox1.TabStop = false;
+            // 
+            // radioButton3
+            // 
+            this.radioButton3.AutoSize = true;
+            this.radioButton3.Checked = true;
+            this.radioButton3.Location = new System.Drawing.Point(85, 5);
+            this.radioButton3.Name = "radioButton3";
+            this.radioButton3.Size = new System.Drawing.Size(77, 17);
+            this.radioButton3.TabIndex = 5;
+            this.radioButton3.TabStop = true;
+            this.radioButton3.Text = "Po rodzinie";
+            this.radioButton3.UseVisualStyleBackColor = true;
             // 
             // Form1
             // 
@@ -1717,7 +1863,6 @@
             this.panel18.PerformLayout();
             this.tabPage11.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)(this.dataGridViewSmtModelStats)).EndInit();
-            this.panel19.ResumeLayout(false);
             this.tabPage16.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)(this.dataGridViewTest)).EndInit();
             this.panel25.ResumeLayout(false);
@@ -1728,9 +1873,16 @@
             this.panel21.ResumeLayout(false);
             this.panel21.PerformLayout();
             this.BOXING.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)(this.dataGridViewBoxing)).EndInit();
             this.panel27.ResumeLayout(false);
             this.panel27.PerformLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.dataGridViewBoxing)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.numericUpDownSmtDaysAgo)).EndInit();
+            this.tableLayoutPanel1.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)(this.chartSmt)).EndInit();
+            this.panel19.ResumeLayout(false);
+            this.panel19.PerformLayout();
+            this.groupBox1.ResumeLayout(false);
+            this.groupBox1.PerformLayout();
             this.ResumeLayout(false);
 
         }
@@ -1829,7 +1981,6 @@
         private System.Windows.Forms.ContextMenuStrip contextMenuStripPrintPoziomOdpadu;
         private System.Windows.Forms.ToolStripMenuItem toolStripMenuItem2;
         private System.Windows.Forms.DataGridView dataGridViewSmtModelStats;
-        private System.Windows.Forms.Panel panel19;
         private System.Windows.Forms.ComboBox comboBoxSmtModels;
         private System.Windows.Forms.TabPage tabPage12;
         private System.Windows.Forms.TabPage tabPage13;
@@ -1863,6 +2014,17 @@
         private System.Windows.Forms.Panel panel26;
         private System.Windows.Forms.Label labelBoxing;
         private System.Windows.Forms.Timer timerBoxLoadDone;
+        private System.Windows.Forms.Button buttonSmtRefresh;
+        private System.Windows.Forms.Label label11;
+        private System.Windows.Forms.NumericUpDown numericUpDownSmtDaysAgo;
+        private System.Windows.Forms.TableLayoutPanel tableLayoutPanel1;
+        private System.Windows.Forms.DataVisualization.Charting.Chart chartSmt;
+        private System.Windows.Forms.Panel panel19;
+        private System.Windows.Forms.RadioButton radioButton2;
+        private System.Windows.Forms.RadioButton radioButtonSmtPerHour;
+        private System.Windows.Forms.GroupBox groupBox1;
+        private System.Windows.Forms.RadioButton radioButton3;
+        private System.Windows.Forms.RadioButton radioButtonSmtShowAllModels;
     }
 }
 

@@ -178,10 +178,9 @@ namespace KontrolaWizualnaRaport
             }
         }
 
-        public static Dictionary<string, Dictionary<string, List<durationQuantity>>> smtQtyPerModelPerLine (DataTable smtRecords)
+        public static Dictionary<string, Dictionary<string, List<durationQuantity>>> smtQtyPerModelPerLine (DataTable smtRecords, bool showAllModels)
         {
             Dictionary<string, Dictionary<string, List<durationQuantity>>> result = new Dictionary<string, Dictionary<string, List<durationQuantity>>>();
-
             foreach (DataRow row in smtRecords.Rows)
             {
                 string model = row["Model"].ToString();
@@ -196,7 +195,7 @@ namespace KontrolaWizualnaRaport
                 var lotDuration = (dateEnd - dateStart).TotalHours;
                 if (lotDuration < 0.15) continue;
                 //Debug.WriteLine(lotDuration);
-                if (!result.ContainsKey(model))
+                if (!result.ContainsKey(model) & showAllModels)
                 {
                     result.Add(model, new Dictionary<string, List<durationQuantity>>());
                 }
@@ -204,9 +203,12 @@ namespace KontrolaWizualnaRaport
                 {
                     result.Add(modelShort, new Dictionary<string, List<durationQuantity>>());
                 }
-                if (!result[model].ContainsKey(line))
+                if (showAllModels)
                 {
-                    result[model].Add(line, new List<durationQuantity>());
+                    if (!result[model].ContainsKey(line))
+                    {
+                        result[model].Add(line, new List<durationQuantity>());
+                    }
                 }
                 if (!result[modelShort].ContainsKey(line))
                 {
@@ -216,8 +218,14 @@ namespace KontrolaWizualnaRaport
                 durationQuantity newItem = new durationQuantity();
                 newItem.duration = lotDuration;
                 newItem.quantity = qty;
+                newItem.start = dateStart;
+                newItem.end = dateEnd;
+                newItem.lot = row["NrZlecenia"].ToString();
 
-                result[model][line].Add(newItem);
+                if (showAllModels)
+                {
+                    result[model][line].Add(newItem);
+                }
                 result[modelShort][line].Add(newItem);
             }
 
@@ -228,6 +236,9 @@ namespace KontrolaWizualnaRaport
         {
             public double duration;
             public double quantity;
+            public string lot;
+            public DateTime start;
+            public DateTime end;
         }
 
         public static DataTable MakeTableForModel(Dictionary<string, Dictionary<string, List<durationQuantity>>> inputData,string model)
@@ -245,18 +256,14 @@ namespace KontrolaWizualnaRaport
                 if (modelEntry.Key != model) continue;
                 foreach (var lineEntry in modelEntry.Value)
                 {
-                    
                     double totalQty = lineEntry.Value.Select(q => q.quantity).Sum();
                     double min = Math.Round(lineEntry.Value.Select(q => q.quantity / q.duration).Min(),0);
                     double max = Math.Round(lineEntry.Value.Select(q => q.quantity / q.duration).Max(), 0);
                     double avg = Math.Round(lineEntry.Value.Select(q => q.quantity / q.duration).Average(), 0);
                     double median = Math.Round(lineEntry.Value[Convert.ToInt16(Math.Truncate((decimal)(lineEntry.Value.Count / 2)))].quantity / lineEntry.Value[Convert.ToInt16(Math.Truncate((decimal)(lineEntry.Value.Count / 2)))].duration, 0);
-
                     result.Rows.Add(lineEntry.Key, totalQty, median ,min, max);
-
                 }
             }
-
             return result;
         }
     }
