@@ -241,7 +241,7 @@ namespace KontrolaWizualnaRaport
             public DateTime end;
         }
 
-        public static DataTable MakeTableForModel(Dictionary<string, Dictionary<string, List<durationQuantity>>> inputData,string model)
+        public static DataTable MakeTableForModel(Dictionary<string, Dictionary<string, List<durationQuantity>>> inputData,string model, bool perShift)
         {
             DataTable result = new DataTable();
             result.Columns.Add("Linia");
@@ -249,20 +249,33 @@ namespace KontrolaWizualnaRaport
             result.Columns.Add("Średnia/h");
             result.Columns.Add("Min/h");
             result.Columns.Add("Max/h");
+            double frequency = 1;
+            if(!perShift)
+            {
+                frequency = 8;
+            }
             
 
             foreach (var modelEntry in inputData)
             {
                 if (modelEntry.Key != model) continue;
+                
                 foreach (var lineEntry in modelEntry.Value)
                 {
-                    double totalQty = lineEntry.Value.Select(q => q.quantity).Sum();
-                    double min = Math.Round(lineEntry.Value.Select(q => q.quantity / q.duration).Min(),0);
-                    double max = Math.Round(lineEntry.Value.Select(q => q.quantity / q.duration).Max(), 0);
-                    double avg = Math.Round(lineEntry.Value.Select(q => q.quantity / q.duration).Average(), 0);
-                    double median = Math.Round(lineEntry.Value[Convert.ToInt16(Math.Truncate((decimal)(lineEntry.Value.Count / 2)))].quantity / lineEntry.Value[Convert.ToInt16(Math.Truncate((decimal)(lineEntry.Value.Count / 2)))].duration, 0);
+                    List<double> checkList = new List<double>();
+                    foreach (var lot in lineEntry.Value)
+                    {
+                        checkList.Add(lot.quantity / lot.duration * frequency);
+                    }
+                    checkList.Sort();
+                    double totalQty = lineEntry.Value.Select(q => q.quantity).Sum() * frequency;
+                    double min = Math.Round(lineEntry.Value.Select(q => q.quantity / q.duration).Min(),0) * frequency;
+                    double max = Math.Round(lineEntry.Value.Select(q => q.quantity / q.duration).Max(), 0) * frequency;
+                    double avg = Math.Round(lineEntry.Value.Select(q => q.quantity / q.duration).Average(), 0) * frequency;
+                    double median = Math.Round(checkList[checkList.Count / 2], 0) ;
                     result.Rows.Add(lineEntry.Key, totalQty, median ,min, max);
                 }
+
             }
             return result;
         }

@@ -41,7 +41,6 @@ namespace KontrolaWizualnaRaport
                     }
 
                     grid.Rows.Add(dayEntry.Key.ToShortDateString(), shiftEntry.Key.ToString(), qty);
-
                     foreach (DataGridViewCell cell in grid.Rows[grid.Rows.Count - 1].Cells)
                     {
                         cell.Style.BackColor = rowColor;

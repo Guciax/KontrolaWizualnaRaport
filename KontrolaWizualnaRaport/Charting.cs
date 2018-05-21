@@ -225,7 +225,7 @@ namespace KontrolaWizualnaRaport
             return year + CultureInfo.InvariantCulture.Calendar.GetWeekOfYear(time, CalendarWeekRule.FirstFourDayWeek, DayOfWeek.Monday);
         }
 
-        public static DataTable DrawWasteLevel(bool weekly, Chart chartWasteLevel, List<dataStructure> inputData, DateTime dateBegin, DateTime dateEnd, Dictionary<string, string> modelDictionary, ComboBox comboModel, string smtLine, Dictionary<string,string> lotToSmtine)
+        public static DataTable DrawWasteLevel(bool weekly, Chart chartWasteLevel, List<dataStructure> inputData, DateTime dateBegin, DateTime dateEnd, Dictionary<string, string> modelDictionary, ComboBox comboModel, string smtLine, Dictionary<string,string> lotToSmtine, bool customerLGI, List<excelOperations.order12NC> mstOrders)
         {
             DataTable result = new DataTable();
             Dictionary<string, double> ngLevel = new Dictionary<string, double>();
@@ -245,8 +245,12 @@ namespace KontrolaWizualnaRaport
             result.Columns.Add("Produkcja");
             result.Columns.Add("%");
 
+            string[] mstOrdersList = mstOrders.Select(o => o.order).ToArray();
             foreach (var item in inputData)
             {
+                if (customerLGI & mstOrdersList.Contains(item.NumerZlecenia)) continue;
+                if (!customerLGI & !mstOrdersList.Contains(item.NumerZlecenia)) continue;
+
                 string smt = "";
                 lotToSmtine.TryGetValue(item.NumerZlecenia, out smt);
                 if (smt != smtLine & smtLine != "Wszystkie") continue;
@@ -423,7 +427,7 @@ namespace KontrolaWizualnaRaport
             return result;
         }
 
-        public static DataTable DrawWasteReasonsCHart(Chart ngChart, Chart scrapChart, List<dataStructure> inputData, DateTime dateBegin, DateTime dateEnd, Dictionary<string, string> modelDictionary, string smtLine, Dictionary<string,string> lotToSmtLine)
+        public static DataTable DrawWasteReasonsCHart(Chart ngChart, Chart scrapChart, List<dataStructure> inputData, DateTime dateBegin, DateTime dateEnd, Dictionary<string, string> modelDictionary, string smtLine, Dictionary<string,string> lotToSmtLine, bool customerLGI, List<excelOperations.order12NC> mstOrders)
         {
             
             
@@ -480,9 +484,12 @@ namespace KontrolaWizualnaRaport
                     wasteScrapPerModel.Add(item.name, new Dictionary<string, double>());
                 }
             }
+            string[] mstOrdersList = mstOrders.Select(o => o.order).ToArray();
 
             foreach (var dataRecord in inputData)
             {
+                if (customerLGI & mstOrdersList.Contains(dataRecord.NumerZlecenia)) continue;
+                if (!customerLGI & !mstOrdersList.Contains(dataRecord.NumerZlecenia)) continue;
 
                 string smt = "";
                 lotToSmtLine.TryGetValue(dataRecord.NumerZlecenia, out smt);
@@ -1174,7 +1181,7 @@ namespace KontrolaWizualnaRaport
             {
                 Series newSeries = new Series();
                 newSeries.Name = lineEntry.Key;
-                newSeries.ChartType = SeriesChartType.FastLine;
+                newSeries.ChartType = SeriesChartType.Spline;
                 newSeries.BorderWidth = 3;
                 foreach (var point in lineEntry.Value)
                 {

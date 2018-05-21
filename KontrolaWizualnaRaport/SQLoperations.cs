@@ -119,7 +119,6 @@ namespace KontrolaWizualnaRaport
             Dictionary<DateTime, SortedDictionary<int, Dictionary<string, DataTable>>> result = new Dictionary<DateTime, SortedDictionary<int, Dictionary<string, DataTable>>>();
             foreach (DataRow row in sqlTable.Rows)
             {
-
                 DateTime inspTime = DateTime.Parse(row["Data"].ToString());
                 dateShiftNo shiftInfo = SMTOperations.whatDayShiftIsit(inspTime);
                 string model = row["Model"].ToString();
@@ -139,7 +138,6 @@ namespace KontrolaWizualnaRaport
                 }
                 result[shiftInfo.date.Date][shiftInfo.shift][model].Rows.Add(row.ItemArray);
             }
-
             return result;
         }
 
@@ -189,12 +187,12 @@ namespace KontrolaWizualnaRaport
                         }
                     case "4":
                         {
-                            testerID = "SMT5";
+                            testerID = "test_SMT5";
                             break;
                         }
                     case "5":
                         {
-                            testerID = "SMT6";
+                            testerID = "test_SMT6";
                             break;
                         }
                 }

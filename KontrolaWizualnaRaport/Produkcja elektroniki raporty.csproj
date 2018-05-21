@@ -51,6 +51,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="BoxingOperations.cs" />
+    <Compile Include="ChangeOverTools.cs" />
     <Compile Include="Charting.cs" />
     <Compile Include="dataLoader.cs" />
     <Compile Include="dataStructure.cs" />

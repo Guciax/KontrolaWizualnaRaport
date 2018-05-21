@@ -15,7 +15,8 @@ namespace KontrolaWizualnaRaport
             public string order;
             public string quantity;
         }
-        public static List<order12NC> loadExcel()
+
+        public static List<order12NC> loadExcel(ref Dictionary<string, string> lotModelDictionary)
         {
             List<order12NC> result = new List<order12NC>();
             string FilePath = @"Y:\Manufacturing_Center\Manufacturing HID EM\weinne\woto\elektronika\ZLECENIA MST\2018\zlecenia MST.xlsx";
@@ -84,6 +85,13 @@ namespace KontrolaWizualnaRaport
                     }
                }
             }
+
+            foreach (var item in result)
+            {
+                if (lotModelDictionary.ContainsKey(item.order)) continue;
+                lotModelDictionary.Add(item.order, item.nc12);
+            }
+
             return result;
         }
     }

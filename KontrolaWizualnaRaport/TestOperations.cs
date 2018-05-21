@@ -22,8 +22,8 @@ namespace KontrolaWizualnaRaport
             grid.Columns.Add("Optical", "Optical");
             grid.Columns.Add("Manual-1", "Manual-1");
             grid.Columns.Add("Manual-2", "Manual-2");
-            grid.Columns.Add("SMT5", "SMT5");
-            grid.Columns.Add("SMT6", "SMT6");
+            grid.Columns.Add("test_SMT5", "test_SMT5");
+            grid.Columns.Add("test_SMT6", "test_SMT6");
 
             foreach (DataGridViewColumn col in grid.Columns)
             {
@@ -50,8 +50,8 @@ namespace KontrolaWizualnaRaport
                     qtyPerMachine.Add("Optical", 0);
                     qtyPerMachine.Add("Manual-1", 0);
                     qtyPerMachine.Add("Manual-2", 0);
-                    qtyPerMachine.Add("SMT5", 0);
-                    qtyPerMachine.Add("SMT6", 0);
+                    qtyPerMachine.Add("test_SMT5", 0);
+                    qtyPerMachine.Add("test_SMT6", 0);
 
 
                     DataTable shiftTable = new DataTable();
@@ -66,8 +66,8 @@ namespace KontrolaWizualnaRaport
                     tagPerMachine.Add("Optical", shiftTable.Clone());
                     tagPerMachine.Add("Manual-1", shiftTable.Clone());
                     tagPerMachine.Add("Manual-2", shiftTable.Clone());
-                    tagPerMachine.Add("SMT5", shiftTable.Clone());
-                    tagPerMachine.Add("SMT6", shiftTable.Clone());
+                    tagPerMachine.Add("test_SMT5", shiftTable.Clone());
+                    tagPerMachine.Add("test_SMT6", shiftTable.Clone());
 
                     foreach (var machineEntry in shiftEntry.Value)
                     {
@@ -95,7 +95,7 @@ namespace KontrolaWizualnaRaport
 
                         qtyPerMachine[machineEntry.Key] += pcbPerMachine.Count;
                     }
-                    grid.Rows.Add(date, shift, qtyPerMachine["Optical"], qtyPerMachine["Manual-1"], qtyPerMachine["Manual-2"], qtyPerMachine["SMT5"], qtyPerMachine["SMT6"]);
+                    grid.Rows.Add(date, shift, qtyPerMachine["Optical"], qtyPerMachine["Manual-1"], qtyPerMachine["Manual-2"], qtyPerMachine["test_SMT5"], qtyPerMachine["test_SMT6"]);
                     foreach (DataGridViewCell cell in grid.Rows[grid.Rows.Count - 1].Cells)
                     {
                         cell.Style.BackColor = rowColor;
