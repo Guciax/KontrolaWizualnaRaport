@@ -190,6 +190,214 @@ namespace KontrolaWizualnaRaport
             public int qty;
         }
 
+        public static void DrawLedWasteForDetailView (DataTable inputTable, Chart chart)
+        {
+            chart.ChartAreas.Clear();
+            chart.Series.Clear();
+
+            ChartArea ar = new ChartArea();
+            ar.AxisX.LabelStyle.Interval = 1;
+            ar.AxisX.MajorGrid.Interval = 1;
+            ar.AxisY.MajorGrid.Interval = 0.5;
+            ar.AxisY.MinorGrid.Interval = 0.1;
+            ar.AxisY.MajorGrid.Interval = 0.5;
+
+            ar.AxisY.MinorGrid.LineColor = System.Drawing.Color.Silver;
+            ar.AxisY.MajorGrid.LineColor = System.Drawing.Color.Gray;
+            ar.AxisY.MinorGrid.Enabled = true;
+            ar.AxisY.LabelStyle.Format = "{0.00} %";
+            ar.AxisX.IsMarginVisible = false;
+
+            chart.ChartAreas.Add(ar);
+
+            Series lineSeriesA = new Series();
+            lineSeriesA.ChartType = SeriesChartType.Line;
+            lineSeriesA.BorderWidth = 3;
+            lineSeriesA.Name = "RankA";
+
+            Series lineSeriesB = new Series();
+            lineSeriesB.ChartType = SeriesChartType.Line;
+            lineSeriesB.BorderWidth = 3;
+            lineSeriesB.Name = "RankB";
+
+            //template.Columns.Add("Mont.A");
+            //template.Columns.Add("Odpad_A");
+
+            foreach (DataRow row in inputTable.Rows)
+            {
+                string date = row["Data"].ToString();
+                double valueA = Math.Round(double.Parse(row["Odp_A"].ToString()) / double.Parse(row["Mont.A"].ToString()) * 100, 2);
+                double valueB = Math.Round(double.Parse(row["Odp_B"].ToString()) / double.Parse(row["Mont.B"].ToString()) * 100, 2);
+                DataPoint ptA = new DataPoint();
+                ptA.SetValueXY(date, valueA);
+                lineSeriesA.Points.Add(ptA);
+
+                DataPoint ptB = new DataPoint();
+                ptB.SetValueXY(date, valueB);
+                lineSeriesB.Points.Add(ptB);
+
+            }
+
+            chart.Series.Add(lineSeriesA);
+            chart.Series.Add(lineSeriesB);
+        }
+
+        public static void DrawLedWasteChart(SortedDictionary<DateTime, SortedDictionary<int, List<LedWasteStruc>>> ledWasteDictionary, Chart chart, string frequency, Dictionary<string, bool> lineOptions)
+        {
+            Dictionary<string, Dictionary<string, double>> dataPointsProd = new Dictionary<string, Dictionary<string, double>>();
+            Dictionary<string, Dictionary<string, double>> dataPointsDropped = new Dictionary<string, Dictionary<string, double>>();
+
+            //dataPointsProd.Add("Total", new Dictionary<string, double>());
+           // dataPointsDropped.Add("Total", new Dictionary<string, double>());
+            List<DateTime> allDates = ledWasteDictionary.Select(date => date.Key).ToList();
+            List<string> allLines = ledWasteDictionary.SelectMany(date => date.Value).SelectMany(shift => shift.Value).Select(l => l.smtLine).Distinct().OrderBy(l => l).ToList();
+            allLines.Add("Total");
+
+            foreach (var line in allLines)
+            {
+                dataPointsProd.Add(line, new Dictionary<string, double>());
+                dataPointsDropped.Add(line, new Dictionary<string, double>());
+                foreach (var date in allDates)
+                {
+                    string dateKey = date.ToString("dd-MM-yyyy");
+                    if (frequency == "Tygodniowo")
+                    {
+                        dateKey = GetIso8601WeekOfYear(date).ToString();
+                    }
+                    if (frequency == "Miesiecznie")
+                    {
+                        dateKey = date.ToString("MMM", CultureInfo.InvariantCulture);
+                    }
+                    if (dataPointsProd[line].ContainsKey(dateKey)) continue;
+                    dataPointsProd[line].Add(dateKey, 0);
+                    dataPointsDropped[line].Add(dateKey, 0);
+                }
+            }
+
+            foreach (var dateEntry in ledWasteDictionary)
+            {
+                string dateKey = dateEntry.Key.ToString("dd-MM-yyyy");
+                if (frequency=="Tygodniowo")
+                {
+                    dateKey = GetIso8601WeekOfYear(dateEntry.Key).ToString();
+                }
+                if (frequency=="Miesiecznie")
+                {
+                    dateKey = dateEntry.Key.ToString("MMM", CultureInfo.InvariantCulture);
+                }
+
+                
+                foreach (var shiftEntry in dateEntry.Value)
+                {
+                    foreach (var lotData in shiftEntry.Value)
+                    {
+                        string line = lotData.smtLine;
+                        
+
+                        int ledExpectedUsageA = lotData.requiredRankA * lotData.manufacturedModules;
+                        int ledExpectedUsageB = lotData.requiredRankB * lotData.manufacturedModules;
+                        int ledExpectedLeftoversA = lotData.reelsUsed / 2 * lotData.ledsPerReel - ledExpectedUsageA;
+                        int ledExpectedLeftoversB = lotData.reelsUsed / 2 * lotData.ledsPerReel - ledExpectedUsageB;
+                        int droppedA = ledExpectedLeftoversA - lotData.ledLeftA;
+                        int droppedB = ledExpectedLeftoversB - lotData.ledLeftB;
+
+                        if (lineOptions["Total"])
+                        {
+                            if (!dataPointsProd["Total"].ContainsKey(dateKey))
+                            {
+                                dataPointsProd["Total"].Add(dateKey, 0);
+                                dataPointsDropped["Total"].Add(dateKey, 0);
+                            }
+                            dataPointsProd["Total"][dateKey] += ledExpectedUsageA + ledExpectedUsageB;
+                            dataPointsDropped["Total"][dateKey] += droppedA + droppedB;
+                        }
+
+                        if (!lineOptions[line]) continue;
+
+                        if (!dataPointsProd.ContainsKey(line))
+                        {
+                            dataPointsProd.Add(line, new Dictionary<string, double>());
+                            dataPointsDropped.Add(line, new Dictionary<string, double>());
+                        }
+
+                        if (!dataPointsProd[line].ContainsKey(dateKey))
+                        {
+                            dataPointsProd[line].Add(dateKey, 0);
+                            dataPointsDropped[line].Add(dateKey, 0);
+                        }
+
+
+                        dataPointsProd[line][dateKey] += ledExpectedUsageA + ledExpectedUsageB;
+                        dataPointsDropped[line][dateKey] += droppedA + droppedB;
+
+                    }
+
+                }
+
+               
+
+            }
+            chart.Series.Clear();
+            chart.ChartAreas.Clear();
+
+            ChartArea ar = new ChartArea();
+            ar.AxisX.LabelStyle.Interval = 1;
+            ar.AxisX.MajorGrid.Interval = 1;
+            ar.AxisY.MajorGrid.Interval = 0.5;
+            ar.AxisY.MinorGrid.Interval = 0.1;
+            ar.AxisY.MajorGrid.Interval = 0.5;
+
+            ar.AxisY.MinorGrid.LineColor = System.Drawing.Color.Silver;
+            ar.AxisY.MajorGrid.LineColor = System.Drawing.Color.Gray;
+            ar.AxisY.MinorGrid.Enabled = true;
+            ar.AxisY2.MajorGrid.Enabled = false;
+            ar.AxisY.LabelStyle.Format = "{0.00} %";
+            ar.AxisX.IsMarginVisible = false;
+
+            chart.ChartAreas.Add(ar);
+            double maxY = 0;
+            foreach (var lineEntry in dataPointsProd)
+            {
+                Series lineSeries = new Series();
+                lineSeries.ChartType = SeriesChartType.Line;
+                lineSeries.BorderWidth = 3;
+                lineSeries.Name = lineEntry.Key;
+
+
+                foreach (var dateKeyEntry in lineEntry.Value)
+                {
+                    DataPoint ngPoint = new DataPoint();
+                    double waste = Math.Round(dataPointsDropped[lineEntry.Key][dateKeyEntry.Key] / dateKeyEntry.Value * 100, 2);
+                    ngPoint.MarkerSize = 50;
+                    if (waste > maxY) maxY = waste;
+                    ngPoint.SetValueXY(dateKeyEntry.Key, waste);
+                    //ngPoint.ToolTip = ngtoolTip;
+                    lineSeries.Points.Add(ngPoint);
+                    if (lineEntry.Key=="SMT2")
+                    {
+                       // MessageBox.Show("");
+                    }
+                }
+                chart.Series.Add(lineSeries);
+            }
+            chart.ChartAreas[0].AxisY.Maximum = maxY * 1.1;
+
+            Series productionLevel = new Series();
+            productionLevel.ChartType = SeriesChartType.Column;
+            productionLevel.Name = "Poziom produkcji [szt.]";
+            productionLevel.YAxisType = AxisType.Secondary;
+            productionLevel.Color = System.Drawing.Color.AliceBlue;
+            productionLevel.BorderColor = System.Drawing.Color.Silver;
+
+            foreach (var dateKeyEnrtry in dataPointsProd)
+            {
+                DataPoint pt = new DataPoint();
+                pt.SetValueXY(dateKeyEnrtry.Key, dateKeyEnrtry.Value);
+                productionLevel.Points.Add(pt);
+            }
+            //chart.Series.Add(productionLevel);
+        }
+            
 
         private static WasteStruc CreateWasteStruc(string name)
         {
@@ -438,6 +646,7 @@ namespace KontrolaWizualnaRaport
             List<WasteStruc> wasteList = new List<WasteStruc>();
             Dictionary<string, Dictionary<string, double>> wasteNgPerModel = new Dictionary<string, Dictionary<string, double>>();
             Dictionary<string, Dictionary<string, double>> wasteScrapPerModel = new Dictionary<string, Dictionary<string, double>>();
+            Dictionary<string, DataTable> sourceTablePerReason = new Dictionary<string, DataTable>();
 
             wasteList.Add(CreateWasteStruc("goodQty"));
             wasteList.Add(CreateWasteStruc("allQty"));
@@ -472,6 +681,13 @@ namespace KontrolaWizualnaRaport
 
             wasteList.Add(CreateWasteStruc("NgTestElektryczny"));
 
+            DataTable template = new DataTable();
+            template.Columns.Add("Data");
+            template.Columns.Add("Lot");
+            template.Columns.Add("Model");
+            template.Columns.Add("Linia");
+            template.Columns.Add("Ilość");
+
             foreach (var item in wasteList)
             {
                 if (item.name.Contains("Ng"))
@@ -483,6 +699,8 @@ namespace KontrolaWizualnaRaport
                 {
                     wasteScrapPerModel.Add(item.name, new Dictionary<string, double>());
                 }
+
+                sourceTablePerReason.Add(item.name, template.Clone());
             }
             string[] mstOrdersList = mstOrders.Select(o => o.order).ToArray();
 
@@ -491,6 +709,8 @@ namespace KontrolaWizualnaRaport
                 if (customerLGI & mstOrdersList.Contains(dataRecord.NumerZlecenia)) continue;
                 if (!customerLGI & !mstOrdersList.Contains(dataRecord.NumerZlecenia)) continue;
 
+
+                
                 string smt = "";
                 lotToSmtLine.TryGetValue(dataRecord.NumerZlecenia, out smt);
                 if (smt != smtLine & smtLine != "Wszystkie") continue;
@@ -507,11 +727,12 @@ namespace KontrolaWizualnaRaport
                         model = model.Replace("LLFML", "");
                     }
 
+                    
+
                     wasteList[FindIndexOfWaste("GoodQty", wasteList)].qty += dataRecord.GoodQty; ;
                     wasteList[FindIndexOfWaste("allQty", wasteList)].qty += dataRecord.AllQty;
 
                     Dictionary<string, int> wasteInRecord = new Dictionary<string, int>();
-
 
                     wasteInRecord.Add("NgBrakLutowia", dataRecord.NgBrakLutowia);
                     wasteInRecord.Add("NgBrakDiodyLed", dataRecord.NgBrakDiodyLed);
@@ -546,25 +767,27 @@ namespace KontrolaWizualnaRaport
                     {
                         if (item.Value > 0)
                         {
-                            if (item.Key.Contains("Ng"))
+                            string reason = item.Key;
+                            if (reason.Contains("Ng"))
                             {
-                                if (!wasteNgPerModel[item.Key].ContainsKey(model))
+                                if (!wasteNgPerModel[reason].ContainsKey(model))
                                 {
-                                    wasteNgPerModel[item.Key].Add(model, 0);
+                                    wasteNgPerModel[reason].Add(model, 0);
                                 }
-                                wasteNgPerModel[item.Key][model] += item.Value;
+                                wasteNgPerModel[reason][model] += item.Value;
                             }
-                            if (item.Key.Contains("Scrap"))
+                            if (reason.Contains("Scrap"))
                             {
-                                if (!wasteScrapPerModel[item.Key].ContainsKey(model))
+                                if (!wasteScrapPerModel[reason].ContainsKey(model))
                                 {
-                                    wasteScrapPerModel[item.Key].Add(model, 0);
+                                    wasteScrapPerModel[reason].Add(model, 0);
                                 }
-                                wasteScrapPerModel[item.Key][model] += item.Value;
+                                wasteScrapPerModel[reason][model] += item.Value;
                             }
+                            
+                            sourceTablePerReason[reason].Rows.Add(dataRecord.RealDateTime, dataRecord.NumerZlecenia, model,  smt,item.Value);
                         }
                     }
-
 
                     wasteList[FindIndexOfWaste("NgBrakLutowia", wasteList)].qty += wasteInRecord["NgBrakLutowia"];
                     wasteList[FindIndexOfWaste("NgBrakDiodyLed", wasteList)].qty += wasteInRecord["NgBrakDiodyLed"];
@@ -640,7 +863,9 @@ namespace KontrolaWizualnaRaport
                     DataPoint ngPoint = new DataPoint();
                     ngPoint.SetValueXY(wasteEntry.name, wasteEntry.qty);
                     ngPoint.ToolTip = label[wasteEntry.name];
+                    ngPoint.Tag = sourceTablePerReason[wasteEntry.name];
                     ngSeries.Points.Add(ngPoint);
+
                     result.Rows.Add(wasteEntry.name, wasteEntry.qty);
                 }
 
@@ -655,6 +880,7 @@ namespace KontrolaWizualnaRaport
                     DataPoint scrapPoint = new DataPoint();
                     scrapPoint.SetValueXY(wasteEntry.name, wasteEntry.qty);
                     scrapPoint.ToolTip = label[wasteEntry.name];
+                    scrapPoint.Tag = sourceTablePerReason[wasteEntry.name];
                     scrapSeries.Points.Add(scrapPoint);
                     scrapTempTable.Rows.Add(wasteEntry.name, wasteEntry.qty);
                 }

@@ -159,7 +159,6 @@ namespace KontrolaWizualnaRaport
 
             sqlTable.Columns["inspection_time"].ColumnName = "Data";
             sqlTable.Columns["tester_id"].ColumnName = "Tester";
-            //sqlTable.Columns["NC12_wyrobu"].ColumnName = "Model";
             sqlTable.Columns["serial_no"].ColumnName = "PCB";
             sqlTable.Columns["wip_entity_name"].ColumnName = "LOT";
 
@@ -268,6 +267,55 @@ namespace KontrolaWizualnaRaport
                 {
                     result.Add(row["NrZlecenia"].ToString(), row["LiniaSMT"].ToString());
                 }
+            }
+
+            return result;
+        }
+
+        public static Dictionary<string, MesModels> GetMesModels()
+        {
+            Dictionary<string, MesModels> result = new Dictionary<string, MesModels>();
+
+
+            DataTable sqlTable = new DataTable();
+            SqlConnection conn = new SqlConnection();
+            conn.ConnectionString = @"Data Source=MSTMS010;Initial Catalog=MES;User Id=mes;Password=mes;";
+
+            SqlCommand command = new SqlCommand();
+            command.Connection = conn;
+            command.CommandText =
+                @"SELECT MODEL_ID,PKG_SUM_QTY,A_PKG_QTY,B_PKG_QTY FROM tb_MES_models;";
+
+            SqlDataAdapter adapter = new SqlDataAdapter(command);
+            adapter.Fill(sqlTable);
+
+            foreach (DataRow row in sqlTable.Rows)
+            {
+                string model = row["MODEL_ID"].ToString();
+                if (result.ContainsKey(model)) continue;
+                int ledSum = int.Parse(row["PKG_SUM_QTY"].ToString());
+                int ledSumA = int.Parse(row["A_PKG_QTY"].ToString());
+                int ledSumB = int.Parse(row["B_PKG_QTY"].ToString());
+                string type = "";
+                if (model.Contains("22-")|| model.Contains("33-")|| model.Contains("32-")|| model.Contains("53-"))
+                {
+                    type = "square";
+                }
+                else if(model.Contains("K1-")|| model.Contains("K2-")|| model.Contains("61-")|| model.Contains("K5-"))
+                {
+                    type = "long";
+                }
+                else if (model.Contains("G1-")|| model.Contains("G2-")|| model.Contains("G5-")|| model.Contains("31-"))
+                {
+                    type = "short";
+                }
+                else
+                {
+                    type = "veryShort";
+                }
+                MesModels newModel = new MesModels(ledSum, ledSumA, ledSumB, type);
+
+                result.Add(model, newModel);
             }
 
             return result;

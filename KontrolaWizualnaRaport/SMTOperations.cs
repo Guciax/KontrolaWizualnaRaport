@@ -12,6 +12,433 @@ namespace KontrolaWizualnaRaport
 {
     class SMTOperations
     {
+        public struct LedWasteStruc
+        {
+            public string lot;
+            public string smtLine;
+            public string model;
+            public int manufacturedModules;
+            public int reelsUsed;
+            public int ledsPerReel;
+            public int requiredRankA;
+            public int requiredRankB;
+            public int ledLeftA;
+            public int ledLeftB;
+        }
+
+        public static void FillOutLedWasteTotalByLine(SortedDictionary<DateTime, SortedDictionary<int, List<LedWasteStruc>>> ledWasteDictionary, DataGridView grid, string model)
+        {
+            grid.SuspendLayout();
+            grid.Rows.Clear();
+            List<string> lines = ledWasteDictionary.SelectMany(date => date.Value).SelectMany(shift => shift.Value).Select(l => l.smtLine).Distinct().OrderBy(l => l).ToList();
+            //lines.Insert(0, "Wszystkie");
+            Dictionary<string, double> producedPerLineA = new Dictionary<string, double>();
+            Dictionary<string, double> producedPerLineB = new Dictionary<string, double>();
+            Dictionary<string, double> wastePerLineA = new Dictionary<string, double>();
+            Dictionary<string, double> wastePerLineB = new Dictionary<string, double>();
+            Dictionary<string, DataTable> tagTable = new Dictionary<string, DataTable>();
+
+            DataTable template = new DataTable();
+            template.Columns.Add("LOT");
+            template.Columns.Add("Model");
+            template.Columns.Add("Data");
+            template.Columns.Add("Linia");
+            template.Columns.Add("Mont.A");
+            template.Columns.Add("Odp_A");
+            template.Columns.Add("Mont.B");
+            template.Columns.Add("Odp_B");
+
+
+
+            grid.Columns.Clear();
+            grid.Columns.Add("Poz", "");
+            foreach (var item in lines)
+            {
+                grid.Columns.Add(item, item);
+                producedPerLineA.Add(item, 0);
+                producedPerLineB.Add(item, 0);
+                wastePerLineA.Add(item, 0);
+                wastePerLineB.Add(item, 0);
+                tagTable.Add(item, template.Clone());
+                tagTable[item].Rows.Add();
+            }
+
+            foreach (var dateEntry in ledWasteDictionary)
+            {
+                foreach (var shiftEntry in dateEntry.Value)
+                {
+                    foreach (var lot in shiftEntry.Value)
+                    {
+                        if (lot.model != model & model != "Wszystkie") continue;
+
+                        int ledExpectedUsageA = lot.requiredRankA * lot.manufacturedModules;
+                        int ledExpectedUsageB = lot.requiredRankB * lot.manufacturedModules;
+                        int ledExpectedLeftoversA = lot.reelsUsed / 2 * lot.ledsPerReel - ledExpectedUsageA;
+                        int ledExpectedLeftoversB = lot.reelsUsed / 2 * lot.ledsPerReel - ledExpectedUsageB;
+                        int droppedA = ledExpectedLeftoversA - lot.ledLeftA;
+                        int droppedB = ledExpectedLeftoversB - lot.ledLeftB;
+
+                        producedPerLineA[lot.smtLine] += ledExpectedUsageA;
+                        wastePerLineA[lot.smtLine] += droppedA;
+                        producedPerLineB[lot.smtLine] += ledExpectedUsageB;
+                        wastePerLineB[lot.smtLine] += droppedB;
+
+                        tagTable[lot.smtLine].Rows.Add(lot.lot, lot.model, dateEntry.Key.ToString("dd-MM-yyyy"), lot.smtLine, ledExpectedUsageA, droppedA, ledExpectedUsageB, droppedB);
+
+                    }
+                }
+                
+            }
+            grid.Rows.Add(6);
+            foreach (var lineEntry in producedPerLineA)
+            {
+                grid.Rows[0].Cells[0].Value = "Mont_A";
+                grid.Rows[0].Cells[lineEntry.Key].Value = producedPerLineA[lineEntry.Key];
+                grid.Rows[0].Cells[lineEntry.Key].Tag = tagTable[lineEntry.Key];
+
+                grid.Rows[1].Cells[0].Value = "Odp_A";
+                grid.Rows[1].Cells[lineEntry.Key].Value = wastePerLineA[lineEntry.Key];
+                grid.Rows[1].Cells[lineEntry.Key].Tag = tagTable[lineEntry.Key];
+
+                double wasteA = 0;
+                if (producedPerLineA[lineEntry.Key]>0)
+                {
+                    wasteA = Math.Round(wastePerLineA[lineEntry.Key] / producedPerLineA[lineEntry.Key] * 100, 2);
+                }
+                grid.Rows[2].Cells[0].Value = "Odp%_A";
+                grid.Rows[2].Cells[lineEntry.Key].Value = wasteA + "%";
+                grid.Rows[2].Cells[lineEntry.Key].Tag = tagTable[lineEntry.Key];
+
+                grid.Rows[3].Cells[0].Value = "Mont_B";
+                grid.Rows[3].Cells[lineEntry.Key].Value = producedPerLineB[lineEntry.Key];
+                grid.Rows[3].Cells[lineEntry.Key].Tag = tagTable[lineEntry.Key];
+
+                grid.Rows[4].Cells[0].Value = "Odp_B";
+                grid.Rows[4].Cells[lineEntry.Key].Value = wastePerLineB[lineEntry.Key];
+                grid.Rows[4].Cells[lineEntry.Key].Tag = tagTable[lineEntry.Key];
+
+                double wasteB = 0;
+                if (producedPerLineB[lineEntry.Key] > 0)
+                {
+                    wasteB = Math.Round(wastePerLineB[lineEntry.Key] / producedPerLineB[lineEntry.Key] * 100, 2);
+                }
+                grid.Rows[5].Cells[0].Value = "Odp%_B";
+                grid.Rows[5].Cells[lineEntry.Key].Value = wasteB + "%";
+                grid.Rows[5].Cells[lineEntry.Key].Tag = tagTable[lineEntry.Key];
+            }
+            autoSizeGridColumns(grid);
+            grid.ResumeLayout();
+        }
+
+        public static void FillOutLedWasteByModel(SortedDictionary<DateTime, SortedDictionary<int, List<LedWasteStruc>>> ledWasteDictionary, DataGridView grid, string line)
+        {
+            grid.SuspendLayout();
+            grid.Columns.Clear();
+            grid.Columns.Add("Model", "Model");
+            grid.Columns.Add("Mont_LED", "Mont.LED");
+            grid.Columns.Add("Odp_LED", "Odpad LED");
+            grid.Columns.Add("Odp", "Odpad");
+            grid.Columns.Add("LED", "LED");
+
+            Dictionary<string, double> mountedLed = new Dictionary<string, double>();
+            Dictionary<string, DataTable> detailsTag = new Dictionary<string, DataTable>();
+            Dictionary<string, double> droppedLed = new Dictionary<string, double>();
+            Dictionary<string, double> ledWaste = new Dictionary<string, double>();
+            Dictionary<string, string> ledPackage = new Dictionary<string, string>();
+
+            DataTable template = new DataTable();
+            template.Columns.Add("LOT");
+            template.Columns.Add("Model");
+            template.Columns.Add("Data");
+            template.Columns.Add("Linia");
+            template.Columns.Add("Mont.A");
+            template.Columns.Add("Odp_A");
+            template.Columns.Add("Mont.B");
+            template.Columns.Add("Odp_B");
+
+            foreach (var dateEntry in ledWasteDictionary)
+            {
+                
+                foreach (var shiftEntry in dateEntry.Value)
+                {
+                    foreach (var lot in shiftEntry.Value)
+                    {
+                        if (lot.smtLine != line & line != "Wszystkie") continue;
+                        string model = lot.model;
+                        string pckg = "";
+
+                        if (lot.ledsPerReel>3000)
+                        {
+                            pckg = "2835";
+                        }
+                        else
+                        {
+                            pckg = "5630";
+                        }
+                        if(!mountedLed.ContainsKey(model))
+                        {
+                            mountedLed.Add(model, 0);
+                            droppedLed.Add(model, 0);
+                            ledWaste.Add(model, 0);
+                            detailsTag.Add(model, template.Clone());
+                            detailsTag[model].Rows.Add(lot.model + " specA=" + lot.requiredRankA + " specB=" + lot.requiredRankB);
+                            ledPackage.Add(model, pckg);
+
+                        }
+                        
+                        int ledExpectedUsageA = lot.requiredRankA * lot.manufacturedModules;
+                        int ledExpectedUsageB = lot.requiredRankB * lot.manufacturedModules;
+                        int ledExpectedLeftoversA = lot.reelsUsed / 2 * lot.ledsPerReel - ledExpectedUsageA;
+                        int ledExpectedLeftoversB = lot.reelsUsed / 2 * lot.ledsPerReel - ledExpectedUsageB;
+                        int droppedA = ledExpectedLeftoversA - lot.ledLeftA;
+                        int droppedB = ledExpectedLeftoversB - lot.ledLeftB;
+
+                        detailsTag[model].Rows.Add(lot.lot,lot.model, dateEntry.Key.ToString("dd-MM-yyyy"),lot.smtLine, ledExpectedUsageA, droppedA, ledExpectedUsageB, droppedB);
+                        mountedLed[model] += ledExpectedUsageA+ ledExpectedUsageB;
+                        droppedLed[model] += droppedA + droppedB;
+                        ledWaste[model] = Math.Round(droppedLed[model] / mountedLed[model] * 100, 2);
+                    }
+                }
+
+                
+            }
+
+            foreach (var modelEntry in mountedLed)
+            {
+                grid.Rows.Add(modelEntry.Key, mountedLed[modelEntry.Key], droppedLed[modelEntry.Key], ledWaste[modelEntry.Key] + "%", ledPackage[modelEntry.Key]);
+                foreach (DataGridViewCell cell in grid.Rows[grid.Rows.Count-1].Cells)
+                {
+                    cell.Tag = detailsTag[modelEntry.Key];
+                }
+            }
+
+            autoSizeGridColumns(grid);
+            grid.ResumeLayout();
+        }
+
+        public static void FillOutLedWasteTotalWeekly(SortedDictionary<DateTime, SortedDictionary<int, List<LedWasteStruc>>> ledWasteDictionary, DataGridView grid)
+        {
+            grid.SuspendLayout();
+            grid.Columns.Clear();
+            grid.Columns.Add("Tydz", "Tydz");
+            grid.Columns.Add("MontLED", "MontLED");
+            grid.Columns.Add("OdpadLED", "OdpadLED");
+            grid.Columns.Add("%", "%");
+
+            Dictionary<string, double> ledMounted = new Dictionary<string, double>();
+            Dictionary<string, double> ledDropped = new Dictionary<string, double>();
+            Dictionary<string, double> ledWaste = new Dictionary<string, double>();
+            double monthMounted = 0;
+            double monthDropped = 0;
+            double monthwaste = 0;
+
+            string monthName = "";
+
+            foreach (var dateEntry in ledWasteDictionary)
+            {
+                if (dateEntry.Key.ToString("MMM", CultureInfo.InvariantCulture)!=monthName & monthName!="")
+                {
+                    ledMounted.Add(monthName, monthMounted);
+                    ledDropped.Add(monthName, monthDropped);
+                    ledWaste.Add(monthName, monthwaste);
+                    monthMounted = 0;
+                     monthDropped = 0;
+                     monthwaste = 0;
+                }
+                string week = Charting.GetIso8601WeekOfYear(dateEntry.Key).ToString();
+                monthName = dateEntry.Key.ToString("MMM", CultureInfo.InvariantCulture);
+
+
+                if (!ledMounted.ContainsKey(week))
+                {
+                    ledMounted.Add(week, 0);
+                    ledDropped.Add(week, 0);
+                    ledWaste.Add(week, 0);
+                }
+                foreach (var shiftEntry in dateEntry.Value)
+                {
+                    foreach (var lotData in shiftEntry.Value)
+                    {
+                        int ledExpectedUsageA = lotData.requiredRankA * lotData.manufacturedModules;
+                        int ledExpectedUsageB = lotData.requiredRankB * lotData.manufacturedModules;
+                        int ledExpectedLeftoversA = lotData.reelsUsed / 2 * lotData.ledsPerReel - ledExpectedUsageA;
+                        int ledExpectedLeftoversB = lotData.reelsUsed / 2 * lotData.ledsPerReel - ledExpectedUsageB;
+                        int droppedA = ledExpectedLeftoversA - lotData.ledLeftA;
+                        int droppedB = ledExpectedLeftoversB - lotData.ledLeftB;
+
+                        //if (droppedA + droppedB < 0) continue;
+
+                        ledMounted[week] += ledExpectedUsageA + ledExpectedUsageB;
+                        ledDropped[week] += droppedA + droppedB;
+                        ledWaste[week] = Math.Round(ledDropped[week] / ledMounted[week] * 100, 2);
+                        monthMounted += ledExpectedUsageA + ledExpectedUsageB;
+                        monthDropped += droppedA + droppedB;
+                        monthwaste = Math.Round(ledDropped[week] / ledMounted[week] * 100, 2);
+                    }
+                }
+
+            }
+            foreach (var weekEntry in ledMounted)
+            {
+                grid.Rows.Add(weekEntry.Key, ledMounted[weekEntry.Key], ledDropped[weekEntry.Key], ledWaste[weekEntry.Key]);
+            }
+            autoSizeGridColumns(grid);
+            grid.ResumeLayout();
+        }
+
+        public static void FillOutLedWasteGrid(SortedDictionary<DateTime, SortedDictionary<int, List<LedWasteStruc>>> ledWasteDictionary, DataGridView grid)
+        {
+            grid.SuspendLayout();
+            grid.Columns.Clear();
+            grid.Columns.Add("Data", "Data");
+            grid.Columns.Add("Zm", "Zm");
+            grid.Columns.Add("SMT1", "SMT1");
+            grid.Columns.Add("SMT2", "SMT2");
+            grid.Columns.Add("SMT3", "SMT3");
+            grid.Columns.Add("SMT5", "SMT5");
+            grid.Columns.Add("SMT6", "SMT6");
+            grid.Columns.Add("SMT7", "SMT7");
+            grid.Columns.Add("SMT8", "SMT8");
+
+            foreach (var dateEntry in ledWasteDictionary)
+            {
+                foreach (var shiftEntry in dateEntry.Value)
+                {
+                    Dictionary<string, double> ledDroppedPerLine = new Dictionary<string, double>();
+                    Dictionary<string, double> ledUsedPerLine = new Dictionary<string, double>();
+                    Dictionary<string, double> ledWastePerLine = new Dictionary<string, double>();
+
+                    ledDroppedPerLine.Add("SMT1", 0);
+                    ledDroppedPerLine.Add("SMT2", 0);
+                    ledDroppedPerLine.Add("SMT3", 0);
+                    ledDroppedPerLine.Add("SMT5", 0);
+                    ledDroppedPerLine.Add("SMT6", 0);
+                    ledDroppedPerLine.Add("SMT7", 0);
+                    ledDroppedPerLine.Add("SMT8", 0);
+
+                    ledUsedPerLine.Add("SMT1", 0);
+                    ledUsedPerLine.Add("SMT2", 0);
+                    ledUsedPerLine.Add("SMT3", 0);
+                    ledUsedPerLine.Add("SMT5", 0);
+                    ledUsedPerLine.Add("SMT6", 0);
+                    ledUsedPerLine.Add("SMT7", 0);
+                    ledUsedPerLine.Add("SMT8", 0);
+
+                    ledWastePerLine.Add("SMT1", 0);
+                    ledWastePerLine.Add("SMT2", 0);
+                    ledWastePerLine.Add("SMT3", 0);
+                    ledWastePerLine.Add("SMT5", 0);
+                    ledWastePerLine.Add("SMT6", 0);
+                    ledWastePerLine.Add("SMT7", 0);
+                    ledWastePerLine.Add("SMT8", 0);
+
+                    foreach (var lotData in shiftEntry.Value)
+                    {
+                        int ledExpectedUsageA = lotData.requiredRankA * lotData.manufacturedModules;
+                        int ledExpectedUsageB = lotData.requiredRankB * lotData.manufacturedModules;
+                        int ledExpectedLeftoversA = lotData.reelsUsed/2 * lotData.ledsPerReel - ledExpectedUsageA;
+                        int ledExpectedLeftoversB = lotData.reelsUsed/2 * lotData.ledsPerReel - ledExpectedUsageB;
+                        int droppedA = ledExpectedLeftoversA - lotData.ledLeftA;
+                        int droppedB = ledExpectedLeftoversB - lotData.ledLeftB;
+
+                        if (droppedA + droppedB < 0) continue;
+
+                        ledUsedPerLine[lotData.smtLine] += ledExpectedUsageA + ledExpectedUsageB;
+                        ledDroppedPerLine[lotData.smtLine] += droppedA + droppedB;
+                    }
+
+                    foreach (var lineEntry in ledUsedPerLine)
+                    {
+                        if (ledUsedPerLine[lineEntry.Key] > 0)
+                        {
+                            ledWastePerLine[lineEntry.Key] = Math.Round(ledDroppedPerLine[lineEntry.Key] / ledUsedPerLine[lineEntry.Key] * 100, 2);
+                        }
+                        else
+                        {
+                            ledWastePerLine[lineEntry.Key] = 0;
+                        }
+                    }
+
+                    grid.Rows.Add(dateEntry.Key.ToString("dd-MM-yyyy"), shiftEntry.Key, ledWastePerLine["SMT1"] + "%", ledWastePerLine["SMT2"] + "%", ledWastePerLine["SMT3"]+ "%", ledWastePerLine["SMT5"] + "%", ledWastePerLine["SMT6"] + "%", ledWastePerLine["SMT7"] + "%", ledWastePerLine["SMT8"] + "%");
+                }
+            }
+            autoSizeGridColumns(grid);
+            grid.ResumeLayout();
+        }
+
+        public static SortedDictionary<DateTime, SortedDictionary<int, List<LedWasteStruc>>> ledWasteDictionary(SortedDictionary<DateTime, SortedDictionary<int, DataTable>> inputSmtData, Dictionary<string, MesModels> mesModels)
+        {
+            SortedDictionary<DateTime, SortedDictionary<int, List<LedWasteStruc>>> result = new SortedDictionary<DateTime, SortedDictionary<int, List<LedWasteStruc>>>();
+
+            foreach (var dateEntry in inputSmtData)
+            {
+                if (!result.ContainsKey(dateEntry.Key))
+                {
+                    result.Add(dateEntry.Key, new SortedDictionary<int, List<LedWasteStruc>>());
+                }
+                foreach (var shiftEntry in dateEntry.Value)
+                {
+                    if (!result[dateEntry.Key].ContainsKey(shiftEntry.Key))
+                    {
+                        result[dateEntry.Key].Add(shiftEntry.Key, new List<LedWasteStruc>());
+                    }
+                    foreach (DataRow row in shiftEntry.Value.Rows)
+                    {
+                        //107577:2OPF00050A:0|107658:2OPF00050A:0#107580:2OPF00050A:27|107657:2OPF00050A:23
+                        string lot = row["NrZlecenia"].ToString();
+                        string model = row["Model"].ToString();
+                        int requiredRankA = mesModels["LLFML"+model].LedAQty;
+                        int requiredRankB = mesModels["LLFML" + model].LedBQty;
+                        string[] ledDropped = row["KoncowkiLED"].ToString().Split('#');
+                        int reelsUsed = ledDropped.Length * 2;
+                        int ledDroppedATotal = 0;
+                        int ledDroppedBTotal = 0;
+                        int ledPerReel = 0;
+                        int manufacturedModules = int.Parse(row["IloscWykonana"].ToString());
+                        string smtLine = row["LiniaSMT"].ToString();
+                        
+
+                        foreach (var item in ledDropped) 
+                        {
+                            string[] ranks = item.Split('|');
+                            string[] rankA = ranks[0].ToString().Split(':');
+                            string[] rankB = ranks[1].ToString().Split(':');
+                            int leftA = int.Parse(rankA[2]);
+                            int leftB = int.Parse(rankB[2]);
+                            string ledId = rankA[1];
+                            if (ledId.Length>10)
+                            {
+                                ledPerReel = 3000;
+                            }
+                            else
+                            {
+                                ledPerReel = 3500;
+                            }
+                            ledDroppedATotal += leftA;
+                            ledDroppedBTotal += leftB;
+                        }
+
+
+                        LedWasteStruc newItem = new LedWasteStruc();
+                        newItem.lot = lot;
+                        newItem.requiredRankA = requiredRankA;
+                        newItem.requiredRankB = requiredRankB;
+                        newItem.ledLeftA = ledDroppedATotal;
+                        newItem.ledLeftB = ledDroppedBTotal;
+                        newItem.ledsPerReel = ledPerReel;
+                        newItem.manufacturedModules = manufacturedModules;
+                        newItem.smtLine = smtLine;
+                        newItem.reelsUsed = reelsUsed;
+                        newItem.model = model;
+                        result[dateEntry.Key][shiftEntry.Key].Add(newItem);
+                    }
+                }
+            }
+
+            return result;
+        }
+
+
         public static SortedDictionary<DateTime, SortedDictionary<int, DataTable>> sortTableByDayAndShift(DataTable sqlTable,string dateColumnName)
         {
             //DataCzasStart,DataCzasKoniec,LiniaSMT,OperatorSMT,NrZlecenia,Model,IloscWykonana,NGIlosc,ScrapIlosc

@@ -19,7 +19,6 @@ namespace KontrolaWizualnaRaport
 {
     public partial class Form1 : Form
     {
-
         public Form1()
         {
             InitializeComponent();
@@ -39,6 +38,8 @@ namespace KontrolaWizualnaRaport
         DataTable lotTable = new DataTable();
         Dictionary<DateTime, SortedDictionary<int, Dictionary<string, Dictionary<string, DataTable>>>> testData = new Dictionary<DateTime, SortedDictionary<int, Dictionary<string, Dictionary<string, DataTable>>>>();
         Dictionary<DateTime, SortedDictionary<int, Dictionary<string, DataTable>>> boxingData = new Dictionary<DateTime, SortedDictionary<int, Dictionary<string, DataTable>>>();
+        Dictionary<string, MesModels> mesModels = new Dictionary<string, MesModels>();
+        SortedDictionary<DateTime, SortedDictionary<int, List<LedWasteStruc>>> ledWasteDictionary = new SortedDictionary<DateTime, SortedDictionary<int, List<LedWasteStruc>>>();
 
         private void Form1_Load(object sender, EventArgs e)
         {
@@ -47,6 +48,7 @@ namespace KontrolaWizualnaRaport
             lotModelDictionary = lotList[0];
             lotToOrderedQty = lotList[1];
             planModelDictionary = lotList[3];
+            mesModels = SQLoperations.GetMesModels();
         }
 
         private void tabControl2_SelectedIndexChanged(object sender, EventArgs e)
@@ -58,12 +60,33 @@ namespace KontrolaWizualnaRaport
                         if (smtModelLineQuantity.Count < 1)
                         {
                             smtRecords = SQLoperations.GetSmtRecordsFromDbQuantityOnly((int)numericUpDownSmtDaysAgo.Value);
-                            SMTOperations.shiftSummaryDataSource(SMTOperations.sortTableByDayAndShift(smtRecords, "DataCzasKoniec"), dataGridViewSmtProduction);
+                            SortedDictionary<DateTime, SortedDictionary<int, DataTable>> sortedTableByDayAndShift = SMTOperations.sortTableByDayAndShift(smtRecords, "DataCzasKoniec");
+                            SMTOperations.shiftSummaryDataSource(sortedTableByDayAndShift, dataGridViewSmtProduction);
 
                             smtModelLineQuantity = SMTOperations.smtQtyPerModelPerLine(smtRecords, radioButtonSmtShowAllModels.Checked);
                             comboBoxSmtModels.Items.AddRange(smtModelLineQuantity.Select(m => m.Key).OrderBy(m => m).ToArray());
 
                             ChangeOverTools.BuildSmtChangeOverGrid(ChangeOverTools.BuildDateShiftLineDictionary(smtRecords), dataGridViewChangeOvers);
+                            ledWasteDictionary = SMTOperations.ledWasteDictionary(sortedTableByDayAndShift, mesModels);
+                            SMTOperations.FillOutLedWasteGrid(ledWasteDictionary, dataGridViewSmtLedDropped);
+                            SMTOperations.FillOutLedWasteByModel(ledWasteDictionary, dataGridViewSmtLedWasteByModel, comboBoxSmtLedWasteLine.Text);
+                            SMTOperations.FillOutLedWasteTotalWeekly(ledWasteDictionary, dataGridViewSmtWasteTotal);
+                            Dictionary<string, bool> lineOptions = new Dictionary<string, bool>();
+                            foreach (Control c in panelSmtLedWasteCheckContainer.Controls)
+                            {
+                                if ((c is CheckBox) )
+                                {
+                                    lineOptions.Add(c.Text, ((CheckBox)c).Checked);
+                                }
+                            }
+                            Charting.DrawLedWasteChart(ledWasteDictionary, chartLedWasteChart, comboBoxSmtLewWasteFreq.Text, lineOptions);
+                            comboBoxSmtLedWasteLine.Items.Add("Wszystkie");
+                            comboBoxSmtLedWasteLine.Items.AddRange(smtModelLineQuantity.SelectMany(m => m.Value).Select(l => l.Key).Distinct().OrderBy(l =>l).ToArray());
+                            comboBoxSmtLedWasteLine.Text = "Wszystkie";
+                            comboBoxSmtLedWasteLines.Items.AddRange(ledWasteDictionary.SelectMany(date => date.Value).SelectMany(shift => shift.Value).Select(l => l.model).Distinct().OrderBy(l => l).ToArray());
+                            comboBoxSmtLedWasteLines.Items.Insert(0, "Wszystkie");
+                            comboBoxSmtLedWasteLines.Text = "Wszystkie";
+                            SMTOperations.FillOutLedWasteTotalByLine(ledWasteDictionary, dataGridViewSmtLedWasteTotalPerLine, comboBoxSmtLedWasteLines.Text);
                         }
                             break;
                     }
@@ -146,7 +169,7 @@ namespace KontrolaWizualnaRaport
 
                             inspectionData = dataLoader.LoadData(masterVITable);
 
-                            lotToSmtLine = SQLoperations.lotToSmtLine(30);
+                            lotToSmtLine = SQLoperations.lotToSmtLine(60);
 
                             string[] smtLines = lotToSmtLine.Select(l => l.Value).Distinct().OrderBy(o => o).ToArray();
 
@@ -200,8 +223,35 @@ namespace KontrolaWizualnaRaport
                         break;
                     }
             }
-
         }
+
+        private void buttonSmtRefresh_Click(object sender, EventArgs e)
+        {
+            smtRecords = SQLoperations.GetSmtRecordsFromDbQuantityOnly((int)numericUpDownSmtDaysAgo.Value);
+            SortedDictionary<DateTime, SortedDictionary<int, DataTable>> sortedTableByDayAndShift = SMTOperations.sortTableByDayAndShift(smtRecords, "DataCzasKoniec");
+            SMTOperations.shiftSummaryDataSource(sortedTableByDayAndShift, dataGridViewSmtProduction);
+
+            smtModelLineQuantity = SMTOperations.smtQtyPerModelPerLine(smtRecords, radioButtonSmtShowAllModels.Checked);
+            comboBoxSmtModels.Items.AddRange(smtModelLineQuantity.Select(m => m.Key).OrderBy(m => m).ToArray());
+
+            ChangeOverTools.BuildSmtChangeOverGrid(ChangeOverTools.BuildDateShiftLineDictionary(smtRecords), dataGridViewChangeOvers);
+            ledWasteDictionary = SMTOperations.ledWasteDictionary(sortedTableByDayAndShift, mesModels);
+            SMTOperations.FillOutLedWasteGrid(ledWasteDictionary, dataGridViewSmtLedDropped);
+            SMTOperations.FillOutLedWasteByModel(ledWasteDictionary, dataGridViewSmtLedWasteByModel, comboBoxSmtLedWasteLine.Text);
+            SMTOperations.FillOutLedWasteTotalWeekly(ledWasteDictionary, dataGridViewSmtWasteTotal);
+
+            Dictionary<string, bool> lineOptions = new Dictionary<string, bool>();
+            foreach (Control c in panelSmtLedWasteCheckContainer.Controls)
+            {
+                if ((c is CheckBox))
+                {
+                    lineOptions.Add(c.Text, ((CheckBox)c).Checked);
+                }
+            }
+            Charting.DrawLedWasteChart(ledWasteDictionary, chartLedWasteChart, comboBoxSmtLewWasteFreq.Text, lineOptions);
+            SMTOperations.FillOutLedWasteTotalByLine(ledWasteDictionary, dataGridViewSmtLedWasteTotalPerLine, comboBoxSmtLedWasteLines.Text);
+        }
+
         bool loadDone = false;
         private void timerTestLoadDone_Tick(object sender, EventArgs e)
         {
@@ -222,6 +272,7 @@ namespace KontrolaWizualnaRaport
                 timerBoxLoadDone.Enabled = false;
                 PictureBox loadPB = (PictureBox)dataGridViewBoxing.Tag;
                 dataGridViewBoxing.Controls.Remove(loadPB);
+                BoxingOperations.FillOutBoxingLedQty(boxingData, mesModels, dataGridViewBoxingLedQty);
             }
         }
 
@@ -620,42 +671,7 @@ namespace KontrolaWizualnaRaport
             dataGridViewPowyzej50.DataSource = MoreThan50();
         }
 
-        private void chartReasonPareto_MouseMove(object sender, MouseEventArgs e)
-        {
-            var results = chartReasonPareto.HitTest(e.X, e.Y, false, ChartElementType.DataPoint);
-
-
-            foreach (var result in results)
-            {
-                if (result.ChartElementType != ChartElementType.DataPoint)
-                {
-                    if (currentReasonOnChart != "all")
-                    {
-                        foreach (var pt in chartReasonPareto.Series[0].Points)
-                        {
-                            pt.BorderWidth = 0;
-                        }
-
-                        Charting.DrawWasteLevelPerReason(chartReasonLevel, "all", inspectionData, comboBoxReasonAnalyses.Text, lotModelDictionary, comboBoxReasonSmtLine.Text, lotToSmtLine);
-                        currentReasonOnChart = "all";
-                    }
-                    continue;
-
-                }
-
-                var p = (DataPoint)(result.Object);
-                if (currentReasonOnChart != p.AxisLabel)
-                {
-                    Charting.DrawWasteLevelPerReason(chartReasonLevel, p.AxisLabel, inspectionData, comboBoxReasonAnalyses.Text, lotModelDictionary, comboBoxReasonSmtLine.Text, lotToSmtLine);
-                    currentReasonOnChart = p.AxisLabel;
-                    //Debug.WriteLine(p.AxisLabel);
-                    p.BorderWidth = 4;
-                    p.BorderColor = System.Drawing.Color.Red;
-                }
-                break;
-
-            }
-        }
+        
 
         private void chartReasonsParetoPercentage_MouseMove(object sender, MouseEventArgs e)
         {
@@ -851,17 +867,24 @@ namespace KontrolaWizualnaRaport
             Int32 sum = 0;
             foreach (DataGridViewCell cell in grid.SelectedCells)
             {
-                Int32 cellValue = 0;
-                if (cell.Tag!=null)
+                if (cell.ColumnIndex > 1)
                 {
-                    Int32.TryParse(cell.Value.ToString(), out cellValue);
+                    sum += GetCellValue(cell);
                 }
-                sum += cellValue;
             }
-
             lbl.Text = "Suma zaznaczonych: " + sum;
         }
 
+        private Int32 GetCellValue(DataGridViewCell cell)
+        {
+            Int32 result = 0;
+            if (cell.Value!=null)
+            {
+                Int32.TryParse(cell.Value.ToString(), out result);
+            }
+
+            return result;
+        }
 
         public static Bitmap chartToBitmap(Chart chrt)
         {
@@ -1125,15 +1148,7 @@ namespace KontrolaWizualnaRaport
             SumOfSelectedCells(dataGridViewBoxing, labelBoxing);
         }
 
-        private void buttonSmtRefresh_Click(object sender, EventArgs e)
-        {
-            smtRecords = SQLoperations.GetSmtRecordsFromDbQuantityOnly((int)numericUpDownSmtDaysAgo.Value);
-            SMTOperations.shiftSummaryDataSource(SMTOperations.sortTableByDayAndShift(smtRecords, "DataCzasKoniec"), dataGridViewSmtProduction);
-
-            smtModelLineQuantity = SMTOperations.smtQtyPerModelPerLine(smtRecords, radioButtonSmtShowAllModels.Checked);
-            comboBoxSmtModels.Items.Clear();
-            comboBoxSmtModels.Items.AddRange(smtModelLineQuantity.Select(m => m.Key).OrderBy(m => m).ToArray());
-        }
+        
 
         private void tableLayoutPanel1_Paint(object sender, PaintEventArgs e)
         {
@@ -1171,6 +1186,148 @@ namespace KontrolaWizualnaRaport
         private void dataGridViewChangeOvers_SelectionChanged(object sender, EventArgs e)
         {
             SumOfSelectedCells(dataGridViewChangeOvers, labelSumOfSelectedChangeOver);
+        }
+
+        private void dataGridViewBoxingLedQty_SelectionChanged(object sender, EventArgs e)
+        {
+            SumOfSelectedCells(dataGridViewBoxingLedQty, labelBoxingLedQty); 
+        }
+
+        private void chartPrzyczynyOdpaduNg_DoubleClick(object sender, EventArgs e)
+        {
+            
+        }
+
+        private void chartReasonPareto_MouseMove(object sender, MouseEventArgs e)
+        {
+            var results = chartReasonPareto.HitTest(e.X, e.Y, false, ChartElementType.DataPoint);
+
+
+            foreach (var result in results)
+            {
+                if (result.ChartElementType != ChartElementType.DataPoint)
+                {
+                    if (currentReasonOnChart != "all")
+                    {
+                        foreach (var pt in chartReasonPareto.Series[0].Points)
+                        {
+                            pt.BorderWidth = 0;
+                        }
+
+                        Charting.DrawWasteLevelPerReason(chartReasonLevel, "all", inspectionData, comboBoxReasonAnalyses.Text, lotModelDictionary, comboBoxReasonSmtLine.Text, lotToSmtLine);
+                        currentReasonOnChart = "all";
+                    }
+                    continue;
+
+                }
+
+                var p = (DataPoint)(result.Object);
+                if (currentReasonOnChart != p.AxisLabel)
+                {
+                    Charting.DrawWasteLevelPerReason(chartReasonLevel, p.AxisLabel, inspectionData, comboBoxReasonAnalyses.Text, lotModelDictionary, comboBoxReasonSmtLine.Text, lotToSmtLine);
+                    currentReasonOnChart = p.AxisLabel;
+                    //Debug.WriteLine(p.AxisLabel);
+                    p.BorderWidth = 4;
+                    p.BorderColor = System.Drawing.Color.Red;
+                }
+                break;
+
+            }
+        }
+
+        private void chartPrzyczynyOdpaduNg_MouseDoubleClick(object sender, MouseEventArgs e)
+        {
+
+            var results = chartPrzyczynyOdpaduNg.HitTest(e.X, e.Y, false, ChartElementType.DataPoint);
+
+            foreach (var result in results)
+            {
+                Debug.WriteLine(result.ChartElementType.ToString());
+                if (result.ChartElementType == ChartElementType.DataPoint)
+                {
+
+                    DataPoint pt = (DataPoint)result.Object;
+                    WasteReasonDetails detailForm = new WasteReasonDetails((DataTable)pt.Tag, pt.AxisLabel);
+                    detailForm.ShowDialog();
+                    break;
+                }
+            }
+        }
+
+        private void chartPrzyczynyOdpaduScrap_MouseDoubleClick(object sender, MouseEventArgs e)
+        {
+            var results = chartPrzyczynyOdpaduScrap.HitTest(e.X, e.Y, false, ChartElementType.DataPoint);
+
+            foreach (var result in results)
+            {
+                Debug.WriteLine(result.ChartElementType.ToString());
+                if (result.ChartElementType == ChartElementType.DataPoint)
+                {
+
+                    DataPoint pt = (DataPoint)result.Object;
+                    WasteReasonDetails detailForm = new WasteReasonDetails((DataTable)pt.Tag, pt.AxisLabel);
+                    detailForm.ShowDialog();
+                    break;
+                }
+            }
+        }
+
+        private void comboBoxSmtLewWasteFreq_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            Dictionary<string, bool> lineOptions = new Dictionary<string, bool>();
+            foreach (Control c in panelSmtLedWasteCheckContainer.Controls)
+            {
+                if ((c is CheckBox))
+                {
+                    lineOptions.Add(c.Text, ((CheckBox)c).Checked);
+                }
+            }
+            Charting.DrawLedWasteChart(ledWasteDictionary, chartLedWasteChart, comboBoxSmtLewWasteFreq.Text, lineOptions);
+        }
+
+        private void checkBoxSmt1_CheckStateChanged(object sender, EventArgs e)
+        {
+            Dictionary<string, bool> lineOptions = new Dictionary<string, bool>();
+            foreach (Control c in panelSmtLedWasteCheckContainer.Controls)
+            {
+                if ((c is CheckBox))
+                {
+                    lineOptions.Add(c.Text, ((CheckBox)c).Checked);
+                }
+            }
+            Charting.DrawLedWasteChart(ledWasteDictionary, chartLedWasteChart, comboBoxSmtLewWasteFreq.Text, lineOptions);
+        }
+
+        private void comboBoxSmtLedWasteLine_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            SMTOperations.FillOutLedWasteByModel(ledWasteDictionary, dataGridViewSmtLedWasteByModel, comboBoxSmtLedWasteLine.Text);
+        }
+
+        private void dataGridViewSmtLedWasteByModel_CellDoubleClick(object sender, DataGridViewCellEventArgs e)
+        {
+            DataGridViewCell cell = dataGridViewSmtLedWasteByModel.Rows[e.RowIndex].Cells[e.ColumnIndex];
+            if (cell.Tag != null)
+            {
+                DataTable tagTable = (DataTable)cell.Tag;
+                LedWasteDetails detailsForm = new LedWasteDetails(tagTable, dataGridViewSmtLedWasteByModel.Rows[e.RowIndex].Cells["Model"].Value.ToString());
+                detailsForm.ShowDialog();
+            }
+        }
+
+        private void comboBoxSmtLedWasteLines_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            SMTOperations.FillOutLedWasteTotalByLine(ledWasteDictionary, dataGridViewSmtLedWasteTotalPerLine, comboBoxSmtLedWasteLines.Text);
+        }
+
+        private void dataGridViewSmtLedWasteTotalPerLine_CellDoubleClick(object sender, DataGridViewCellEventArgs e)
+        {
+            DataGridViewCell cell = dataGridViewSmtLedWasteTotalPerLine.Rows[e.RowIndex].Cells[e.ColumnIndex];
+            if (cell.Tag != null)
+            {
+                DataTable tagTable = (DataTable)cell.Tag;
+                LedWasteDetails detailsForm = new LedWasteDetails(tagTable, "");
+                detailsForm.ShowDialog();
+            }
         }
     }
 }
