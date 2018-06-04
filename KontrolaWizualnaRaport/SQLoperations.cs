@@ -224,20 +224,18 @@ namespace KontrolaWizualnaRaport
             return result;
         }
 
-        public static DataTable GetSmtRecordsFromDbQuantityOnly(int daysAgo)
+        public static DataTable GetSmtRecordsFromDb(DateTime startDate, DateTime endDate)
         {
             DataTable result = new DataTable();
-            DateTime untilDay = DateTime.Now.Date.AddDays(daysAgo * (-1)).AddHours(6);
 
             SqlConnection conn = new SqlConnection();
             conn.ConnectionString = @"Data Source=MSTMS010;Initial Catalog=MES;User Id=mes;Password=mes;";
 
             SqlCommand command = new SqlCommand();
             command.Connection = conn;
-            command.CommandText = String.Format(@"SELECT DataCzasStart,DataCzasKoniec,LiniaSMT,OperatorSMT,NrZlecenia,Model,IloscWykonana,NGIlosc,ScrapIlosc,KoncowkiLED FROM MES.dbo.tb_SMT_Karta_Pracy WHERE DataCzasKoniec>@until order by [DataCzasKoniec];");
-            //command.Parameters.AddWithValue("@qty", recordsQty);
-            //command.Parameters.AddWithValue("@smtLine", line);
-            command.Parameters.AddWithValue("@until", untilDay);
+            command.CommandText = String.Format(@"SELECT DataCzasStart,DataCzasKoniec,LiniaSMT,OperatorSMT,NrZlecenia,Model,IloscWykonana,NGIlosc,ScrapIlosc,KoncowkiLED FROM MES.dbo.tb_SMT_Karta_Pracy WHERE DataCzasKoniec>=@startDate AND DataCzasKoniec<=@endDate order by [DataCzasKoniec];");
+            command.Parameters.AddWithValue("@startDate", startDate);
+            command.Parameters.AddWithValue("@endDate", endDate);
 
             SqlDataAdapter adapter = new SqlDataAdapter(command);
             adapter.Fill(result);

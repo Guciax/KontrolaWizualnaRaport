@@ -11,6 +11,73 @@ namespace KontrolaWizualnaRaport
 {
     public class TestOperations
     {
+        public static Dictionary<string, Dictionary<string, List<double>>> CyCleTimePerMachinePerModelFamily (Dictionary<string, DataTable> InspectionRecordsPerMachine, Dictionary<string, string> lotModelDictionary)
+        {
+            Dictionary<string, Dictionary<string, List<double>>> result = new Dictionary<string, Dictionary<string, List<double>>>();
+            int maxBreakDuration = 30;
+
+            foreach (var machineEntry in InspectionRecordsPerMachine)
+            {
+                result.Add(machineEntry.Key, new Dictionary<string, List<double>>());
+                DateTime prevDate = new DateTime(1700, 01, 01);
+                foreach (DataRow row in machineEntry.Value.Rows)
+                {
+                    DateTime rowDate = (DateTime)row["data"];
+
+                    if ((rowDate-prevDate).TotalMinutes>maxBreakDuration)
+                    {
+                        prevDate = rowDate;
+                        continue;
+                    }
+                    string model = "";
+                    if (!lotModelDictionary.TryGetValue(row["lot"].ToString(), out model)) continue;
+                    if (!result[machineEntry.Key].ContainsKey(model))
+                    {
+                        result[machineEntry.Key].Add(model, new List<double>());
+                    }
+                }
+            }
+
+            return result;
+        }
+
+        public static Dictionary<string, DataTable> InspectionRecordsPerMachine (Dictionary<DateTime, SortedDictionary<int, Dictionary<string, Dictionary<string, DataTable>>>> testerData)
+        {
+            Dictionary<string, DataTable> result = new Dictionary<string, DataTable>();
+
+            foreach (var dateEntry in testerData)
+            {
+                foreach (var shiftEntry in dateEntry.Value)
+                {
+                    foreach (var machineEntry in shiftEntry.Value)
+                    {
+                        DataTable template = new DataTable();
+                        template.Columns.Add("date", typeof(DateTime));
+                        template.Columns.Add("id", typeof(string));
+                        template.Columns.Add("lot", typeof(string));
+
+                        if (!result.ContainsKey(machineEntry.Key))
+                        {
+                            result.Add(machineEntry.Key, template.Clone());
+                        }
+
+                        foreach (var lotEntry in machineEntry.Value)
+                        {
+                            foreach (DataRow row in lotEntry.Value.Rows)
+                            {
+                                DateTime date = DateTime.Parse(row["Data"].ToString());
+                                string id = row["PCB"].ToString();
+                                result[machineEntry.Key].Rows.Add(date, id, lotEntry.Key);
+                            }
+                        }
+                    }
+                }
+            }
+
+
+            return result;
+        }
+
         public static void FillOutTesterTable(Dictionary<DateTime, SortedDictionary<int, Dictionary<string, Dictionary<string, DataTable>>>> testerData, DataGridView grid, Dictionary<string, string> lotModelDictionary)
         {
             grid.Rows.Clear();

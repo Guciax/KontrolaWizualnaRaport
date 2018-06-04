@@ -43,7 +43,7 @@ namespace KontrolaWizualnaRaport
             sourceTable.Rows.RemoveAt(0);
             Charting.DrawLedWasteForDetailView(sourceTable, chartLedWasteDetails);
             dataGridView1.DataSource = sourceTable;
-            sourceTable.Rows.Add("Total", "", "", usedA, droppedA, usedB, droppedB);
+            sourceTable.Rows.Add("Total", "", "","", usedA, droppedA, usedB, droppedB);
             
             SMTOperations.autoSizeGridColumns(dataGridView1);
         }

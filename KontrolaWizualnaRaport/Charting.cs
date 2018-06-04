@@ -196,11 +196,11 @@ namespace KontrolaWizualnaRaport
             chart.Series.Clear();
 
             ChartArea ar = new ChartArea();
-            ar.AxisX.LabelStyle.Interval = 1;
-            ar.AxisX.MajorGrid.Interval = 1;
-            ar.AxisY.MajorGrid.Interval = 0.5;
-            ar.AxisY.MinorGrid.Interval = 0.1;
-            ar.AxisY.MajorGrid.Interval = 0.5;
+            //ar.AxisX.LabelStyle.Interval = 1;
+           // ar.AxisX.MajorGrid.Interval = 1;
+            //ar.AxisY.MajorGrid.Interval = 0.5;
+            //ar.AxisY.MinorGrid.Interval = 0.1;
+            //ar.AxisY.MajorGrid.Interval = 0.5;
 
             ar.AxisY.MinorGrid.LineColor = System.Drawing.Color.Silver;
             ar.AxisY.MajorGrid.LineColor = System.Drawing.Color.Gray;
@@ -1155,8 +1155,6 @@ namespace KontrolaWizualnaRaport
             Dictionary<DateTime, double> scrapPerDay = new Dictionary<DateTime, double>();
             Dictionary<DateTime, double> totalPerDay = new Dictionary<DateTime, double>();
 
-            double total = 0;
-
             foreach (var record in inputData)
             {
                 string model = "";
@@ -1257,8 +1255,6 @@ namespace KontrolaWizualnaRaport
 
             Dictionary<string, double> wasteReasonsNg = new Dictionary<string, double>();
             Dictionary<string, double> wasteReasonsScrap = new Dictionary<string, double>();
-
-            double total = 0;
 
             foreach (var record in inputData)
             {

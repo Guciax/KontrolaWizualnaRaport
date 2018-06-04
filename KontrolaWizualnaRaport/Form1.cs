@@ -43,12 +43,14 @@ namespace KontrolaWizualnaRaport
 
         private void Form1_Load(object sender, EventArgs e)
         {
+            dateTimePickerSmtStart.Value = DateTime.Now.Date.AddDays(-20);
             lotTable = SQLoperations.lotTable();
             Dictionary<string, string>[] lotList = VIOperations.lotArray(lotTable);
             lotModelDictionary = lotList[0];
             lotToOrderedQty = lotList[1];
             planModelDictionary = lotList[3];
             mesModels = SQLoperations.GetMesModels();
+            
         }
 
         private void tabControl2_SelectedIndexChanged(object sender, EventArgs e)
@@ -59,7 +61,7 @@ namespace KontrolaWizualnaRaport
                     {
                         if (smtModelLineQuantity.Count < 1)
                         {
-                            smtRecords = SQLoperations.GetSmtRecordsFromDbQuantityOnly((int)numericUpDownSmtDaysAgo.Value);
+                            smtRecords = SQLoperations.GetSmtRecordsFromDb(dateTimePickerSmtStart.Value, dateTimePickerSmtEnd.Value);
                             SortedDictionary<DateTime, SortedDictionary<int, DataTable>> sortedTableByDayAndShift = SMTOperations.sortTableByDayAndShift(smtRecords, "DataCzasKoniec");
                             SMTOperations.shiftSummaryDataSource(sortedTableByDayAndShift, dataGridViewSmtProduction);
 
@@ -72,6 +74,7 @@ namespace KontrolaWizualnaRaport
                             SMTOperations.FillOutLedWasteByModel(ledWasteDictionary, dataGridViewSmtLedWasteByModel, comboBoxSmtLedWasteLine.Text);
                             SMTOperations.FillOutLedWasteTotalWeekly(ledWasteDictionary, dataGridViewSmtWasteTotal);
                             Dictionary<string, bool> lineOptions = new Dictionary<string, bool>();
+
                             foreach (Control c in panelSmtLedWasteCheckContainer.Controls)
                             {
                                 if ((c is CheckBox) )
@@ -79,6 +82,7 @@ namespace KontrolaWizualnaRaport
                                     lineOptions.Add(c.Text, ((CheckBox)c).Checked);
                                 }
                             }
+
                             Charting.DrawLedWasteChart(ledWasteDictionary, chartLedWasteChart, comboBoxSmtLewWasteFreq.Text, lineOptions);
                             comboBoxSmtLedWasteLine.Items.Add("Wszystkie");
                             comboBoxSmtLedWasteLine.Items.AddRange(smtModelLineQuantity.SelectMany(m => m.Value).Select(l => l.Key).Distinct().OrderBy(l =>l).ToArray());
@@ -140,7 +144,7 @@ namespace KontrolaWizualnaRaport
                             new Thread(() => 
                             {
                                 Thread.CurrentThread.IsBackground = true;
-                                testData = SQLoperations.GetTestMeasurements(20);
+                                testData = SQLoperations.GetTestMeasurements(10);
                                 loadDone = true;
                             }).Start();
                         }
@@ -227,7 +231,7 @@ namespace KontrolaWizualnaRaport
 
         private void buttonSmtRefresh_Click(object sender, EventArgs e)
         {
-            smtRecords = SQLoperations.GetSmtRecordsFromDbQuantityOnly((int)numericUpDownSmtDaysAgo.Value);
+            smtRecords = SQLoperations.GetSmtRecordsFromDb(dateTimePickerSmtStart.Value, dateTimePickerSmtEnd.Value);
             SortedDictionary<DateTime, SortedDictionary<int, DataTable>> sortedTableByDayAndShift = SMTOperations.sortTableByDayAndShift(smtRecords, "DataCzasKoniec");
             SMTOperations.shiftSummaryDataSource(sortedTableByDayAndShift, dataGridViewSmtProduction);
 
@@ -873,6 +877,12 @@ namespace KontrolaWizualnaRaport
                 }
             }
             lbl.Text = "Suma zaznaczonych: " + sum;
+            lbl.Tag = sum.ToString();
+        }
+
+        private void CopyLabelTagToClipboard(Label lbl)
+        {
+            Clipboard.SetText((string)lbl.Tag);
         }
 
         private Int32 GetCellValue(DataGridViewCell cell)
@@ -936,15 +946,12 @@ namespace KontrolaWizualnaRaport
         private void printing_PrintPage(object sender, PrintPageEventArgs e)
         {
             Chart chart = sender as Chart;
-            Single yPos = 0;
             Single leftMargin = e.MarginBounds.Left;
             Single topMargin = e.MarginBounds.Top;
             Image img = Form1.chartToBitmap(chart);
             int textYPos = 20;
             int w = e.PageBounds.Width;
             int h = e.PageBounds.Height;
-            int rect1locX = 70;
-            int rect2locX = 70;
             string title = chart.Tag.ToString();
 
             using (Font printFont = new Font("Arial", 20.0f))
@@ -1327,6 +1334,54 @@ namespace KontrolaWizualnaRaport
                 DataTable tagTable = (DataTable)cell.Tag;
                 LedWasteDetails detailsForm = new LedWasteDetails(tagTable, "");
                 detailsForm.ShowDialog();
+            }
+        }
+
+        private void labelKittingSelectedSum_MouseClick(object sender, MouseEventArgs e)
+        {
+            if (e.Button == MouseButtons.Right)
+            {
+                CopyLabelTagToClipboard(labelKittingSelectedSum);
+            }
+        }
+
+        private void label1SmtSelectedSum_MouseClick(object sender, MouseEventArgs e)
+        {
+            if (e.Button == MouseButtons.Right)
+            {
+                CopyLabelTagToClipboard(label1SmtSelectedSum);
+            }
+        }
+
+        private void labelSumOfSelectedChangeOver_MouseClick(object sender, MouseEventArgs e)
+        {
+            if (e.Button == MouseButtons.Right)
+            {
+                CopyLabelTagToClipboard(labelSumOfSelectedChangeOver);
+            }
+        }
+
+        private void labelTest_MouseClick(object sender, MouseEventArgs e)
+        {
+            if (e.Button == MouseButtons.Right)
+            {
+                CopyLabelTagToClipboard(labelTest);
+            }
+        }
+
+        private void labelSplittingSelectedSum_MouseClick(object sender, MouseEventArgs e)
+        {
+            if (e.Button == MouseButtons.Right)
+            {
+                CopyLabelTagToClipboard(labelSplittingSelectedSum);
+            }
+        }
+
+        private void labelBoxing_MouseClick(object sender, MouseEventArgs e)
+        {
+            if (e.Button == MouseButtons.Right)
+            {
+                CopyLabelTagToClipboard(labelBoxing);
             }
         }
     }

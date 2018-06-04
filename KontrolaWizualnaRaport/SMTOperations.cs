@@ -391,8 +391,8 @@ namespace KontrolaWizualnaRaport
                         int requiredRankB = mesModels["LLFML" + model].LedBQty;
                         string[] ledDropped = row["KoncowkiLED"].ToString().Split('#');
                         int reelsUsed = ledDropped.Length * 2;
-                        int ledDroppedATotal = 0;
-                        int ledDroppedBTotal = 0;
+                        int ledALeftTotal = 0;
+                        int ledBLeftTotal = 0;
                         int ledPerReel = 0;
                         int manufacturedModules = int.Parse(row["IloscWykonana"].ToString());
                         string smtLine = row["LiniaSMT"].ToString();
@@ -414,17 +414,21 @@ namespace KontrolaWizualnaRaport
                             {
                                 ledPerReel = 3500;
                             }
-                            ledDroppedATotal += leftA;
-                            ledDroppedBTotal += leftB;
+                            ledALeftTotal += leftA;
+                            ledBLeftTotal += leftB;
                         }
 
+                        if (ledPerReel * reelsUsed / 2 - requiredRankA * manufacturedModules < ledALeftTotal || ledPerReel * reelsUsed / 2 - requiredRankB * manufacturedModules < ledBLeftTotal) 
+                        {
+                            continue;
+                        }
 
                         LedWasteStruc newItem = new LedWasteStruc();
                         newItem.lot = lot;
                         newItem.requiredRankA = requiredRankA;
                         newItem.requiredRankB = requiredRankB;
-                        newItem.ledLeftA = ledDroppedATotal;
-                        newItem.ledLeftB = ledDroppedBTotal;
+                        newItem.ledLeftA = ledALeftTotal;
+                        newItem.ledLeftB = ledBLeftTotal;
                         newItem.ledsPerReel = ledPerReel;
                         newItem.manufacturedModules = manufacturedModules;
                         newItem.smtLine = smtLine;
@@ -594,7 +598,10 @@ namespace KontrolaWizualnaRaport
                 }
             }
             autoSizeGridColumns(grid);
-            grid.FirstDisplayedScrollingRowIndex = grid.RowCount - 1;
+            if (grid.Rows.Count > 0)
+            {
+                grid.FirstDisplayedScrollingRowIndex = grid.RowCount - 1;
+            }
         }
 
         public static void autoSizeGridColumns(DataGridView grid)
