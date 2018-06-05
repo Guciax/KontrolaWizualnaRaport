@@ -83,6 +83,10 @@ namespace KontrolaWizualnaRaport
             }
             else
             {
+                gridTable.Columns.Add("NG");
+                gridTable.Columns.Add("NG%");
+                gridTable.Columns.Add("Scrap");
+                gridTable.Columns.Add("Scrap%");
                 HashSet<string> uniqueModels = new HashSet<string>();
                 HashSet<DateTime> uniqueDates = new HashSet<DateTime>();
                 Dictionary<string, Dictionary<DateTime, int>> dictFirstModelThenDate = new Dictionary<string, Dictionary<DateTime, int>>();
@@ -91,6 +95,7 @@ namespace KontrolaWizualnaRaport
                 {
                     if (customerLGI & mstOrders.Select(o => o.order).ToList().Contains(item.NumerZlecenia)) continue;
                     if (!customerLGI & !mstOrders.Select(o => o.order).ToList().Contains(item.NumerZlecenia)) continue;
+
                     if (item.Oper != oper) continue;
 
                         if (item.Oper == oper)
@@ -116,6 +121,8 @@ namespace KontrolaWizualnaRaport
 
                 serColumn.ChartType = SeriesChartType.StackedColumn;
                 Dictionary<DateTime, int> qtyPerDayPerOperator = new Dictionary<DateTime, int>();
+                Dictionary<DateTime, int> qtyNgPerDayPerOperator = new Dictionary<DateTime, int>();
+                Dictionary<DateTime, int> qtyScrapPerDayPerOperator = new Dictionary<DateTime, int>();
                 foreach (var model in uniqueModels)
                 {
 
@@ -125,7 +132,12 @@ namespace KontrolaWizualnaRaport
                         dictFirstModelThenDate[model].Add(date, 0);
 
                         if (!qtyPerDayPerOperator.ContainsKey(date))
+                        {
                             qtyPerDayPerOperator.Add(date, 0);
+                            qtyNgPerDayPerOperator.Add(date, 0);
+                            qtyScrapPerDayPerOperator.Add(date, 0);
+
+                        }
                     }
                 }
 
@@ -133,17 +145,36 @@ namespace KontrolaWizualnaRaport
                 {
                     if (item.Oper == oper)
                     {
+
                         string model = "??";
                         if (modelDictionary.ContainsKey(item.NumerZlecenia))
+                        {
                             model = modelDictionary[item.NumerZlecenia].Replace("LLFML", "");
+                        }
+                        if (!dictFirstModelThenDate.ContainsKey(model)) continue;
                         dictFirstModelThenDate[model][item.FixedDateTime.Date] += item.AllQty;
                         qtyPerDayPerOperator[item.FixedDateTime.Date] += item.AllQty;
+                        qtyNgPerDayPerOperator[item.FixedDateTime.Date] += item.AllNg;
+                        qtyScrapPerDayPerOperator[item.FixedDateTime.Date] += item.AllScrap;
                     }
                 }
 
+                int total = qtyPerDayPerOperator.Select(q => q.Value).Sum();
+                int ngTotal = qtyNgPerDayPerOperator.Select(q => q.Value).Sum();
+                double totalNgRate = Math.Round((double)ngTotal / (double)total * 100, 2);
+                int scrapTotal = qtyScrapPerDayPerOperator.Select(q => q.Value).Sum();
+                double totalScrapRate = Math.Round((double)scrapTotal / (double)total * 100, 2);
+                gridTable.Rows.Add("TOTAL", total, ngTotal, totalNgRate, scrapTotal, totalScrapRate);
+
                 foreach (var keyEntry in qtyPerDayPerOperator)
                 {
-                    gridTable.Rows.Add(keyEntry.Key, keyEntry.Value);
+                    int ng = qtyNgPerDayPerOperator[keyEntry.Key];
+                    double ngRate = Math.Round((double)ng / (double)keyEntry.Value * 100, 2);
+                    int scrap = qtyScrapPerDayPerOperator[keyEntry.Key];
+                    double scrapRate = Math.Round((double)scrap / (double)keyEntry.Value * 100, 2);
+
+                    gridTable.Rows.Add(keyEntry.Key.ToString("dd-MM-yyyy"), keyEntry.Value, ng, ngRate, scrap, scrapRate);
+
                 }
 
                 foreach (var model in dictFirstModelThenDate)

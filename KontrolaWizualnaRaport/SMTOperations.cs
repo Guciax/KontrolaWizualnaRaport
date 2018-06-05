@@ -31,7 +31,7 @@ namespace KontrolaWizualnaRaport
             grid.SuspendLayout();
             grid.Rows.Clear();
             List<string> lines = ledWasteDictionary.SelectMany(date => date.Value).SelectMany(shift => shift.Value).Select(l => l.smtLine).Distinct().OrderBy(l => l).ToList();
-            //lines.Insert(0, "Wszystkie");
+            
             Dictionary<string, double> producedPerLineA = new Dictionary<string, double>();
             Dictionary<string, double> producedPerLineB = new Dictionary<string, double>();
             Dictionary<string, double> wastePerLineA = new Dictionary<string, double>();
@@ -47,8 +47,6 @@ namespace KontrolaWizualnaRaport
             template.Columns.Add("Odp_A");
             template.Columns.Add("Mont.B");
             template.Columns.Add("Odp_B");
-
-
 
             grid.Columns.Clear();
             grid.Columns.Add("Poz", "");
@@ -84,11 +82,10 @@ namespace KontrolaWizualnaRaport
                         wastePerLineB[lot.smtLine] += droppedB;
 
                         tagTable[lot.smtLine].Rows.Add(lot.lot, lot.model, dateEntry.Key.ToString("dd-MM-yyyy"), lot.smtLine, ledExpectedUsageA, droppedA, ledExpectedUsageB, droppedB);
-
                     }
                 }
-                
             }
+
             grid.Rows.Add(6);
             foreach (var lineEntry in producedPerLineA)
             {
@@ -306,7 +303,7 @@ namespace KontrolaWizualnaRaport
                 {
                     Dictionary<string, double> ledDroppedPerLine = new Dictionary<string, double>();
                     Dictionary<string, double> ledUsedPerLine = new Dictionary<string, double>();
-                    Dictionary<string, double> ledWastePerLine = new Dictionary<string, double>();
+                    Dictionary<string, string> ledWastePerLine = new Dictionary<string, string>();
 
                     ledDroppedPerLine.Add("SMT1", 0);
                     ledDroppedPerLine.Add("SMT2", 0);
@@ -324,13 +321,13 @@ namespace KontrolaWizualnaRaport
                     ledUsedPerLine.Add("SMT7", 0);
                     ledUsedPerLine.Add("SMT8", 0);
 
-                    ledWastePerLine.Add("SMT1", 0);
-                    ledWastePerLine.Add("SMT2", 0);
-                    ledWastePerLine.Add("SMT3", 0);
-                    ledWastePerLine.Add("SMT5", 0);
-                    ledWastePerLine.Add("SMT6", 0);
-                    ledWastePerLine.Add("SMT7", 0);
-                    ledWastePerLine.Add("SMT8", 0);
+                    ledWastePerLine.Add("SMT1", "");
+                    ledWastePerLine.Add("SMT2", "");
+                    ledWastePerLine.Add("SMT3", "");
+                    ledWastePerLine.Add("SMT5", "");
+                    ledWastePerLine.Add("SMT6", "");
+                    ledWastePerLine.Add("SMT7", "");
+                    ledWastePerLine.Add("SMT8", "");
 
                     foreach (var lotData in shiftEntry.Value)
                     {
@@ -351,15 +348,17 @@ namespace KontrolaWizualnaRaport
                     {
                         if (ledUsedPerLine[lineEntry.Key] > 0)
                         {
-                            ledWastePerLine[lineEntry.Key] = Math.Round(ledDroppedPerLine[lineEntry.Key] / ledUsedPerLine[lineEntry.Key] * 100, 2);
+                            ledWastePerLine[lineEntry.Key] = Math.Round(ledDroppedPerLine[lineEntry.Key] / ledUsedPerLine[lineEntry.Key] * 100, 2).ToString()+"%";
                         }
                         else
                         {
-                            ledWastePerLine[lineEntry.Key] = 0;
+                            ledWastePerLine[lineEntry.Key] = "";
                         }
                     }
 
-                    grid.Rows.Add(dateEntry.Key.ToString("dd-MM-yyyy"), shiftEntry.Key, ledWastePerLine["SMT1"] + "%", ledWastePerLine["SMT2"] + "%", ledWastePerLine["SMT3"]+ "%", ledWastePerLine["SMT5"] + "%", ledWastePerLine["SMT6"] + "%", ledWastePerLine["SMT7"] + "%", ledWastePerLine["SMT8"] + "%");
+                    
+
+                    grid.Rows.Add(dateEntry.Key.ToString("dd-MM-yyyy"), shiftEntry.Key, ledWastePerLine["SMT1"], ledWastePerLine["SMT2"] , ledWastePerLine["SMT3"], ledWastePerLine["SMT5"] , ledWastePerLine["SMT6"] , ledWastePerLine["SMT7"], ledWastePerLine["SMT8"]);
                 }
             }
             autoSizeGridColumns(grid);

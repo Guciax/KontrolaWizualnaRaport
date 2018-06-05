@@ -1333,7 +1333,7 @@ namespace KontrolaWizualnaRaport
             {
                 DataTable tagTable = (DataTable)cell.Tag;
                 LedWasteDetails detailsForm = new LedWasteDetails(tagTable, "");
-                detailsForm.ShowDialog();
+                detailsForm.Show();
             }
         }
 
