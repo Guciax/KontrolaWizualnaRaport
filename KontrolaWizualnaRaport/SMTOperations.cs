@@ -626,7 +626,9 @@ namespace KontrolaWizualnaRaport
                 DateTime dateEnd = new DateTime();
                 if (!DateTime.TryParse(row["DataCzasStart"].ToString(), out dateStart) || !DateTime.TryParse(row["DataCzasKoniec"].ToString(), out dateEnd)) continue;
                 var lotDuration = (dateEnd - dateStart).TotalHours;
-                if (lotDuration < 0.15) continue;
+
+                if (lotDuration < 0.25) continue;
+
                 //Debug.WriteLine(lotDuration);
                 if (!result.ContainsKey(model) & showAllModels)
                 {
@@ -674,7 +676,7 @@ namespace KontrolaWizualnaRaport
             public DateTime end;
         }
 
-        public static DataTable MakeTableForModel(Dictionary<string, Dictionary<string, List<durationQuantity>>> inputData,string model, bool perShift)
+        public static DataTable MakeTableForModelEfficiency(Dictionary<string, Dictionary<string, List<durationQuantity>>> inputData,string model, bool perShift)
         {
             DataTable result = new DataTable();
             result.Columns.Add("Linia");
@@ -692,14 +694,15 @@ namespace KontrolaWizualnaRaport
             foreach (var modelEntry in inputData)
             {
                 if (modelEntry.Key != model) continue;
-                
                 foreach (var lineEntry in modelEntry.Value)
                 {
                     List<double> checkList = new List<double>();
                     foreach (var lot in lineEntry.Value)
                     {
                         checkList.Add(lot.quantity / lot.duration * frequency);
+                        Debug.WriteLine(lot.quantity + "szt. " + lot.start.ToShortTimeString() + "-" + lot.end.ToShortTimeString() + " " + lot.duration * 60 + "min. " + 8*lot.quantity / lot.duration + "szt./zm ");
                     }
+
                     checkList.Sort();
                     double totalQty = lineEntry.Value.Select(q => q.quantity).Sum() * frequency;
                     double min = Math.Round(lineEntry.Value.Select(q => q.quantity / q.duration).Min(),0) * frequency;
@@ -708,7 +711,6 @@ namespace KontrolaWizualnaRaport
                     double median = Math.Round(checkList[checkList.Count / 2], 0) ;
                     result.Rows.Add(lineEntry.Key, totalQty, median ,min, max);
                 }
-
             }
             return result;
         }

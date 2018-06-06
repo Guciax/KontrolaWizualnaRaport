@@ -11,9 +11,9 @@ namespace KontrolaWizualnaRaport
 {
     class dataLoader
     {
-        public static List<dataStructure> LoadData(DataTable inputTable)
+        public static List<wasteDataStructure> LoadData(DataTable inputTable)
         {
-            List<dataStructure> result = new List<dataStructure>();
+            List<wasteDataStructure> result = new List<wasteDataStructure>();
 
             foreach (DataRow row in inputTable.Rows)
             {
@@ -157,7 +157,7 @@ namespace KontrolaWizualnaRaport
 
                 //Debug.WriteLine(allQty + " " + allNg + " " + allScrap);
 
-                dataStructure recordToAdd = new dataStructure(id, fixedDateTime, realDateTime, shiftNumber, oper, goodQty, allQty,allNg,allScrap, numerZlecenia, NgBrakLutowia, NgBrakDiodyLed, NgBrakResConn, NgPrzesuniecieLed, NgPrzesuniecieResConn, NgZabrudzenieLed, NgUszkodzenieMechaniczneLed, NgUszkodzenieConn, NgWadaFabrycznaDiody, NgUszkodzonePcb, NgWadaNaklejki, NgSpalonyConn, NgInne, ScrapBrakLutowia, ScrapBrakDiodyLed, ScrapBrakResConn, ScrapPrzesuniecieLed, ScrapPrzesuniecieResConn, ScrapZabrudzenieLed, ScrapUszkodzenieMechaniczneLed, ScrapUszkodzenieConn, ScrapWadaFabrycznaDiody, ScrapUszkodzonePcb, ScrapWadaNaklejki, ScrapSpalonyConn, ScrapInne, NgTestElektryczny,"");
+                wasteDataStructure recordToAdd = new wasteDataStructure(id, fixedDateTime, realDateTime, shiftNumber, oper, goodQty, allQty,allNg,allScrap, numerZlecenia, NgBrakLutowia, NgBrakDiodyLed, NgBrakResConn, NgPrzesuniecieLed, NgPrzesuniecieResConn, NgZabrudzenieLed, NgUszkodzenieMechaniczneLed, NgUszkodzenieConn, NgWadaFabrycznaDiody, NgUszkodzonePcb, NgWadaNaklejki, NgSpalonyConn, NgInne, ScrapBrakLutowia, ScrapBrakDiodyLed, ScrapBrakResConn, ScrapPrzesuniecieLed, ScrapPrzesuniecieResConn, ScrapZabrudzenieLed, ScrapUszkodzenieMechaniczneLed, ScrapUszkodzenieConn, ScrapWadaFabrycznaDiody, ScrapUszkodzonePcb, ScrapWadaNaklejki, ScrapSpalonyConn, ScrapInne, NgTestElektryczny,"");
                 result.Add(recordToAdd);
             }
 

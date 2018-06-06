@@ -15,7 +15,7 @@ namespace KontrolaWizualnaRaport
 {
     class Charting
     {
-        public static DataTable DrawCapaChart(Chart chart, List<dataStructure> inputData, string oper, Dictionary<string, string> modelDictionary, bool customerLGI, List<excelOperations.order12NC> mstOrders)
+        public static DataTable DrawCapaChart(Chart chart, List<wasteDataStructure> inputData, string oper, Dictionary<string, string> modelDictionary, bool customerLGI, List<excelOperations.order12NC> mstOrders)
         {
             chart.Series.Clear();
             chart.ChartAreas.Clear();
@@ -429,7 +429,6 @@ namespace KontrolaWizualnaRaport
             //chart.Series.Add(productionLevel);
         }
             
-
         private static WasteStruc CreateWasteStruc(string name)
         {
             WasteStruc result = new WasteStruc();
@@ -464,7 +463,7 @@ namespace KontrolaWizualnaRaport
             return year + CultureInfo.InvariantCulture.Calendar.GetWeekOfYear(time, CalendarWeekRule.FirstFourDayWeek, DayOfWeek.Monday);
         }
 
-        public static DataTable DrawWasteLevel(bool weekly, Chart chartWasteLevel, List<dataStructure> inputData, DateTime dateBegin, DateTime dateEnd, Dictionary<string, string> modelDictionary, ComboBox comboModel, string smtLine, Dictionary<string,string> lotToSmtine, bool customerLGI, List<excelOperations.order12NC> mstOrders)
+        public static DataTable DrawWasteLevel(bool weekly, Chart chartWasteLevel, List<wasteDataStructure> inputData, DateTime dateBegin, DateTime dateEnd, Dictionary<string, string> modelDictionary, ComboBox comboModel, string smtLine, Dictionary<string,string> lotToSmtine, bool customerLGI, List<excelOperations.order12NC> mstOrders)
         {
             DataTable result = new DataTable();
             Dictionary<string, double> ngLevel = new Dictionary<string, double>();
@@ -666,10 +665,8 @@ namespace KontrolaWizualnaRaport
             return result;
         }
 
-        public static DataTable DrawWasteReasonsCHart(Chart ngChart, Chart scrapChart, List<dataStructure> inputData, DateTime dateBegin, DateTime dateEnd, Dictionary<string, string> modelDictionary, string smtLine, Dictionary<string,string> lotToSmtLine, bool customerLGI, List<excelOperations.order12NC> mstOrders)
+        public static DataTable DrawWasteReasonsCHart(Chart ngChart, Chart scrapChart, List<wasteDataStructure> inputData, DateTime dateBegin, DateTime dateEnd, Dictionary<string, string> modelDictionary, string smtLine, Dictionary<string,string> lotToSmtLine, bool customerLGI, List<excelOperations.order12NC> mstOrders)
         {
-            
-            
             DataTable result = new DataTable();
             result.Columns.Add("Nazwa");
             result.Columns.Add("Ilość");
@@ -937,7 +934,113 @@ namespace KontrolaWizualnaRaport
             return result;
         }
 
-        public static void DrawWasteLevelPerReason(Chart targetChart, string targetModel, List<dataStructure> inputData, string reason, Dictionary<string, string> modelDictionary, string smtLine, Dictionary<string, string> lotToSmtLine)
+        struct newWasteStruc
+        {
+            public int qty;
+            public List<wasteDataStructure> lots;
+        }
+
+        public static DataTable DrawWasteReasonsCHart2(Chart ngChart, Chart scrapChart, List<wasteDataStructure> inputData, DateTime dateBegin, DateTime dateEnd, Dictionary<string, string> modelDictionary, string smtLine, Dictionary<string, string> lotToSmtLine, bool customerLGI, List<excelOperations.order12NC> mstOrders)
+        {
+            DataTable result = new DataTable();
+            result.Columns.Add("Nazwa");
+            result.Columns.Add("Ilość");
+
+            Dictionary<string, newWasteStruc> wastePerReason = new Dictionary<string, newWasteStruc>();
+
+            foreach (var wasteRecord in inputData)
+            {
+                
+            }
+            
+
+
+            wasteList = wasteList.OrderByDescending(o => o.qty).ToList();
+
+
+            ngChart.Series.Clear();
+            ngChart.ChartAreas.Clear();
+
+            scrapChart.Series.Clear();
+            scrapChart.ChartAreas.Clear();
+
+            Series ngSeries = new Series();
+            ngSeries.ChartType = SeriesChartType.Column;
+
+            Series scrapSeries = new Series();
+            scrapSeries.ChartType = SeriesChartType.Column;
+
+
+            ChartArea ngArea = new ChartArea();
+            ngArea.AxisX.LabelStyle.Interval = 1;
+            ngArea.AxisX.IsLabelAutoFit = true;
+            ngArea.AxisX.LabelAutoFitStyle = LabelAutoFitStyles.LabelsAngleStep30;
+            ngArea.AxisX.LabelStyle.Font = new System.Drawing.Font(ngArea.AxisX.LabelStyle.Font.Name, 10f);
+
+            ChartArea scrapArea = new ChartArea();
+            scrapArea.AxisX.LabelStyle.Interval = 1;
+            scrapArea.AxisX.LabelAutoFitStyle = LabelAutoFitStyles.LabelsAngleStep30;
+            scrapArea.AxisX.LabelStyle.Font = new System.Drawing.Font(scrapArea.AxisX.LabelStyle.Font.Name, 10f);
+
+            DataTable scrapTempTable = result.Clone();
+            result.Rows.Add("NG", "");
+            foreach (var wasteEntry in wasteList)
+            {
+                if (wasteEntry.name.Substring(0, 2) == "Ng")
+                {
+                    Dictionary<string, string> label = new Dictionary<string, string>();
+                    foreach (var wasteName in wasteNgPerModel)
+                    {
+                        label.Add(wasteName.Key, string.Join(Environment.NewLine, wasteName.Value.OrderByDescending(q => q.Value).Select(sel => (sel.Key + " " + sel.Value + "szt.")).ToArray()));
+                    }
+
+                    DataPoint ngPoint = new DataPoint();
+                    ngPoint.SetValueXY(wasteEntry.name, wasteEntry.qty);
+                    ngPoint.ToolTip = label[wasteEntry.name];
+                    ngPoint.Tag = sourceTablePerReason[wasteEntry.name];
+                    ngSeries.Points.Add(ngPoint);
+
+                    result.Rows.Add(wasteEntry.name, wasteEntry.qty);
+                }
+
+                if (wasteEntry.name.Substring(0, 2) == "Sc")
+                {
+                    Dictionary<string, string> label = new Dictionary<string, string>();
+                    foreach (var wasteName in wasteScrapPerModel)
+                    {
+                        label.Add(wasteName.Key, string.Join(Environment.NewLine, wasteName.Value.OrderByDescending(q => q.Value).Select(sel => (sel.Key + " " + sel.Value + "szt.")).ToArray()));
+                    }
+
+                    DataPoint scrapPoint = new DataPoint();
+                    scrapPoint.SetValueXY(wasteEntry.name, wasteEntry.qty);
+                    scrapPoint.ToolTip = label[wasteEntry.name];
+                    scrapPoint.Tag = sourceTablePerReason[wasteEntry.name];
+                    scrapSeries.Points.Add(scrapPoint);
+                    scrapTempTable.Rows.Add(wasteEntry.name, wasteEntry.qty);
+                }
+            }
+
+            result.Rows.Add();
+            result.Rows.Add("SCRAP:", "");
+            foreach (DataRow row in scrapTempTable.Rows)
+            {
+                result.Rows.Add(row[0].ToString(), row[1].ToString());
+            }
+
+            ngChart.Series.Add(ngSeries);
+            ngChart.ChartAreas.Add(ngArea);
+            ngChart.Legends.Clear();
+
+            scrapChart.Series.Add(scrapSeries);
+            scrapChart.ChartAreas.Add(scrapArea);
+            scrapChart.Legends.Clear();
+
+
+
+            return result;
+        }
+
+        public static void DrawWasteLevelPerReason(Chart targetChart, string targetModel, List<wasteDataStructure> inputData, string reason, Dictionary<string, string> modelDictionary, string smtLine, Dictionary<string, string> lotToSmtLine)
         {
             DataTable result = new DataTable();
             Dictionary<DateTime, Dictionary<string, double>> wasteInDayPerModel = new Dictionary<DateTime, Dictionary<string, double>>();
@@ -974,7 +1077,7 @@ namespace KontrolaWizualnaRaport
                     scrapInDayPerModel[record.FixedDateTime.Date].Add(model, 0);
                 }
 
-                var typ = typeof(dataStructure);
+                var typ = typeof(wasteDataStructure);
                 string reasonNg = "Ng" + reason;
                 string reasonScrap = "Scrap" + reason;
 
@@ -1077,7 +1180,7 @@ namespace KontrolaWizualnaRaport
 
         }
 
-        public static void DrawWasteParetoPerReason(Chart paretoQtyChart, Chart paretoPercentageChart, List<dataStructure> inputData, string reason, Dictionary<string, string> modelDictionary, string smtLine, Dictionary<string,string> lotToSmtLine)
+        public static void DrawWasteParetoPerReason(Chart paretoQtyChart, Chart paretoPercentageChart, List<wasteDataStructure> inputData, string reason, Dictionary<string, string> modelDictionary, string smtLine, Dictionary<string,string> lotToSmtLine)
         {
             DataTable result = new DataTable();
 
@@ -1101,7 +1204,7 @@ namespace KontrolaWizualnaRaport
                     modelProductionPareto.Add(model, 0);
                 modelProductionPareto[model] += record.AllQty;
 
-                var typ = typeof(dataStructure);
+                var typ = typeof(wasteDataStructure);
                 string reasonNg = "Ng" + reason;
                 string reasonScrap = "Scrap" + reason;
 
@@ -1180,7 +1283,7 @@ namespace KontrolaWizualnaRaport
 
         }
 
-        public static void DrawWasteLevelPerModel (Chart chartLevel, string targetReason,List<dataStructure> inputData, Dictionary<string, string> modelDictionary, string selectedModel)
+        public static void DrawWasteLevelPerModel (Chart chartLevel, string targetReason,List<wasteDataStructure> inputData, Dictionary<string, string> modelDictionary, string selectedModel)
         {
             Dictionary<DateTime, double> wastePerDay = new Dictionary<DateTime, double>();
             Dictionary<DateTime, double> scrapPerDay = new Dictionary<DateTime, double>();
@@ -1213,7 +1316,7 @@ namespace KontrolaWizualnaRaport
 
                     else
                     {
-                        var typ = typeof(dataStructure);
+                        var typ = typeof(wasteDataStructure);
                         foreach (var type in typ.GetProperties())
                         {
                             if (type.Name.StartsWith("Ng"))
@@ -1281,7 +1384,7 @@ namespace KontrolaWizualnaRaport
 
         }
 
-        public static void DrawWasteReasonsPerModel(Chart chartReasonsNg, Chart chartReasonsScrap, List<dataStructure> inputData, Dictionary<string, string> modelDictionary, string selectedModel)
+        public static void DrawWasteReasonsPerModel(Chart chartReasonsNg, Chart chartReasonsScrap, List<wasteDataStructure> inputData, Dictionary<string, string> modelDictionary, string selectedModel)
         {
 
             Dictionary<string, double> wasteReasonsNg = new Dictionary<string, double>();
@@ -1294,7 +1397,7 @@ namespace KontrolaWizualnaRaport
 
                 if (model.Contains(selectedModel))
                 {
-                    var typ = typeof(dataStructure);
+                    var typ = typeof(wasteDataStructure);
 
                     foreach (var type in typ.GetProperties())
                     {

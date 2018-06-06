@@ -26,7 +26,7 @@ namespace KontrolaWizualnaRaport
         }
 
         DataTable masterVITable = new DataTable();
-        List<dataStructure> inspectionData = new List<dataStructure>();
+        List<wasteDataStructure> inspectionData = new List<wasteDataStructure>();
         Dictionary<string, string> lotModelDictionary = new Dictionary<string, string>();
         Dictionary<string, string> planModelDictionary = new Dictionary<string, string>();
         Dictionary<string, string> lotToOrderedQty = new Dictionary<string, string>();
@@ -207,7 +207,7 @@ namespace KontrolaWizualnaRaport
                             ColumnsAutoSize(dataGridViewPowyzej50, DataGridViewAutoSizeColumnMode.AllCells);
                             dataGridViewPowyzej50.Sort(dataGridViewPowyzej50.Columns["Ile"], ListSortDirection.Descending);
 
-                            PropertyInfo[] properties = typeof(dataStructure).GetProperties();
+                            PropertyInfo[] properties = typeof(wasteDataStructure).GetProperties();
                             HashSet<string> uniqueWaste = new HashSet<string>();
 
                             foreach (PropertyInfo property in properties)
@@ -332,7 +332,7 @@ namespace KontrolaWizualnaRaport
             }
         }
 
-        private DataTable LotWrongNumber(List<dataStructure> inputData)
+        private DataTable LotWrongNumber(List<wasteDataStructure> inputData)
         {
             DataTable result = new DataTable();
             result.Columns.Add("LOT");
@@ -347,7 +347,7 @@ namespace KontrolaWizualnaRaport
             return result;
         }
 
-        private string[] uniqueModelsList(List<dataStructure> inputData, Dictionary<string, string> lotModelDictionary)
+        private string[] uniqueModelsList(List<wasteDataStructure> inputData, Dictionary<string, string> lotModelDictionary)
         {
             HashSet<string> uniquemodels = new HashSet<string>();
             foreach (var item in inputData)
@@ -359,7 +359,7 @@ namespace KontrolaWizualnaRaport
             return uniquemodels.OrderBy(o => o).ToArray();
         }
 
-        private string[] modelFamilyList(List<dataStructure> inputData, Dictionary<string, string> lotModelDictionary)
+        private string[] modelFamilyList(List<wasteDataStructure> inputData, Dictionary<string, string> lotModelDictionary)
         {
 
             HashSet<string> uniquemodels = new HashSet<string>();
@@ -559,7 +559,7 @@ namespace KontrolaWizualnaRaport
                     lotToOrderedQty.TryGetValue(record.NumerZlecenia, out orderQty);
                     //gridSource.Rows.Add("Ordered Qty", lotToOrderedQty[record.NumerZlecenia]);
 
-                    PropertyInfo[] properties = typeof(dataStructure).GetProperties();
+                    PropertyInfo[] properties = typeof(wasteDataStructure).GetProperties();
                     foreach (PropertyInfo property in properties)
                     {
                         try
@@ -882,7 +882,10 @@ namespace KontrolaWizualnaRaport
 
         private void CopyLabelTagToClipboard(Label lbl)
         {
-            Clipboard.SetText((string)lbl.Tag);
+            string lblText = (string)lbl.Tag;
+
+                Clipboard.SetText(lblText);
+
         }
 
         private Int32 GetCellValue(DataGridViewCell cell)
@@ -1017,7 +1020,7 @@ namespace KontrolaWizualnaRaport
         {
             if (comboBoxSmtModels.Text != "")
             {
-                dataGridViewSmtModelStats.DataSource = SMTOperations.MakeTableForModel(smtModelLineQuantity, comboBoxSmtModels.Text, radioButtonSmtPerHour.Checked);
+                dataGridViewSmtModelStats.DataSource = SMTOperations.MakeTableForModelEfficiency(smtModelLineQuantity, comboBoxSmtModels.Text, radioButtonSmtPerHour.Checked);
                 Charting.DrawSmtEfficiencyHistogramForModel(chartSmt, smtModelLineQuantity[comboBoxSmtModels.Text], radioButtonSmtPerHour.Checked);
             }
         }

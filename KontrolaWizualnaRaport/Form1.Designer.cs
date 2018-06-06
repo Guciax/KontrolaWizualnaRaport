@@ -1728,10 +1728,10 @@
             // tableLayoutPanel4
             // 
             this.tableLayoutPanel4.ColumnCount = 5;
-            this.tableLayoutPanel4.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 32.8353F));
-            this.tableLayoutPanel4.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 22.38824F));
-            this.tableLayoutPanel4.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 22.38824F));
-            this.tableLayoutPanel4.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 22.38824F));
+            this.tableLayoutPanel4.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 32.4384F));
+            this.tableLayoutPanel4.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 29.63737F));
+            this.tableLayoutPanel4.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 22.11762F));
+            this.tableLayoutPanel4.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 15.8066F));
             this.tableLayoutPanel4.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle());
             this.tableLayoutPanel4.Controls.Add(this.dataGridViewSmtLedWasteTotalPerLine, 0, 1);
             this.tableLayoutPanel4.Controls.Add(this.panel33, 2, 0);
@@ -1766,10 +1766,10 @@
             dataGridViewCellStyle2.WrapMode = System.Windows.Forms.DataGridViewTriState.False;
             this.dataGridViewSmtLedWasteTotalPerLine.DefaultCellStyle = dataGridViewCellStyle2;
             this.dataGridViewSmtLedWasteTotalPerLine.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.dataGridViewSmtLedWasteTotalPerLine.Location = new System.Drawing.Point(437, 33);
+            this.dataGridViewSmtLedWasteTotalPerLine.Location = new System.Drawing.Point(432, 33);
             this.dataGridViewSmtLedWasteTotalPerLine.Name = "dataGridViewSmtLedWasteTotalPerLine";
             this.dataGridViewSmtLedWasteTotalPerLine.RowHeadersVisible = false;
-            this.dataGridViewSmtLedWasteTotalPerLine.Size = new System.Drawing.Size(290, 266);
+            this.dataGridViewSmtLedWasteTotalPerLine.Size = new System.Drawing.Size(386, 266);
             this.dataGridViewSmtLedWasteTotalPerLine.TabIndex = 6;
             this.dataGridViewSmtLedWasteTotalPerLine.CellDoubleClick += new System.Windows.Forms.DataGridViewCellEventHandler(this.dataGridViewSmtLedWasteTotalPerLine_CellDoubleClick);
             // 
@@ -1778,9 +1778,9 @@
             this.panel33.Controls.Add(this.label14);
             this.panel33.Controls.Add(this.comboBoxSmtLedWasteLine);
             this.panel33.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.panel33.Location = new System.Drawing.Point(733, 3);
+            this.panel33.Location = new System.Drawing.Point(824, 3);
             this.panel33.Name = "panel33";
-            this.panel33.Size = new System.Drawing.Size(290, 24);
+            this.panel33.Size = new System.Drawing.Size(286, 24);
             this.panel33.TabIndex = 5;
             // 
             // label14
@@ -1805,9 +1805,9 @@
             // 
             this.panel32.Controls.Add(this.label15);
             this.panel32.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.panel32.Location = new System.Drawing.Point(1029, 3);
+            this.panel32.Location = new System.Drawing.Point(1116, 3);
             this.panel32.Name = "panel32";
-            this.panel32.Size = new System.Drawing.Size(290, 24);
+            this.panel32.Size = new System.Drawing.Size(203, 24);
             this.panel32.TabIndex = 4;
             // 
             // label15
@@ -1825,7 +1825,7 @@
             this.panel30.Dock = System.Windows.Forms.DockStyle.Fill;
             this.panel30.Location = new System.Drawing.Point(3, 3);
             this.panel30.Name = "panel30";
-            this.panel30.Size = new System.Drawing.Size(428, 24);
+            this.panel30.Size = new System.Drawing.Size(423, 24);
             this.panel30.TabIndex = 3;
             // 
             // label13
@@ -1853,10 +1853,10 @@
             dataGridViewCellStyle3.WrapMode = System.Windows.Forms.DataGridViewTriState.False;
             this.dataGridViewSmtWasteTotal.DefaultCellStyle = dataGridViewCellStyle3;
             this.dataGridViewSmtWasteTotal.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.dataGridViewSmtWasteTotal.Location = new System.Drawing.Point(1029, 33);
+            this.dataGridViewSmtWasteTotal.Location = new System.Drawing.Point(1116, 33);
             this.dataGridViewSmtWasteTotal.Name = "dataGridViewSmtWasteTotal";
             this.dataGridViewSmtWasteTotal.RowHeadersVisible = false;
-            this.dataGridViewSmtWasteTotal.Size = new System.Drawing.Size(290, 266);
+            this.dataGridViewSmtWasteTotal.Size = new System.Drawing.Size(203, 266);
             this.dataGridViewSmtWasteTotal.TabIndex = 2;
             // 
             // dataGridViewSmtLedWasteByModel
@@ -1875,10 +1875,10 @@
             dataGridViewCellStyle4.WrapMode = System.Windows.Forms.DataGridViewTriState.False;
             this.dataGridViewSmtLedWasteByModel.DefaultCellStyle = dataGridViewCellStyle4;
             this.dataGridViewSmtLedWasteByModel.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.dataGridViewSmtLedWasteByModel.Location = new System.Drawing.Point(733, 33);
+            this.dataGridViewSmtLedWasteByModel.Location = new System.Drawing.Point(824, 33);
             this.dataGridViewSmtLedWasteByModel.Name = "dataGridViewSmtLedWasteByModel";
             this.dataGridViewSmtLedWasteByModel.RowHeadersVisible = false;
-            this.dataGridViewSmtLedWasteByModel.Size = new System.Drawing.Size(290, 266);
+            this.dataGridViewSmtLedWasteByModel.Size = new System.Drawing.Size(286, 266);
             this.dataGridViewSmtLedWasteByModel.TabIndex = 1;
             this.dataGridViewSmtLedWasteByModel.CellDoubleClick += new System.Windows.Forms.DataGridViewCellEventHandler(this.dataGridViewSmtLedWasteByModel_CellDoubleClick);
             // 
@@ -1901,7 +1901,7 @@
             this.dataGridViewSmtLedDropped.Location = new System.Drawing.Point(3, 33);
             this.dataGridViewSmtLedDropped.Name = "dataGridViewSmtLedDropped";
             this.dataGridViewSmtLedDropped.RowHeadersVisible = false;
-            this.dataGridViewSmtLedDropped.Size = new System.Drawing.Size(428, 266);
+            this.dataGridViewSmtLedDropped.Size = new System.Drawing.Size(423, 266);
             this.dataGridViewSmtLedDropped.TabIndex = 0;
             // 
             // panel34
@@ -1909,9 +1909,9 @@
             this.panel34.Controls.Add(this.comboBoxSmtLedWasteLines);
             this.panel34.Controls.Add(this.label16);
             this.panel34.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.panel34.Location = new System.Drawing.Point(437, 3);
+            this.panel34.Location = new System.Drawing.Point(432, 3);
             this.panel34.Name = "panel34";
-            this.panel34.Size = new System.Drawing.Size(290, 24);
+            this.panel34.Size = new System.Drawing.Size(386, 24);
             this.panel34.TabIndex = 7;
             // 
             // comboBoxSmtLedWasteLines

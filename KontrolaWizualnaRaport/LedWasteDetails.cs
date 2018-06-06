@@ -24,6 +24,7 @@ namespace KontrolaWizualnaRaport
 
         private void LedWasteDetails_Load(object sender, EventArgs e)
         {
+            dataGridView1.Rows.Clear();
             double usedA = 0;
             double usedB = 0;
             double droppedA = 0;
