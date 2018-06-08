@@ -12,41 +12,50 @@ namespace KontrolaWizualnaRaport
 {
     public partial class WasteReasonDetails : Form
     {
-        private readonly DataTable sourceTable;
+        private readonly WastePerReasonStructure inputWasteData;
         private readonly string title;
 
-        public WasteReasonDetails(DataTable sourceTable, string title)
+        public WasteReasonDetails(WastePerReasonStructure inputWasteData, string reason)
         {
             InitializeComponent();
-            this.sourceTable = sourceTable;
-            this.title = title;
+            this.inputWasteData = inputWasteData;
+            this.title = reason;
         }
 
         private void WasteReasonDetails_Load(object sender, EventArgs e)
         {
-            DataTable dtCloned = sourceTable.Clone();
-            dtCloned.Columns["Ilość"].DataType = typeof(Int32);
+            DataTable sourceTable = new DataTable();
+            sourceTable.Columns.Add("Dobrych");
+            sourceTable.Columns.Add("Ng");
+            sourceTable.Columns.Add("LOT");
+            sourceTable.Columns.Add("Model");
+            sourceTable.Columns.Add("Data");
+            sourceTable.Columns.Add("LiniaSMT");
+
+            sourceTable.Columns["Dobrych"].DataType = typeof(Int32);
+
             Dictionary<string, Int32> qtyPerModel = new Dictionary<string, int>();
             Dictionary<string, Int32> qtyPerLine = new Dictionary<string, int>();
-            foreach (DataRow row in sourceTable.Rows)
-            {
-                dtCloned.ImportRow(row);
 
-                string model = row["Model"].ToString();
-                string line = row["Linia"].ToString();
+            foreach (var lot in inputWasteData.Lots)
+            {
+                string model = lot.Model;
+                string line = lot.SmtLine;
 
                 if (!qtyPerLine.ContainsKey(line)) qtyPerLine.Add(line, 0);
                 if (!qtyPerModel.ContainsKey(model)) qtyPerModel.Add(model, 0);
 
-                Int32 qty = Int32.Parse(row["Ilość"].ToString());
+                Int32 qty = lot.WastePerReason[title];
                 qtyPerLine[line] += qty;
                 qtyPerModel[model] += qty;
+
+                sourceTable.Rows.Add(lot.GoodQty, lot.WastePerReason[title], lot.NumerZlecenia, lot.Model, lot.RealDateTime, lot.SmtLine);
             }
-            DataView dv = dtCloned.DefaultView;
-            dv.Sort = "Ilość desc";
+
+            DataView dv = sourceTable.DefaultView;
+            dv.Sort = "Dobrych desc";
             dataGridView1.DataSource = dv.ToTable();
 
-            
             label1.Text = title;
 
             DataTable modelSource = new DataTable();

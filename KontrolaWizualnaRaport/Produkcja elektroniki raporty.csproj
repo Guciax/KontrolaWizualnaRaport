@@ -89,6 +89,7 @@
     <Compile Include="SQLoperations.cs" />
     <Compile Include="TestOperations.cs" />
     <Compile Include="VIOperations.cs" />
+    <Compile Include="wastePerReasonStructure.cs" />
     <Compile Include="WasteReasonDetails.cs">
       <SubType>Form</SubType>
     </Compile>

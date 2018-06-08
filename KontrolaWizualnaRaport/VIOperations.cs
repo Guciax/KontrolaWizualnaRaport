@@ -27,5 +27,31 @@ namespace KontrolaWizualnaRaport
 
             return new Dictionary<string, string>[] { result1, result2, result3, result4 };
         }
+
+        public static DataTable ngRatePerOperator(List<WasteDataStructure> inspectionData)
+        {
+            DataTable result = new DataTable();
+            Dictionary<string, List<WasteDataStructure>> inspectionDataPerOperator = inspectionData.GroupBy(op => op.Oper).ToDictionary(op => op.Key, op => op.ToList());
+
+            result.Columns.Add("Operator");
+            result.Columns.Add("Sprawdzone", typeof (double));
+            result.Columns.Add("NG", typeof(double));
+            result.Columns.Add("NG%", typeof(double));
+            result.Columns.Add("Scrap", typeof(double));
+            result.Columns.Add("Scrap%", typeof(double));
+
+            foreach (var operatorEntry in inspectionDataPerOperator)
+            {
+                double totalInspected = operatorEntry.Value.Select(t => t.AllQty).Sum();
+                double totalNg = operatorEntry.Value.Select(t => t.AllNg).Sum();
+                double ngPercent = Math.Round(totalNg / totalInspected * 100, 2);
+                double totalScrap = operatorEntry.Value.Select(t => t.AllScrap).Sum();
+                double scrapPercent = Math.Round(totalScrap / totalInspected * 100, 2);
+
+                result.Rows.Add(operatorEntry.Key, totalInspected, totalNg, ngPercent, totalScrap, scrapPercent);
+            }
+
+            return result;
+        }
     }
 }

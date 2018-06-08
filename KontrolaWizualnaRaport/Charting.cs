@@ -15,7 +15,7 @@ namespace KontrolaWizualnaRaport
 {
     class Charting
     {
-        public static DataTable DrawCapaChart(Chart chart, List<wasteDataStructure> inputData, string oper, Dictionary<string, string> modelDictionary, bool customerLGI, List<excelOperations.order12NC> mstOrders)
+        public static DataTable DrawCapaChart(Chart chart, List<WasteDataStructure> inputData, string oper, Dictionary<string, string> modelDictionary, bool customerLGI, List<excelOperations.order12NC> mstOrders)
         {
             chart.Series.Clear();
             chart.ChartAreas.Clear();
@@ -463,7 +463,7 @@ namespace KontrolaWizualnaRaport
             return year + CultureInfo.InvariantCulture.Calendar.GetWeekOfYear(time, CalendarWeekRule.FirstFourDayWeek, DayOfWeek.Monday);
         }
 
-        public static DataTable DrawWasteLevel(bool weekly, Chart chartWasteLevel, List<wasteDataStructure> inputData, DateTime dateBegin, DateTime dateEnd, Dictionary<string, string> modelDictionary, ComboBox comboModel, string smtLine, Dictionary<string,string> lotToSmtine, bool customerLGI, List<excelOperations.order12NC> mstOrders)
+        public static DataTable DrawWasteLevel(bool weekly, Chart chartWasteLevel, List<WasteDataStructure> inputData, DateTime dateBegin, DateTime dateEnd, Dictionary<string, string> modelDictionary, ComboBox comboModel, string smtLine, Dictionary<string,string> lotToSmtine, bool customerLGI, List<excelOperations.order12NC> mstOrders)
         {
             DataTable result = new DataTable();
             Dictionary<string, double> ngLevel = new Dictionary<string, double>();
@@ -497,8 +497,7 @@ namespace KontrolaWizualnaRaport
                 {
                     string model = "";
                     if (!modelDictionary.TryGetValue(item.NumerZlecenia, out model)) model = "???";
-
-
+                    
                     if (weekly)
                     {
                         dictionaryKey = GetIso8601WeekOfYear(item.FixedDateTime).ToString();
@@ -540,6 +539,7 @@ namespace KontrolaWizualnaRaport
 
                         totalProdQuantity[dictionaryKey] += item.AllQty;
                     }
+
                 }
             }
 
@@ -665,298 +665,46 @@ namespace KontrolaWizualnaRaport
             return result;
         }
 
-        public static DataTable DrawWasteReasonsCHart(Chart ngChart, Chart scrapChart, List<wasteDataStructure> inputData, DateTime dateBegin, DateTime dateEnd, Dictionary<string, string> modelDictionary, string smtLine, Dictionary<string,string> lotToSmtLine, bool customerLGI, List<excelOperations.order12NC> mstOrders)
+        public static DataTable DrawWasteReasonsCHart(Chart ngChart, Chart scrapChart, List<WasteDataStructure> inputData, DateTime dateBegin, DateTime dateEnd, Dictionary<string, string> modelDictionary, string smtLine, Dictionary<string, string> lotToSmtLine, bool customerLGI, List<excelOperations.order12NC> mstOrders)
         {
             DataTable result = new DataTable();
             result.Columns.Add("Nazwa");
             result.Columns.Add("Ilość");
-
-            List<WasteStruc> wasteList = new List<WasteStruc>();
-            Dictionary<string, Dictionary<string, double>> wasteNgPerModel = new Dictionary<string, Dictionary<string, double>>();
-            Dictionary<string, Dictionary<string, double>> wasteScrapPerModel = new Dictionary<string, Dictionary<string, double>>();
-            Dictionary<string, DataTable> sourceTablePerReason = new Dictionary<string, DataTable>();
-
-            wasteList.Add(CreateWasteStruc("goodQty"));
-            wasteList.Add(CreateWasteStruc("allQty"));
-
-            wasteList.Add(CreateWasteStruc("NgBrakLutowia"));
-            wasteList.Add(CreateWasteStruc("NgBrakDiodyLed"));
-            wasteList.Add(CreateWasteStruc("NgBrakResConn"));
-            wasteList.Add(CreateWasteStruc("NgPrzesuniecieLed"));
-            wasteList.Add(CreateWasteStruc("NgPrzesuniecieResConn"));
-            wasteList.Add(CreateWasteStruc("NgZabrudzenieLed"));
-            wasteList.Add(CreateWasteStruc("NgUszkodzenieMechaniczneLed"));
-            wasteList.Add(CreateWasteStruc("NgUszkodzenieConn"));
-            wasteList.Add(CreateWasteStruc("NgWadaFabrycznaDiody"));
-            wasteList.Add(CreateWasteStruc("NgUszkodzonePcb"));
-            wasteList.Add(CreateWasteStruc("NgWadaNaklejki"));
-            wasteList.Add(CreateWasteStruc("NgSpalonyConn"));
-            wasteList.Add(CreateWasteStruc("NgInne"));
-
-            wasteList.Add(CreateWasteStruc("ScrapBrakLutowia"));
-            wasteList.Add(CreateWasteStruc("ScrapBrakDiodyLed"));
-            wasteList.Add(CreateWasteStruc("ScrapBrakResConn"));
-            wasteList.Add(CreateWasteStruc("ScrapPrzesuniecieLed"));
-            wasteList.Add(CreateWasteStruc("ScrapPrzesuniecieResConn"));
-            wasteList.Add(CreateWasteStruc("ScrapZabrudzenieLed"));
-            wasteList.Add(CreateWasteStruc("ScrapUszkodzenieMechaniczneLed"));
-            wasteList.Add(CreateWasteStruc("ScrapUszkodzenieConn"));
-            wasteList.Add(CreateWasteStruc("ScrapWadaFabrycznaDiody"));
-            wasteList.Add(CreateWasteStruc("ScrapUszkodzonePcb"));
-            wasteList.Add(CreateWasteStruc("ScrapWadaNaklejki"));
-            wasteList.Add(CreateWasteStruc("ScrapSpalonyConn"));
-            wasteList.Add(CreateWasteStruc("ScrapInne"));
-
-            wasteList.Add(CreateWasteStruc("NgTestElektryczny"));
-
-            DataTable template = new DataTable();
-            template.Columns.Add("Data");
-            template.Columns.Add("Lot");
-            template.Columns.Add("Model");
-            template.Columns.Add("Linia");
-            template.Columns.Add("Ilość");
-
-            foreach (var item in wasteList)
-            {
-                if (item.name.Contains("Ng"))
-                {
-                    wasteNgPerModel.Add(item.name, new Dictionary<string, double>());
-                }
-
-                if (item.name.Contains("Scrap"))
-                {
-                    wasteScrapPerModel.Add(item.name, new Dictionary<string, double>());
-                }
-
-                sourceTablePerReason.Add(item.name, template.Clone());
-            }
-            string[] mstOrdersList = mstOrders.Select(o => o.order).ToArray();
-
-            foreach (var dataRecord in inputData)
-            {
-                if (customerLGI & mstOrdersList.Contains(dataRecord.NumerZlecenia)) continue;
-                if (!customerLGI & !mstOrdersList.Contains(dataRecord.NumerZlecenia)) continue;
-
-
-                
-                string smt = "";
-                lotToSmtLine.TryGetValue(dataRecord.NumerZlecenia, out smt);
-                if (smt != smtLine & smtLine != "Wszystkie") continue;
-                if (dataRecord.FixedDateTime.Date >= dateBegin.Date & dataRecord.FixedDateTime.Date <= dateEnd.Date)
-                {
-                    string model = "???";
-                    modelDictionary.TryGetValue(dataRecord.NumerZlecenia, out model);
-                    if (model == null)
-                    {
-                        model = "???";
-                    }
-                    else
-                    {
-                        model = model.Replace("LLFML", "");
-                    }
-
-                    
-
-                    wasteList[FindIndexOfWaste("GoodQty", wasteList)].qty += dataRecord.GoodQty; ;
-                    wasteList[FindIndexOfWaste("allQty", wasteList)].qty += dataRecord.AllQty;
-
-                    Dictionary<string, int> wasteInRecord = new Dictionary<string, int>();
-
-                    wasteInRecord.Add("NgBrakLutowia", dataRecord.NgBrakLutowia);
-                    wasteInRecord.Add("NgBrakDiodyLed", dataRecord.NgBrakDiodyLed);
-                    wasteInRecord.Add("NgBrakResConn", dataRecord.NgBrakResConn);
-                    wasteInRecord.Add("NgPrzesuniecieLed", dataRecord.NgPrzesuniecieLed);
-                    wasteInRecord.Add("NgPrzesuniecieResConn", dataRecord.NgPrzesuniecieResConn);
-                    wasteInRecord.Add("NgZabrudzenieLed", dataRecord.NgZabrudzenieLed);
-                    wasteInRecord.Add("NgUszkodzenieMechaniczneLed", dataRecord.NgUszkodzenieMechaniczneLed);
-                    wasteInRecord.Add("NgUszkodzenieConn", dataRecord.NgUszkodzenieConn);
-                    wasteInRecord.Add("NgWadaFabrycznaDiody", dataRecord.NgWadaFabrycznaDiody);
-                    wasteInRecord.Add("NgUszkodzonePcb", dataRecord.NgUszkodzonePcb);
-                    wasteInRecord.Add("NgWadaNaklejki", dataRecord.NgWadaNaklejki);
-                    wasteInRecord.Add("NgSpalonyConn", dataRecord.NgSpalonyConn);
-                    wasteInRecord.Add("NgInne", dataRecord.NgInne);
-                    wasteInRecord.Add("NgTestElektryczny", dataRecord.NgTestElektryczny);
-
-                    wasteInRecord.Add("ScrapBrakLutowia", dataRecord.ScrapBrakLutowia);
-                    wasteInRecord.Add("ScrapBrakDiodyLed", dataRecord.ScrapBrakDiodyLed);
-                    wasteInRecord.Add("ScrapBrakResConn", dataRecord.ScrapBrakResConn);
-                    wasteInRecord.Add("ScrapPrzesuniecieLed", dataRecord.ScrapPrzesuniecieLed);
-                    wasteInRecord.Add("ScrapPrzesuniecieResConn", dataRecord.ScrapPrzesuniecieResConn);
-                    wasteInRecord.Add("ScrapZabrudzenieLed", dataRecord.ScrapZabrudzenieLed);
-                    wasteInRecord.Add("ScrapUszkodzenieMechaniczneLed", dataRecord.ScrapUszkodzenieMechaniczneLed);
-                    wasteInRecord.Add("ScrapUszkodzenieConn", dataRecord.ScrapUszkodzenieConn);
-                    wasteInRecord.Add("ScrapWadaFabrycznaDiody", dataRecord.ScrapWadaFabrycznaDiody);
-                    wasteInRecord.Add("ScrapUszkodzonePcb", dataRecord.ScrapUszkodzonePcb);
-                    wasteInRecord.Add("ScrapWadaNaklejki", dataRecord.ScrapWadaNaklejki);
-                    wasteInRecord.Add("ScrapSpalonyConn", dataRecord.ScrapSpalonyConn);
-                    wasteInRecord.Add("ScrapInne", dataRecord.ScrapInne);
-
-                    foreach (var item in wasteInRecord)
-                    {
-                        if (item.Value > 0)
-                        {
-                            string reason = item.Key;
-                            if (reason.Contains("Ng"))
-                            {
-                                if (!wasteNgPerModel[reason].ContainsKey(model))
-                                {
-                                    wasteNgPerModel[reason].Add(model, 0);
-                                }
-                                wasteNgPerModel[reason][model] += item.Value;
-                            }
-                            if (reason.Contains("Scrap"))
-                            {
-                                if (!wasteScrapPerModel[reason].ContainsKey(model))
-                                {
-                                    wasteScrapPerModel[reason].Add(model, 0);
-                                }
-                                wasteScrapPerModel[reason][model] += item.Value;
-                            }
-                            
-                            sourceTablePerReason[reason].Rows.Add(dataRecord.RealDateTime, dataRecord.NumerZlecenia, model,  smt,item.Value);
-                        }
-                    }
-
-                    wasteList[FindIndexOfWaste("NgBrakLutowia", wasteList)].qty += wasteInRecord["NgBrakLutowia"];
-                    wasteList[FindIndexOfWaste("NgBrakDiodyLed", wasteList)].qty += wasteInRecord["NgBrakDiodyLed"];
-                    wasteList[FindIndexOfWaste("NgBrakResConn", wasteList)].qty += wasteInRecord["NgBrakResConn"];
-                    wasteList[FindIndexOfWaste("NgPrzesuniecieLed", wasteList)].qty += wasteInRecord["NgPrzesuniecieLed"];
-                    wasteList[FindIndexOfWaste("NgPrzesuniecieResConn", wasteList)].qty += wasteInRecord["NgPrzesuniecieResConn"];
-                    wasteList[FindIndexOfWaste("NgZabrudzenieLed", wasteList)].qty += wasteInRecord["NgZabrudzenieLed"];
-                    wasteList[FindIndexOfWaste("NgUszkodzenieMechaniczneLed", wasteList)].qty += wasteInRecord["NgUszkodzenieMechaniczneLed"];
-                    wasteList[FindIndexOfWaste("NgUszkodzenieConn", wasteList)].qty += wasteInRecord["NgUszkodzenieConn"];
-                    wasteList[FindIndexOfWaste("NgWadaFabrycznaDiody", wasteList)].qty += wasteInRecord["NgWadaFabrycznaDiody"];
-                    wasteList[FindIndexOfWaste("NgUszkodzonePcb", wasteList)].qty += wasteInRecord["NgUszkodzonePcb"];
-                    wasteList[FindIndexOfWaste("NgWadaNaklejki", wasteList)].qty += wasteInRecord["NgWadaNaklejki"];
-                    wasteList[FindIndexOfWaste("NgSpalonyConn", wasteList)].qty += wasteInRecord["NgSpalonyConn"];
-                    wasteList[FindIndexOfWaste("NgInne", wasteList)].qty += wasteInRecord["NgInne"];
-
-                    wasteList[FindIndexOfWaste("ScrapBrakLutowia", wasteList)].qty += wasteInRecord["ScrapBrakLutowia"];
-                    wasteList[FindIndexOfWaste("ScrapBrakDiodyLed", wasteList)].qty += wasteInRecord["ScrapBrakDiodyLed"];
-                    wasteList[FindIndexOfWaste("ScrapBrakResConn", wasteList)].qty += wasteInRecord["ScrapBrakResConn"];
-                    wasteList[FindIndexOfWaste("ScrapPrzesuniecieLed", wasteList)].qty += wasteInRecord["ScrapPrzesuniecieLed"];
-                    wasteList[FindIndexOfWaste("ScrapPrzesuniecieResConn", wasteList)].qty += wasteInRecord["ScrapPrzesuniecieResConn"];
-                    wasteList[FindIndexOfWaste("ScrapZabrudzenieLed", wasteList)].qty += wasteInRecord["ScrapZabrudzenieLed"];
-                    wasteList[FindIndexOfWaste("ScrapUszkodzenieMechaniczneLed", wasteList)].qty += wasteInRecord["ScrapUszkodzenieMechaniczneLed"];
-                    wasteList[FindIndexOfWaste("ScrapUszkodzenieConn", wasteList)].qty += wasteInRecord["ScrapUszkodzenieConn"];
-                    wasteList[FindIndexOfWaste("ScrapWadaFabrycznaDiody", wasteList)].qty += wasteInRecord["ScrapWadaFabrycznaDiody"];
-                    wasteList[FindIndexOfWaste("ScrapUszkodzonePcb", wasteList)].qty += wasteInRecord["ScrapUszkodzonePcb"];
-                    wasteList[FindIndexOfWaste("ScrapWadaNaklejki", wasteList)].qty += wasteInRecord["ScrapWadaNaklejki"];
-                    wasteList[FindIndexOfWaste("ScrapSpalonyConn", wasteList)].qty += wasteInRecord["ScrapSpalonyConn"];
-                    wasteList[FindIndexOfWaste("ScrapInne", wasteList)].qty += wasteInRecord["ScrapInne"];
-
-                    wasteList[FindIndexOfWaste("NgTestElektryczny", wasteList)].qty += wasteInRecord["NgTestElektryczny"];
-                }
-            }
-
-            wasteList = wasteList.OrderByDescending(o => o.qty).ToList();
-
-
-            ngChart.Series.Clear();
-            ngChart.ChartAreas.Clear();
-
-            scrapChart.Series.Clear();
-            scrapChart.ChartAreas.Clear();
-
-            Series ngSeries = new Series();
-            ngSeries.ChartType = SeriesChartType.Column;
-
-            Series scrapSeries = new Series();
-            scrapSeries.ChartType = SeriesChartType.Column;
-
-
-            ChartArea ngArea = new ChartArea();
-            ngArea.AxisX.LabelStyle.Interval = 1;
-            ngArea.AxisX.IsLabelAutoFit = true;
-            ngArea.AxisX.LabelAutoFitStyle = LabelAutoFitStyles.LabelsAngleStep30;
-            ngArea.AxisX.LabelStyle.Font = new System.Drawing.Font(ngArea.AxisX.LabelStyle.Font.Name, 10f);
-
-            ChartArea scrapArea = new ChartArea();
-            scrapArea.AxisX.LabelStyle.Interval = 1;
-            scrapArea.AxisX.LabelAutoFitStyle = LabelAutoFitStyles.LabelsAngleStep30;
-            scrapArea.AxisX.LabelStyle.Font = new System.Drawing.Font(scrapArea.AxisX.LabelStyle.Font.Name, 10f);
-
-            DataTable scrapTempTable = result.Clone();
-            result.Rows.Add("NG", "");
-            foreach (var wasteEntry in wasteList)
-            {
-                if (wasteEntry.name.Substring(0, 2) == "Ng")
-                {
-                    Dictionary<string, string> label = new Dictionary<string, string>();
-                    foreach (var wasteName in wasteNgPerModel)
-                    {
-                        label.Add(wasteName.Key, string.Join(Environment.NewLine, wasteName.Value.OrderByDescending(q => q.Value).Select(sel => (sel.Key + " " + sel.Value + "szt.")).ToArray()));
-                    }
-
-                    DataPoint ngPoint = new DataPoint();
-                    ngPoint.SetValueXY(wasteEntry.name, wasteEntry.qty);
-                    ngPoint.ToolTip = label[wasteEntry.name];
-                    ngPoint.Tag = sourceTablePerReason[wasteEntry.name];
-                    ngSeries.Points.Add(ngPoint);
-
-                    result.Rows.Add(wasteEntry.name, wasteEntry.qty);
-                }
-
-                if (wasteEntry.name.Substring(0, 2) == "Sc")
-                {
-                    Dictionary<string, string> label = new Dictionary<string, string>();
-                    foreach (var wasteName in wasteScrapPerModel)
-                    {
-                        label.Add(wasteName.Key, string.Join(Environment.NewLine, wasteName.Value.OrderByDescending(q => q.Value).Select(sel => (sel.Key + " " + sel.Value + "szt.")).ToArray()));
-                    }
-
-                    DataPoint scrapPoint = new DataPoint();
-                    scrapPoint.SetValueXY(wasteEntry.name, wasteEntry.qty);
-                    scrapPoint.ToolTip = label[wasteEntry.name];
-                    scrapPoint.Tag = sourceTablePerReason[wasteEntry.name];
-                    scrapSeries.Points.Add(scrapPoint);
-                    scrapTempTable.Rows.Add(wasteEntry.name, wasteEntry.qty);
-                }
-            }
-
-            result.Rows.Add();
-            result.Rows.Add("SCRAP:", "");
-            foreach (DataRow row in scrapTempTable.Rows)
-            {
-                result.Rows.Add(row[0].ToString(), row[1].ToString());
-            }
-
-            ngChart.Series.Add(ngSeries);
-            ngChart.ChartAreas.Add(ngArea);
-            ngChart.Legends.Clear();
-
-            scrapChart.Series.Add(scrapSeries);
-            scrapChart.ChartAreas.Add(scrapArea);
-            scrapChart.Legends.Clear();
-
-
-
-            return result;
-        }
-
-        struct newWasteStruc
-        {
-            public int qty;
-            public List<wasteDataStructure> lots;
-        }
-
-        public static DataTable DrawWasteReasonsCHart2(Chart ngChart, Chart scrapChart, List<wasteDataStructure> inputData, DateTime dateBegin, DateTime dateEnd, Dictionary<string, string> modelDictionary, string smtLine, Dictionary<string, string> lotToSmtLine, bool customerLGI, List<excelOperations.order12NC> mstOrders)
-        {
-            DataTable result = new DataTable();
-            result.Columns.Add("Nazwa");
-            result.Columns.Add("Ilość");
-
-            Dictionary<string, newWasteStruc> wastePerReason = new Dictionary<string, newWasteStruc>();
+            List<string> mstOrderss = mstOrders.Select(o => o.order).ToList();
+            Dictionary<string, WastePerReasonStructure> wastePerReason = new Dictionary<string, WastePerReasonStructure>();
 
             foreach (var wasteRecord in inputData)
             {
-                
+                if (wasteRecord.FixedDateTime.Date < dateBegin.Date || wasteRecord.FixedDateTime.Date > dateEnd.Date) continue;
+
+                if (customerLGI & mstOrderss.Contains(wasteRecord.NumerZlecenia)) continue;
+                if (!customerLGI & !mstOrderss.Contains(wasteRecord.NumerZlecenia)) continue;
+
+                if (wasteRecord.SmtLine != smtLine & smtLine != "Wszystkie") continue;
+
+                //only once
+                if (wastePerReason.Count==0)
+                {
+                    foreach (var reasonKey in wasteRecord.WastePerReason)
+                    {
+                        wastePerReason.Add(reasonKey.Key, new WastePerReasonStructure(new List<WasteDataStructure>(),0));
+                    }
+                }
+
+                foreach (var reasonKey in wasteRecord.WastePerReason)
+                {
+                    if (wasteRecord.WastePerReason[reasonKey.Key] == 0) continue;
+
+                    wastePerReason[reasonKey.Key].Lots.Add(wasteRecord);
+                    wastePerReason[reasonKey.Key].Quantity += wasteRecord.WastePerReason[reasonKey.Key];
+                }
             }
-            
 
-
-            wasteList = wasteList.OrderByDescending(o => o.qty).ToList();
-
+            wastePerReason = wastePerReason.OrderByDescending(o => o.Value.Quantity).ToDictionary(k => k.Key, o => o.Value);
+            foreach (var reasonEntry in wastePerReason)
+            {
+                reasonEntry.Value.Lots = reasonEntry.Value.Lots.OrderByDescending(q => q.WastePerReason[reasonEntry.Key]).ToList();
+            }
 
             ngChart.Series.Clear();
             ngChart.ChartAreas.Clear();
@@ -984,39 +732,64 @@ namespace KontrolaWizualnaRaport
 
             DataTable scrapTempTable = result.Clone();
             result.Rows.Add("NG", "");
-            foreach (var wasteEntry in wasteList)
+            foreach (var wasteReason in wastePerReason)
             {
-                if (wasteEntry.name.Substring(0, 2) == "Ng")
+                if (wasteReason.Key.Substring(0, 2) == "ng")
                 {
-                    Dictionary<string, string> label = new Dictionary<string, string>();
-                    foreach (var wasteName in wasteNgPerModel)
+                    Dictionary<string, int> labelDictNg = new Dictionary<string, int>();
+                    Dictionary<string, int> labelDictTotal = new Dictionary<string, int>();
+                    foreach (var lot in wasteReason.Value.Lots)
                     {
-                        label.Add(wasteName.Key, string.Join(Environment.NewLine, wasteName.Value.OrderByDescending(q => q.Value).Select(sel => (sel.Key + " " + sel.Value + "szt.")).ToArray()));
+                        if (!labelDictNg.ContainsKey(lot.Model))
+                        {
+                            labelDictNg.Add(lot.Model, 0);
+                            labelDictTotal.Add(lot.Model, 0);
+                        }
+
+                        labelDictNg[lot.Model] += lot.WastePerReason[wasteReason.Key];
+                        labelDictTotal[lot.Model] += lot.GoodQty ;
                     }
+
+                    labelDictNg=labelDictNg.OrderByDescending(q => q.Value).ToDictionary(k => k.Key, q => q.Value);
+
+                    string label =  string.Join(Environment.NewLine, labelDictNg.Select(m=>(m.Key+"-"+m.Value+"/"+ labelDictTotal[m.Key])).ToArray());
+
 
                     DataPoint ngPoint = new DataPoint();
-                    ngPoint.SetValueXY(wasteEntry.name, wasteEntry.qty);
-                    ngPoint.ToolTip = label[wasteEntry.name];
-                    ngPoint.Tag = sourceTablePerReason[wasteEntry.name];
+                    ngPoint.SetValueXY(wasteReason.Key, wasteReason.Value.Quantity);
+                    ngPoint.ToolTip = label;
+                    ngPoint.Tag = wastePerReason[wasteReason.Key];
                     ngSeries.Points.Add(ngPoint);
 
-                    result.Rows.Add(wasteEntry.name, wasteEntry.qty);
+                    result.Rows.Add(wasteReason.Key, wasteReason.Value.Quantity);
                 }
 
-                if (wasteEntry.name.Substring(0, 2) == "Sc")
+                else if (wasteReason.Key.Substring(0, 2) == "sc")
                 {
-                    Dictionary<string, string> label = new Dictionary<string, string>();
-                    foreach (var wasteName in wasteScrapPerModel)
+                    Dictionary<string, int> labelDictNg = new Dictionary<string, int>();
+                    Dictionary<string, int> labelDictTotal = new Dictionary<string, int>();
+                    foreach (var lot in wasteReason.Value.Lots)
                     {
-                        label.Add(wasteName.Key, string.Join(Environment.NewLine, wasteName.Value.OrderByDescending(q => q.Value).Select(sel => (sel.Key + " " + sel.Value + "szt.")).ToArray()));
+                        if (!labelDictNg.ContainsKey(lot.Model))
+                        {
+                            labelDictNg.Add(lot.Model, 0);
+                            labelDictTotal.Add(lot.Model, 0);
+                        }
+
+                        labelDictNg[lot.Model] += lot.WastePerReason[wasteReason.Key];
+                        labelDictTotal[lot.Model] += lot.GoodQty;
                     }
 
+                    labelDictNg = labelDictNg.OrderByDescending(q => q.Value).ToDictionary(k => k.Key, q => q.Value);
+
+                    string label = string.Join(Environment.NewLine, labelDictNg.Select(m => (m.Key + "-" + m.Value + "/" + labelDictTotal[m.Key])).ToArray());
+
                     DataPoint scrapPoint = new DataPoint();
-                    scrapPoint.SetValueXY(wasteEntry.name, wasteEntry.qty);
-                    scrapPoint.ToolTip = label[wasteEntry.name];
-                    scrapPoint.Tag = sourceTablePerReason[wasteEntry.name];
+                    scrapPoint.SetValueXY(wasteReason.Key, wasteReason.Value.Quantity);
+                    scrapPoint.ToolTip = label;
+                    scrapPoint.Tag = wastePerReason[wasteReason.Key];
                     scrapSeries.Points.Add(scrapPoint);
-                    scrapTempTable.Rows.Add(wasteEntry.name, wasteEntry.qty);
+                    scrapTempTable.Rows.Add(wasteReason.Key, wasteReason.Value.Quantity);
                 }
             }
 
@@ -1040,7 +813,7 @@ namespace KontrolaWizualnaRaport
             return result;
         }
 
-        public static void DrawWasteLevelPerReason(Chart targetChart, string targetModel, List<wasteDataStructure> inputData, string reason, Dictionary<string, string> modelDictionary, string smtLine, Dictionary<string, string> lotToSmtLine)
+        public static void DrawWasteLevelPerReason(Chart targetChart, string targetModel, List<WasteDataStructure> inputData, string reason, Dictionary<string, string> modelDictionary, string smtLine, Dictionary<string, string> lotToSmtLine)
         {
             DataTable result = new DataTable();
             Dictionary<DateTime, Dictionary<string, double>> wasteInDayPerModel = new Dictionary<DateTime, Dictionary<string, double>>();
@@ -1049,9 +822,8 @@ namespace KontrolaWizualnaRaport
 
             foreach (var record in inputData)
             {
-                string smt = "";
-                lotToSmtLine.TryGetValue(record.NumerZlecenia, out smt);
-                if (smt != smtLine & smtLine != "Wszystkie") continue;
+
+                if (record.SmtLine != smtLine & smtLine != "Wszystkie") continue;
 
                 if (!wasteInDayPerModel.ContainsKey(record.FixedDateTime.Date))
                 {
@@ -1059,43 +831,38 @@ namespace KontrolaWizualnaRaport
                     totalInDayPerModel.Add(record.FixedDateTime.Date, new Dictionary<string, double>());
                     scrapInDayPerModel.Add(record.FixedDateTime.Date, new Dictionary<string, double>());
                 }
-                string model = "???";
-                modelDictionary.TryGetValue(record.NumerZlecenia, out model);
-                if (model == null)
-                    model = "???";
-                else
-                    model = model.Replace("LLFML", "");
-
 
                 if (targetModel != "all")
-                    if (targetModel != model) continue;
-
-                if (!wasteInDayPerModel[record.FixedDateTime.Date].ContainsKey(model))
                 {
-                    wasteInDayPerModel[record.FixedDateTime.Date].Add(model, 0);
-                    totalInDayPerModel[record.FixedDateTime.Date].Add(model, 0);
-                    scrapInDayPerModel[record.FixedDateTime.Date].Add(model, 0);
+                    if (targetModel != record.Model) continue;
                 }
 
-                var typ = typeof(wasteDataStructure);
-                string reasonNg = "Ng" + reason;
-                string reasonScrap = "Scrap" + reason;
-
-                foreach (var type in typ.GetProperties())
+                if (!wasteInDayPerModel[record.FixedDateTime.Date].ContainsKey(record.Model))
                 {
-                    if (type.Name== reasonNg)
-                    {
-                        double value = double.Parse(type.GetValue(record).ToString());
-                        wasteInDayPerModel[record.FixedDateTime.Date][model] += value;
-                    }
+                    wasteInDayPerModel[record.FixedDateTime.Date].Add(record.Model, 0);
+                    totalInDayPerModel[record.FixedDateTime.Date].Add(record.Model, 0);
+                    scrapInDayPerModel[record.FixedDateTime.Date].Add(record.Model, 0);
+                }
 
-                    if (type.Name == reasonScrap)
+                var typ = typeof(WasteDataStructure);
+                string reasonNg = "ng" + reason;
+                string reasonScrap = "ccrap" + reason;
+
+                foreach (var wasteReason in record.WastePerReason)
+                {
+                    if (wasteReason.Key==reasonNg)
                     {
-                        double value = double.Parse(type.GetValue(record).ToString());
-                        scrapInDayPerModel[record.FixedDateTime.Date][model] += value;
+                        double value = (double)wasteReason.Value;
+                        wasteInDayPerModel[record.FixedDateTime.Date][record.Model] += value;
+                    }
+                    else if (wasteReason.Key == reasonScrap)
+                    {
+                        double value = (double)wasteReason.Value;
+                        scrapInDayPerModel[record.FixedDateTime.Date][record.Model] += value;
                     }
                 }
-                totalInDayPerModel[record.FixedDateTime.Date][model] += record.AllQty;
+
+                totalInDayPerModel[record.FixedDateTime.Date][record.Model] += record.AllQty;
             }
 
             Series ngSeries = new Series();
@@ -1180,7 +947,7 @@ namespace KontrolaWizualnaRaport
 
         }
 
-        public static void DrawWasteParetoPerReason(Chart paretoQtyChart, Chart paretoPercentageChart, List<wasteDataStructure> inputData, string reason, Dictionary<string, string> modelDictionary, string smtLine, Dictionary<string,string> lotToSmtLine)
+        public static void DrawWasteParetoPerReason(Chart paretoQtyChart, Chart paretoPercentageChart, List<WasteDataStructure> inputData, string reason, Dictionary<string, string> modelDictionary, string smtLine, Dictionary<string,string> lotToSmtLine)
         {
             DataTable result = new DataTable();
 
@@ -1189,37 +956,29 @@ namespace KontrolaWizualnaRaport
 
             foreach (var record in inputData)
             {
-                string smt = "";
-                lotToSmtLine.TryGetValue(record.NumerZlecenia, out smt);
-                if (smt != smtLine & smtLine != "Wszystkie") continue;
+                if (record.SmtLine != smtLine & smtLine != "Wszystkie") continue;
+                if (record.Model == "") continue;
 
-                string model = "???";
-                modelDictionary.TryGetValue(record.NumerZlecenia, out model);
-                if (model == null)
-                    model = "???";
-                else
-                    model = model.Replace("LLFML", "");
+                if (!modelProductionPareto.ContainsKey(record.Model))
+                    modelProductionPareto.Add(record.Model, 0);
+                modelProductionPareto[record.Model] += record.AllQty;
 
-                if (!modelProductionPareto.ContainsKey(model))
-                    modelProductionPareto.Add(model, 0);
-                modelProductionPareto[model] += record.AllQty;
+                var typ = typeof(WasteDataStructure);
+                string reasonNg = "ng" + reason;
+                string reasonScrap = "scrap" + reason;
 
-                var typ = typeof(wasteDataStructure);
-                string reasonNg = "Ng" + reason;
-                string reasonScrap = "Scrap" + reason;
-
-                foreach (var type in typ.GetProperties())
+                foreach (var reasonEntry in record.WastePerReason)
                 {
-                    if (type.Name == reasonNg)
+                    if (reasonEntry.Key==reasonNg)
                     {
-                        double value = double.Parse(type.GetValue(record).ToString());
+                        double value = (double)reasonEntry.Value;
 
-                        if (!modelWastePareto.ContainsKey(model))
+                        if (!modelWastePareto.ContainsKey(record.Model))
                         {
-                            modelWastePareto.Add(model, 0);
+                            modelWastePareto.Add(record.Model, 0);
 
                         }
-                        modelWastePareto[model] += value;
+                        modelWastePareto[record.Model] += value;
                     }
                 }
             }
@@ -1283,7 +1042,7 @@ namespace KontrolaWizualnaRaport
 
         }
 
-        public static void DrawWasteLevelPerModel (Chart chartLevel, string targetReason,List<wasteDataStructure> inputData, Dictionary<string, string> modelDictionary, string selectedModel)
+        public static void DrawWasteLevelPerModel (Chart chartLevel, string targetReason,List<WasteDataStructure> inputData, Dictionary<string, string> modelDictionary, string selectedModel)
         {
             Dictionary<DateTime, double> wastePerDay = new Dictionary<DateTime, double>();
             Dictionary<DateTime, double> scrapPerDay = new Dictionary<DateTime, double>();
@@ -1291,14 +1050,13 @@ namespace KontrolaWizualnaRaport
 
             foreach (var record in inputData)
             {
-                string model = "";
-                if (!modelDictionary.TryGetValue(record.NumerZlecenia, out model)) continue;
+                if (record.Model=="") continue;
 
 
                 //if (targetReason != "all")
                 //    if (targetReason != model) continue;
 
-                if (model.Contains(selectedModel))
+                if (record.Model.Contains(selectedModel))
                 {
                     if (!wastePerDay.ContainsKey(record.FixedDateTime.Date))
                     {
@@ -1313,24 +1071,21 @@ namespace KontrolaWizualnaRaport
                         wastePerDay[record.FixedDateTime.Date] += record.AllNg;
                         scrapPerDay[record.FixedDateTime.Date] += record.AllScrap;
                     }
-
                     else
                     {
-                        var typ = typeof(wasteDataStructure);
-                        foreach (var type in typ.GetProperties())
+                        foreach (var reasonEntry in record.WastePerReason)
                         {
-                            if (type.Name.StartsWith("Ng"))
+                            if (reasonEntry.Key.StartsWith("ng"))
                             {
-                                if (type.Name == targetReason)
+                                if (reasonEntry.Key == targetReason)
                                 {
-                                    wastePerDay[record.FixedDateTime.Date]+= double.Parse(type.GetValue(record).ToString());
+                                    wastePerDay[record.FixedDateTime.Date] += reasonEntry.Value;
                                 }
-                            } 
-                            else if (type.Name.StartsWith("Scrap"))
+                            } else if (reasonEntry.Key.StartsWith("scrap"))
                             {
-                                if (type.Name == targetReason)
+                                if (reasonEntry.Key == targetReason)
                                 {
-                                    scrapPerDay[record.FixedDateTime.Date] += double.Parse(type.GetValue(record).ToString());
+                                    scrapPerDay[record.FixedDateTime.Date] += reasonEntry.Value;
                                 }
                             }
                         }
@@ -1360,7 +1115,6 @@ namespace KontrolaWizualnaRaport
             arLevel.AxisY.LabelStyle.Format = "{0.00} %";
             arLevel.Position = new ElementPosition(0, 0, 100, 100);
 
-
             foreach (var dayEntry in wastePerDay)
             {
                 DataPoint pNg = new DataPoint();
@@ -1381,43 +1135,37 @@ namespace KontrolaWizualnaRaport
             chartLevel.Series.Add(seriesScrap);
             chartLevel.Legends[0].DockedToChartArea = chartLevel.ChartAreas[0].Name;
             //chartLevel.ChartAreas[0].AxisY.MajorGrid.Interval = 0.01;// (chartLevel.ChartAreas[0].AxisY.Maximum - chartLevel.ChartAreas[0].AxisY.Minimum) / 10;
-
         }
 
-        public static void DrawWasteReasonsPerModel(Chart chartReasonsNg, Chart chartReasonsScrap, List<wasteDataStructure> inputData, Dictionary<string, string> modelDictionary, string selectedModel)
+        public static void DrawWasteReasonsPerModel(Chart chartReasonsNg, Chart chartReasonsScrap, List<WasteDataStructure> inputData, Dictionary<string, string> modelDictionary, string selectedModel)
         {
-
             Dictionary<string, double> wasteReasonsNg = new Dictionary<string, double>();
             Dictionary<string, double> wasteReasonsScrap = new Dictionary<string, double>();
 
             foreach (var record in inputData)
             {
-                string model = "";
-                if (!modelDictionary.TryGetValue(record.NumerZlecenia, out model)) continue;
+                if (record.Model == "") continue;
 
-                if (model.Contains(selectedModel))
+                if (record.Model.Contains(selectedModel))
                 {
-                    var typ = typeof(wasteDataStructure);
-
-                    foreach (var type in typ.GetProperties())
+                    foreach (var reasonEntry in record.WastePerReason)
                     {
-                        if (type.Name.StartsWith("Ng"))
+                        if (reasonEntry.Key.StartsWith("ng"))
                         {
-                            if (!wasteReasonsNg.ContainsKey(type.Name))
+                            if (!wasteReasonsNg.ContainsKey(reasonEntry.Key))
                             {
-                                wasteReasonsNg.Add(type.Name, 0);
+                                wasteReasonsNg.Add(reasonEntry.Key, 0);
                             }
-                            wasteReasonsNg[type.Name] += double.Parse(type.GetValue(record).ToString());
-                        }
-                        else if (type.Name.StartsWith("Scrap"))
+                            wasteReasonsNg[reasonEntry.Key] += reasonEntry.Value ;
+                        } else if (reasonEntry.Key.StartsWith("scrap"))
                         {
-                            if (!wasteReasonsScrap.ContainsKey(type.Name))
+                            if (!wasteReasonsScrap.ContainsKey(reasonEntry.Key))
                             {
-                                wasteReasonsScrap.Add(type.Name, 0);
+                                wasteReasonsScrap.Add(reasonEntry.Key, 0);
                             }
-                            wasteReasonsScrap[type.Name] += double.Parse(type.GetValue(record).ToString());
+                            wasteReasonsScrap[reasonEntry.Key] += reasonEntry.Value;
                         }
-                    }
+                    } 
                 }
             }
 

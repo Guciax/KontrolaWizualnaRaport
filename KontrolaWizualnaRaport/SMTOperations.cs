@@ -68,6 +68,7 @@ namespace KontrolaWizualnaRaport
                     foreach (var lot in shiftEntry.Value)
                     {
                         if (lot.model != model & model != "Wszystkie") continue;
+                        if (lot.manufacturedModules < 1) continue;
 
                         int ledExpectedUsageA = lot.requiredRankA * lot.manufacturedModules;
                         int ledExpectedUsageB = lot.requiredRankB * lot.manufacturedModules;
@@ -283,7 +284,7 @@ namespace KontrolaWizualnaRaport
             grid.ResumeLayout();
         }
 
-        public static void FillOutLedWasteGrid(SortedDictionary<DateTime, SortedDictionary<int, List<LedWasteStruc>>> ledWasteDictionary, DataGridView grid)
+        public static void FillOutDailyLedWaste(SortedDictionary<DateTime, SortedDictionary<int, List<LedWasteStruc>>> ledWasteDictionary, DataGridView grid)
         {
             grid.SuspendLayout();
             grid.Columns.Clear();

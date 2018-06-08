@@ -50,8 +50,9 @@ namespace KontrolaWizualnaRaport
                     dataGridViewSummary.Rows.Add(modelEntry.Key, modelEntry.Value);
                 }
                 dataGridViewSummary.Rows.Add("Razem", totalQty);
+                dataGridViewSummary.Sort(dataGridViewSummary.Columns["Ilosc"], ListSortDirection.Descending);
+
                 SMTOperations.autoSizeGridColumns(dataGridViewSummary);
-                
             }
             else
             {

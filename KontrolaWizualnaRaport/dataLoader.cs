@@ -11,9 +11,9 @@ namespace KontrolaWizualnaRaport
 {
     class dataLoader
     {
-        public static List<wasteDataStructure> LoadData(DataTable inputTable)
+        public static List<WasteDataStructure> LoadData(DataTable inputTable, Dictionary<string, string> lotToSmtLine, Dictionary<string, string> lotToModel)
         {
-            List<wasteDataStructure> result = new List<wasteDataStructure>();
+            List<WasteDataStructure> result = new List<WasteDataStructure>();
 
             foreach (DataRow row in inputTable.Rows)
             {
@@ -28,37 +28,8 @@ namespace KontrolaWizualnaRaport
                 int allNg = 0;
                 int allScrap = 0;
 
-
-                int NgBrakLutowia;
-                int NgBrakDiodyLed;
-                int NgBrakResConn;
-                int NgPrzesuniecieLed;
-                int NgPrzesuniecieResConn;
-                int NgZabrudzenieLed;
-                int NgUszkodzenieMechaniczneLed;
-                int NgUszkodzenieConn;
-                int NgWadaFabrycznaDiody;
-                int NgUszkodzonePcb;
-                int NgWadaNaklejki;
-                int NgSpalonyConn;
-                int NgInne;
-
-                int ScrapBrakLutowia;
-                int ScrapBrakDiodyLed;
-                int ScrapBrakResConn;
-                int ScrapPrzesuniecieLed;
-                int ScrapPrzesuniecieResConn;
-                int ScrapZabrudzenieLed;
-                int ScrapUszkodzenieMechaniczneLed;
-                int ScrapUszkodzenieConn;
-                int ScrapWadaFabrycznaDiody;
-                int ScrapUszkodzonePcb;
-                int ScrapWadaNaklejki;
-                int ScrapSpalonyConn;
-                int ScrapInne;
-
-                int NgTestElektryczny;
-
+                Dictionary<string, int> wastePerReason = new Dictionary<string, int>();
+                
                 id = int.Parse(row["Id"].ToString());
                 realDateTime = ParseExact(row["Data_czas"].ToString());
                 fixedDateTime = FixedShiftDate(realDateTime);
@@ -66,98 +37,50 @@ namespace KontrolaWizualnaRaport
                 oper = row["Operator"].ToString();
                 goodQty = int.Parse(row["iloscDobrych"].ToString());
                 allQty = goodQty;
+                string model = "???";
+                
 
                 Regex rgx = new Regex("[^a-zA-Z0-9 -]");
                 string digitsLot = rgx.Replace(row["numerZlecenia"].ToString(), "");
                 numerZlecenia = digitsLot.Trim();
+                if (lotToModel.ContainsKey(numerZlecenia))
+                {
+                    model = lotToModel[numerZlecenia];
+                }
 
-                 NgBrakLutowia = int.Parse(row["NgBrakLutowia"].ToString());
-                allQty += NgBrakLutowia;
-                allNg += NgBrakLutowia;
-                NgBrakDiodyLed = int.Parse(row["NgBrakDiodyLed"].ToString());
-                allQty += NgBrakDiodyLed;
-                allNg += NgBrakDiodyLed;
-                NgBrakResConn = int.Parse(row["NgBrakResConn"].ToString());
-                allQty += NgBrakResConn;
-                allNg += NgBrakResConn;
-                NgPrzesuniecieLed = int.Parse(row["NgPrzesuniecieLed"].ToString());
-                allQty += NgPrzesuniecieLed;
-                allNg += NgPrzesuniecieLed;
-                NgPrzesuniecieResConn = int.Parse(row["NgPrzesuniecieResConn"].ToString());
-                allQty += NgPrzesuniecieResConn;
-                allNg += NgPrzesuniecieResConn;
-                NgZabrudzenieLed = int.Parse(row["NgZabrudzenieLed"].ToString());
-                allQty += NgZabrudzenieLed;
-                allNg += NgZabrudzenieLed;
-                NgUszkodzenieMechaniczneLed = int.Parse(row["NgUszkodzenieMechaniczneLed"].ToString());
-                allQty += NgUszkodzenieMechaniczneLed;
-                allNg += NgUszkodzenieMechaniczneLed;
-                NgUszkodzenieConn = int.Parse(row["NgUszkodzenieConn"].ToString());
-                allQty += NgUszkodzenieConn;
-                allNg += NgUszkodzenieConn;
-                NgWadaFabrycznaDiody = int.Parse(row["NgWadaFabrycznaDiody"].ToString());
-                allQty += NgWadaFabrycznaDiody;
-                allNg += NgWadaFabrycznaDiody;
-                NgUszkodzonePcb = int.Parse(row["NgUszkodzonePcb"].ToString());
-                allQty += NgUszkodzonePcb;
-                allNg += NgUszkodzonePcb;
-                NgWadaNaklejki = int.Parse(row["NgWadaNaklejki"].ToString());
-                allQty += NgWadaNaklejki;
-                allNg += NgWadaNaklejki;
-                NgSpalonyConn = int.Parse(row["NgSpalonyConn"].ToString());
-                allQty += NgSpalonyConn;
-                allNg += NgSpalonyConn;
-                NgInne = int.Parse(row["NgInne"].ToString());
-                allQty += NgInne;
-                allNg += NgInne;
+                    for (int c = 0; c < inputTable.Columns.Count; c++)
+                {
+                    string wasteReason = inputTable.Columns[c].ColumnName;
+                    if (wasteReason.Contains("ng"))
+                    {
+                        if (!wastePerReason.ContainsKey(wasteReason))
+                        {
+                            wastePerReason.Add(wasteReason, 0);
+                        }
 
-                ScrapBrakLutowia = int.Parse(row["ScrapBrakLutowia"].ToString());
-                allQty += ScrapBrakLutowia;
-                allScrap += ScrapBrakLutowia;
-                ScrapBrakDiodyLed = int.Parse(row["ScrapBrakDiodyLed"].ToString());
-                allQty += ScrapBrakDiodyLed;
-                allScrap += ScrapBrakDiodyLed;
-                ScrapBrakResConn = int.Parse(row["ScrapBrakResConn"].ToString());
-                allQty += ScrapBrakResConn;
-                allScrap += ScrapBrakResConn;
-                ScrapPrzesuniecieLed = int.Parse(row["ScrapPrzesuniecieLed"].ToString());
-                allQty += ScrapPrzesuniecieLed;
-                allScrap += ScrapPrzesuniecieLed;
-                ScrapPrzesuniecieResConn = int.Parse(row["ScrapPrzesuniecieResConn"].ToString());
-                allQty += ScrapPrzesuniecieResConn;
-                allScrap += ScrapPrzesuniecieResConn;
-                ScrapZabrudzenieLed = int.Parse(row["ScrapZabrudzenieLed"].ToString());
-                allQty += ScrapZabrudzenieLed;
-                allScrap += ScrapZabrudzenieLed;
-                ScrapUszkodzenieMechaniczneLed = int.Parse(row["ScrapUszkodzenieMechaniczneLed"].ToString());
-                allQty += ScrapUszkodzenieMechaniczneLed;
-                allScrap += ScrapUszkodzenieMechaniczneLed;
-                ScrapUszkodzenieConn = int.Parse(row["ScrapUszkodzenieConn"].ToString());
-                allQty += ScrapUszkodzenieConn;
-                allScrap += ScrapUszkodzenieConn;
-                ScrapWadaFabrycznaDiody = int.Parse(row["ScrapWadaFabrycznaDiody"].ToString());
-                allQty += ScrapWadaFabrycznaDiody;
-                allScrap += ScrapWadaFabrycznaDiody;
-                ScrapUszkodzonePcb = int.Parse(row["ScrapUszkodzonePcb"].ToString());
-                allQty += ScrapUszkodzonePcb;
-                allScrap += ScrapUszkodzonePcb;
-                ScrapWadaNaklejki = int.Parse(row["ScrapWadaNaklejki"].ToString());
-                allQty += ScrapWadaNaklejki;
-                allScrap += ScrapWadaNaklejki;
-                ScrapSpalonyConn = int.Parse(row["ScrapSpalonyConn"].ToString());
-                allQty += ScrapSpalonyConn;
-                allScrap += ScrapSpalonyConn;
-                ScrapInne = int.Parse(row["ScrapInne"].ToString());
-                allQty += ScrapInne;
-                allScrap += ScrapInne;
+                        int wasteQty = int.Parse(row[c].ToString());
+                        wastePerReason[wasteReason] = wasteQty;
+                        allNg += wasteQty;
 
-                NgTestElektryczny = int.Parse(row["NgTestElektryczny"].ToString());
-                allQty += NgTestElektryczny;
-                allNg += NgTestElektryczny;
+                    } else if (wasteReason.Contains("scrap"))
+                    {
+                        if (!wastePerReason.ContainsKey(wasteReason))
+                        {
+                            wastePerReason.Add(wasteReason, 0);
+                        }
 
-                //Debug.WriteLine(allQty + " " + allNg + " " + allScrap);
+                        int wasteQty = int.Parse(row[c].ToString());
+                        wastePerReason[wasteReason] = wasteQty;
+                        allScrap += wasteQty;
+                    }
+                }
+                string smtLine = "";
+                if (!lotToSmtLine.TryGetValue(digitsLot, out smtLine))
+                {
+                    smtLine = "";
+                }
 
-                wasteDataStructure recordToAdd = new wasteDataStructure(id, fixedDateTime, realDateTime, shiftNumber, oper, goodQty, allQty,allNg,allScrap, numerZlecenia, NgBrakLutowia, NgBrakDiodyLed, NgBrakResConn, NgPrzesuniecieLed, NgPrzesuniecieResConn, NgZabrudzenieLed, NgUszkodzenieMechaniczneLed, NgUszkodzenieConn, NgWadaFabrycznaDiody, NgUszkodzonePcb, NgWadaNaklejki, NgSpalonyConn, NgInne, ScrapBrakLutowia, ScrapBrakDiodyLed, ScrapBrakResConn, ScrapPrzesuniecieLed, ScrapPrzesuniecieResConn, ScrapZabrudzenieLed, ScrapUszkodzenieMechaniczneLed, ScrapUszkodzenieConn, ScrapWadaFabrycznaDiody, ScrapUszkodzonePcb, ScrapWadaNaklejki, ScrapSpalonyConn, ScrapInne, NgTestElektryczny,"");
+                WasteDataStructure recordToAdd = new WasteDataStructure(id, fixedDateTime, realDateTime, shiftNumber, oper, goodQty, allQty,allNg,allScrap, numerZlecenia, model, wastePerReason, smtLine);
                 result.Add(recordToAdd);
             }
 

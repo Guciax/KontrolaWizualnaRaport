@@ -26,7 +26,7 @@ namespace KontrolaWizualnaRaport
         }
 
         DataTable masterVITable = new DataTable();
-        List<wasteDataStructure> inspectionData = new List<wasteDataStructure>();
+        List<WasteDataStructure> inspectionData = new List<WasteDataStructure>();
         Dictionary<string, string> lotModelDictionary = new Dictionary<string, string>();
         Dictionary<string, string> planModelDictionary = new Dictionary<string, string>();
         Dictionary<string, string> lotToOrderedQty = new Dictionary<string, string>();
@@ -70,7 +70,7 @@ namespace KontrolaWizualnaRaport
 
                             ChangeOverTools.BuildSmtChangeOverGrid(ChangeOverTools.BuildDateShiftLineDictionary(smtRecords), dataGridViewChangeOvers);
                             ledWasteDictionary = SMTOperations.ledWasteDictionary(sortedTableByDayAndShift, mesModels);
-                            SMTOperations.FillOutLedWasteGrid(ledWasteDictionary, dataGridViewSmtLedDropped);
+                            SMTOperations.FillOutDailyLedWaste(ledWasteDictionary, dataGridViewSmtLedDropped);
                             SMTOperations.FillOutLedWasteByModel(ledWasteDictionary, dataGridViewSmtLedWasteByModel, comboBoxSmtLedWasteLine.Text);
                             SMTOperations.FillOutLedWasteTotalWeekly(ledWasteDictionary, dataGridViewSmtWasteTotal);
                             Dictionary<string, bool> lineOptions = new Dictionary<string, bool>();
@@ -168,12 +168,11 @@ namespace KontrolaWizualnaRaport
                             {
                                 masterVITable = SQLoperations.DownloadVisInspFromSQL(60);
                             }
+
                             //textBox1.Text += "SQL table: " + masterVITable.Rows.Count + " rows" + Environment.NewLine;
                             comboBox1.Items.AddRange(CreateOperatorsList(masterVITable).ToArray());
-
-                            inspectionData = dataLoader.LoadData(masterVITable);
-
-                            lotToSmtLine = SQLoperations.lotToSmtLine(60);
+                            lotToSmtLine = SQLoperations.lotToSmtLine(80);
+                            inspectionData = dataLoader.LoadData(masterVITable, lotToSmtLine, lotModelDictionary);
 
                             string[] smtLines = lotToSmtLine.Select(l => l.Value).Distinct().OrderBy(o => o).ToArray();
 
@@ -207,22 +206,23 @@ namespace KontrolaWizualnaRaport
                             ColumnsAutoSize(dataGridViewPowyzej50, DataGridViewAutoSizeColumnMode.AllCells);
                             dataGridViewPowyzej50.Sort(dataGridViewPowyzej50.Columns["Ile"], ListSortDirection.Descending);
 
-                            PropertyInfo[] properties = typeof(wasteDataStructure).GetProperties();
-                            HashSet<string> uniqueWaste = new HashSet<string>();
+                            string[] uniqueWaste = null;
 
-                            foreach (PropertyInfo property in properties)
+                            foreach (var wasteReason in inspectionData)
                             {
-                                if (property.Name.StartsWith("Ng") || property.Name.StartsWith("Scrap"))
-                                {
-                                    uniqueWaste.Add(property.Name.Replace("Ng", "").Replace("Scrap", ""));
-                                }
+
+                                uniqueWaste = wasteReason.WastePerReason.Select(r => r.Key.Replace("ng", "").Replace("scrap", "")).ToArray();
+                                break;
                             }
 
-                            comboBoxReasonAnalyses.Items.AddRange(uniqueWaste.ToArray());
+                            comboBoxReasonAnalyses.Items.AddRange(uniqueWaste);
                             comboBox3.Items.AddRange(modelFamilyList(inspectionData, lotModelDictionary));
                             comboBox4.Items.AddRange(uniqueModelsList(inspectionData, lotModelDictionary));
 
                             dataGridView2.DataSource = UnknownOrderNumberTable();
+
+                            dataGridViewViOperatorsTotal.DataSource = VIOperations.ngRatePerOperator(inspectionData);
+                            SMTOperations.autoSizeGridColumns(dataGridViewViOperatorsTotal);
                         }
                         break;
                     }
@@ -240,7 +240,7 @@ namespace KontrolaWizualnaRaport
 
             ChangeOverTools.BuildSmtChangeOverGrid(ChangeOverTools.BuildDateShiftLineDictionary(smtRecords), dataGridViewChangeOvers);
             ledWasteDictionary = SMTOperations.ledWasteDictionary(sortedTableByDayAndShift, mesModels);
-            SMTOperations.FillOutLedWasteGrid(ledWasteDictionary, dataGridViewSmtLedDropped);
+            SMTOperations.FillOutDailyLedWaste(ledWasteDictionary, dataGridViewSmtLedDropped);
             SMTOperations.FillOutLedWasteByModel(ledWasteDictionary, dataGridViewSmtLedWasteByModel, comboBoxSmtLedWasteLine.Text);
             SMTOperations.FillOutLedWasteTotalWeekly(ledWasteDictionary, dataGridViewSmtWasteTotal);
 
@@ -332,7 +332,7 @@ namespace KontrolaWizualnaRaport
             }
         }
 
-        private DataTable LotWrongNumber(List<wasteDataStructure> inputData)
+        private DataTable LotWrongNumber(List<WasteDataStructure> inputData)
         {
             DataTable result = new DataTable();
             result.Columns.Add("LOT");
@@ -347,7 +347,7 @@ namespace KontrolaWizualnaRaport
             return result;
         }
 
-        private string[] uniqueModelsList(List<wasteDataStructure> inputData, Dictionary<string, string> lotModelDictionary)
+        private string[] uniqueModelsList(List<WasteDataStructure> inputData, Dictionary<string, string> lotModelDictionary)
         {
             HashSet<string> uniquemodels = new HashSet<string>();
             foreach (var item in inputData)
@@ -359,7 +359,7 @@ namespace KontrolaWizualnaRaport
             return uniquemodels.OrderBy(o => o).ToArray();
         }
 
-        private string[] modelFamilyList(List<wasteDataStructure> inputData, Dictionary<string, string> lotModelDictionary)
+        private string[] modelFamilyList(List<WasteDataStructure> inputData, Dictionary<string, string> lotModelDictionary)
         {
 
             HashSet<string> uniquemodels = new HashSet<string>();
@@ -505,7 +505,7 @@ namespace KontrolaWizualnaRaport
 
         private void dateTimePickerWasteLevelBegin_ValueChanged(object sender, EventArgs e)
         {
-            dataGridViewWasteLevel.DataSource = Charting.DrawWasteLevel(radioButtonWeekly.Checked, chartWasteLevel, inspectionData, dateTimePickerWasteLevelBegin.Value, dateTimePickerWasteLevelEnd.Value, lotModelDictionary, comboBoxModel, comboBoxPoziomOdpaduSmtLine.Text, lotToSmtLine, radioButtonWasteLevelLG.Checked, mstOrders);
+            dataGridViewWasteLevel.DataSource = Charting.DrawWasteLevel(radioButtonWeekly.Checked, chartWasteLevel, inspectionData, dateTimePickerWasteLevelBegin.Value.Date, dateTimePickerWasteLevelEnd.Value.Date, lotModelDictionary, comboBoxModel, comboBoxPoziomOdpaduSmtLine.Text, lotToSmtLine, radioButtonWasteLevelLG.Checked, mstOrders);
             ColumnsAutoSize(dataGridViewWasteLevel, DataGridViewAutoSizeColumnMode.DisplayedCellsExceptHeader);
 
         }
@@ -552,6 +552,7 @@ namespace KontrolaWizualnaRaport
             {
                 if (record.NumerZlecenia == textBox2.Text)
                 {
+                    
                     string model = "nieznany";
                     lotModelDictionary.TryGetValue(record.NumerZlecenia, out model);
                     //gridSource.Rows.Add("Model", lotModelDictionary[record.NumerZlecenia]);
@@ -559,14 +560,32 @@ namespace KontrolaWizualnaRaport
                     lotToOrderedQty.TryGetValue(record.NumerZlecenia, out orderQty);
                     //gridSource.Rows.Add("Ordered Qty", lotToOrderedQty[record.NumerZlecenia]);
 
-                    PropertyInfo[] properties = typeof(wasteDataStructure).GetProperties();
+                    PropertyInfo[] properties = typeof(WasteDataStructure).GetProperties();
                     foreach (PropertyInfo property in properties)
                     {
                         try
                         {
                             string name = property.Name;
                             string value = property.GetValue(record, null).ToString();
-                            gridSource.Rows.Add(name, value);
+
+                            if (property.Name == "WastePerReason")
+                            {
+                                var dicValue = (Dictionary<string, Int32>)property.GetValue(record, null);
+                                Dictionary<string, Int32> ngs = dicValue;
+
+                                foreach (var ng in ngs)
+                                {
+                                    if (ng.Value > 0)
+                                    {
+                                        gridSource.Rows.Add(ng.Key, ng.Value);
+                                    }
+                                }
+
+                            }
+                            else
+                            {
+                                gridSource.Rows.Add(name, value);
+                            }
                         }
                         catch(Exception ex) { }
                     }
@@ -1257,8 +1276,8 @@ namespace KontrolaWizualnaRaport
                 {
 
                     DataPoint pt = (DataPoint)result.Object;
-                    WasteReasonDetails detailForm = new WasteReasonDetails((DataTable)pt.Tag, pt.AxisLabel);
-                    detailForm.ShowDialog();
+                    WasteReasonDetails detailForm = new WasteReasonDetails((WastePerReasonStructure)pt.Tag, pt.AxisLabel);
+                    detailForm.Show();
                     break;
                 }
             }
@@ -1275,8 +1294,8 @@ namespace KontrolaWizualnaRaport
                 {
 
                     DataPoint pt = (DataPoint)result.Object;
-                    WasteReasonDetails detailForm = new WasteReasonDetails((DataTable)pt.Tag, pt.AxisLabel);
-                    detailForm.ShowDialog();
+                    WasteReasonDetails detailForm = new WasteReasonDetails((WastePerReasonStructure)pt.Tag, pt.AxisLabel);
+                    detailForm.Show();
                     break;
                 }
             }
