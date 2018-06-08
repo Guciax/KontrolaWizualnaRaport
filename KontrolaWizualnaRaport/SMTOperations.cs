@@ -703,6 +703,7 @@ namespace KontrolaWizualnaRaport
                         checkList.Add(lot.quantity / lot.duration * frequency);
                         Debug.WriteLine(lot.quantity + "szt. " + lot.start.ToShortTimeString() + "-" + lot.end.ToShortTimeString() + " " + lot.duration * 60 + "min. " + 8*lot.quantity / lot.duration + "szt./zm ");
                     }
+                    
 
                     checkList.Sort();
                     double totalQty = lineEntry.Value.Select(q => q.quantity).Sum() * frequency;
@@ -711,6 +712,50 @@ namespace KontrolaWizualnaRaport
                     double avg = Math.Round(lineEntry.Value.Select(q => q.quantity / q.duration).Average(), 0) * frequency;
                     double median = Math.Round(checkList[checkList.Count / 2], 0) ;
                     result.Rows.Add(lineEntry.Key, totalQty, median ,min, max);
+                }
+            }
+            return result;
+        }
+
+        public static DataTable MakeTableForModelEfficiency2(Dictionary<string, Dictionary<string, List<durationQuantity>>> inputData, string model, bool perShift)
+        {
+            DataTable result = new DataTable();
+            result.Columns.Add("Linia");
+            result.Columns.Add("Ilość całkowita");
+            result.Columns.Add("Średnia/h");
+            result.Columns.Add("Min/h");
+            result.Columns.Add("Max/h");
+            double frequency = 1;
+            if (!perShift)
+            {
+                frequency = 8;
+            }
+
+
+            foreach (var modelEntry in inputData)
+            {
+                if (modelEntry.Key != model) continue;
+                foreach (var lineEntry in modelEntry.Value)
+                {
+                    Dictionary<dateShiftNo, List<durationQuantity>> lotsPerDayShift = new Dictionary<dateShiftNo, List<durationQuantity>>();
+                    foreach (var lot in lineEntry.Value)
+                    {
+                        dateShiftNo shiftInfo = whatDayShiftIsit(lot.end);
+                        if (!lotsPerDayShift.ContainsKey(shiftInfo))
+                        {
+                            lotsPerDayShift.Add(shiftInfo, new List<durationQuantity>());
+                        }
+                        lotsPerDayShift[shiftInfo].Add(lot);
+                    }
+
+
+                    double totalQty = lotsPerDayShift.SelectMany(lots => lots.Value).Select(q => q.quantity).Sum();
+                    int lotsPerShift - lot
+                    double min = Math.Round(lineEntry.Value.Select(q => q.quantity / q.duration).Min(), 0) * frequency;
+                    double max = Math.Round(lineEntry.Value.Select(q => q.quantity / q.duration).Max(), 0) * frequency;
+                    double avg = Math.Round(lineEntry.Value.Select(q => q.quantity / q.duration).Average(), 0) * frequency;
+                    double median = Math.Round(checkList[checkList.Count / 2], 0);
+                    result.Rows.Add(lineEntry.Key, totalQty, median, min, max);
                 }
             }
             return result;
