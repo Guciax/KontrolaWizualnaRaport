@@ -50,7 +50,7 @@ namespace KontrolaWizualnaRaport
             lotToOrderedQty = lotList[1];
             planModelDictionary = lotList[3];
             mesModels = SQLoperations.GetMesModels();
-            
+            dateTimePickerViOperatorEfiiciencyStart.Value = DateTime.Now.AddDays(-7);
         }
 
         private void tabControl2_SelectedIndexChanged(object sender, EventArgs e)
@@ -221,7 +221,8 @@ namespace KontrolaWizualnaRaport
 
                             dataGridView2.DataSource = UnknownOrderNumberTable();
 
-                            dataGridViewViOperatorsTotal.DataSource = VIOperations.ngRatePerOperator(inspectionData);
+                            dataGridViewViOperatorsTotal.DataSource = VIOperations.ngRatePerOperator(inspectionData, dateTimePickerViOperatorEfiiciencyStart.Value, dateTimePickerViOperatorEfiiciencyEnd.Value);
+                            
                             SMTOperations.autoSizeGridColumns(dataGridViewViOperatorsTotal);
                         }
                         break;
@@ -507,7 +508,6 @@ namespace KontrolaWizualnaRaport
         {
             dataGridViewWasteLevel.DataSource = Charting.DrawWasteLevel(radioButtonWeekly.Checked, chartWasteLevel, inspectionData, dateTimePickerWasteLevelBegin.Value.Date, dateTimePickerWasteLevelEnd.Value.Date, lotModelDictionary, comboBoxModel, comboBoxPoziomOdpaduSmtLine.Text, lotToSmtLine, radioButtonWasteLevelLG.Checked, mstOrders);
             ColumnsAutoSize(dataGridViewWasteLevel, DataGridViewAutoSizeColumnMode.DisplayedCellsExceptHeader);
-
         }
 
         private void copyChartToClipboard(Chart chrt)
@@ -1405,6 +1405,153 @@ namespace KontrolaWizualnaRaport
             {
                 CopyLabelTagToClipboard(labelBoxing);
             }
+        }
+
+        private void button2_Click(object sender, EventArgs e)
+        {
+            dataGridViewSmtEditLot.Rows.Clear();
+            DataTable oneLotDt = smtRecords.Clone();
+
+            foreach (DataRow row in smtRecords.Rows)
+            {
+                if (row["NrZlecenia"].ToString() == textBoxSmtEditLot.Text)
+                {
+                    oneLotDt.Rows.Add(row.ItemArray);
+                    break;
+                }
+            }
+
+            if (oneLotDt.Rows.Count > 0)
+            {
+                List<string> rowValues = new List<string>();
+                for (int c = 0; c < oneLotDt.Columns.Count; c++)
+                {
+                    rowValues.Add(oneLotDt.Rows[0][c].ToString());
+                }
+                dataGridViewSmtEditLot.Tag = rowValues.ToArray();
+                dataGridViewSmtEditLot.DataSource = oneLotDt;
+                SMTOperations.autoSizeGridColumns(dataGridViewSmtEditLot);
+                dataGridViewSmtEditLot.Rows[0].Cells["NrZlecenia"].Style.BackColor = Color.Silver;
+                dataGridViewSmtEditLot.Rows[0].Cells["NrZlecenia"].ReadOnly = true;
+            }
+        }
+
+        private void dataGridViewSmtEditLot_CellValueChanged(object sender, DataGridViewCellEventArgs e)
+        {
+            string[] oryginalValues = (string[])dataGridViewSmtEditLot.Tag;
+
+            DataGridViewCell changedCell = dataGridViewSmtEditLot.Rows[e.RowIndex].Cells[e.ColumnIndex];
+            string oryginalValue = oryginalValues[e.ColumnIndex];
+            bool cellsHasBeenChanged = false;
+            for(int c=0; c< dataGridViewSmtEditLot.Columns.Count;c++) 
+            {
+                if (dataGridViewSmtEditLot.Rows[0].Cells[c].Value.ToString() != oryginalValues[c])
+                {
+                    dataGridViewSmtEditLot.Rows[0].Cells[c].Style.BackColor = Color.Orange;
+                    cellsHasBeenChanged = true;
+                }
+                else
+                {
+                    dataGridViewSmtEditLot.Rows[0].Cells[c].Style.BackColor = Color.White;
+                }
+                dataGridViewSmtEditLot.Rows[0].Cells[c].Selected = false;
+            }
+
+            if(cellsHasBeenChanged)
+            {
+                buttonSmtEditLotSaveChanges.BackColor = Color.Orange;
+            }
+            else
+            {
+                buttonSmtEditLotSaveChanges.BackColor = Color.LightGray;
+            }
+        }
+
+        private void buttonSmtEditLotRestore_Click(object sender, EventArgs e)
+        {
+            string[] oryginalValues = (string[])dataGridViewSmtEditLot.Tag;
+            if (oryginalValues!=null)
+            {
+                for (int c = 0; c < dataGridViewSmtEditLot.Columns.Count; c++)
+                {
+                    dataGridViewSmtEditLot.Rows[0].Cells[c].Value = oryginalValues[c];
+
+                }
+            }
+        }
+
+        private void buttonSmtEditLotSaveChanges_Click(object sender, EventArgs e)
+        {
+            if (dataGridViewSmtEditLot.Rows.Count == 1)
+            {
+                List<Tuple<string, string>> colValuePairList = new List<Tuple<string, string>>();
+                foreach (DataGridViewCell cell in dataGridViewSmtEditLot.Rows[0].Cells)
+                {
+                    if (cell.Style.BackColor == Color.Orange)
+                    {
+                        Tuple<string, string> newPair = new Tuple<string, string>(cell.OwningColumn.Name, cell.Value.ToString());
+                        colValuePairList.Add(newPair);
+                    }
+                }
+                SQLoperations.UpdateSmtRecord(colValuePairList , dataGridViewSmtEditLot.Rows[0].Cells["NrZlecenia"].Value.ToString());
+            }
+        }
+
+        private void textBox3_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.KeyCode== Keys.Return)
+            {
+                string lot = textBox3.Text;
+
+                LotSummary.FillOutKitting(dataGridViewSummaryKitting, lot);
+                LotSummary.FillOutSmtSummary(dataGridViewSummarySmt, lot);
+                LotSummary.FillOutViSummary(dataGridViewSummaryVi, lot);
+                List<string> pcbOK = LotSummary.FillOutTestummaryReturnPcbOK(dataGridViewSummaryTest, lot);
+                LotSummary.FilloutBoxingSummary(dataGridViewSummaryBox, pcbOK);
+            }
+        }
+
+        private void dataGridViewSummaryTest_RowsAdded(object sender, DataGridViewRowsAddedEventArgs e)
+        {
+            foreach (DataGridViewRow row in dataGridViewSummaryTest.Rows)
+            {
+                if ((row.Cells[0].Value.ToString().ToUpper().StartsWith("NG") || row.Cells[0].Value.ToString().ToUpper().StartsWith("SCRAP")) & row.Cells[1].Value.ToString() != "0")
+                {
+                    row.Cells[1].Style.BackColor = Color.Red;
+                    row.Cells[1].Style.ForeColor = Color.White;
+                }
+            }
+            Debug.WriteLine("test bind compl");
+        }
+
+        private void dataGridViewSummaryVi_RowsAdded(object sender, DataGridViewRowsAddedEventArgs e)
+        {
+            foreach (DataGridViewRow row in dataGridViewSummaryVi.Rows)
+            {
+                if ((row.Cells[0].Value.ToString().ToUpper().StartsWith("NG") || row.Cells[0].Value.ToString().ToUpper().StartsWith("SCRAP")) & row.Cells[1].Value.ToString() != "0")
+                {
+                    row.Cells[1].Style.BackColor = Color.Red;
+                    row.Cells[1].Style.ForeColor = Color.White;
+                }
+            }
+            Debug.WriteLine("vi bind compl");
+        }
+
+        private void dateTimePickerViOperatorEfiiciencyStart_ValueChanged(object sender, EventArgs e)
+        {
+            dataGridViewViOperatorsTotal.DataSource = VIOperations.ngRatePerOperator(inspectionData, dateTimePickerViOperatorEfiiciencyStart.Value, dateTimePickerViOperatorEfiiciencyEnd.Value);
+            
+        }
+
+        private void dateTimePickerViOperatorEfiiciencyEnd_ValueChanged(object sender, EventArgs e)
+        {
+            dataGridViewViOperatorsTotal.DataSource = VIOperations.ngRatePerOperator(inspectionData, dateTimePickerViOperatorEfiiciencyStart.Value, dateTimePickerViOperatorEfiiciencyEnd.Value);
+
+        }
+
+        private void dataGridViewViOperatorsTotal_DataBindingComplete(object sender, DataGridViewBindingCompleteEventArgs e)
+        {
+            this.dataGridViewViOperatorsTotal.Sort(this.dataGridViewViOperatorsTotal.Columns["Sprawdzone"], ListSortDirection.Descending);
         }
     }
 }

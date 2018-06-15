@@ -212,6 +212,8 @@ namespace KontrolaWizualnaRaport
             //chart.Legends[0].DockedToChartArea = chart.ChartAreas[0].Name;
             //chart.Legends[0].TableStyle = LegendTableStyle.Auto;
             chart.Legends.Clear();
+
+           
             return gridTable;
         }
 
@@ -399,7 +401,8 @@ namespace KontrolaWizualnaRaport
                 {
                     DataPoint ngPoint = new DataPoint();
                     double waste = Math.Round(dataPointsDropped[lineEntry.Key][dateKeyEntry.Key] / dateKeyEntry.Value * 100, 2);
-                    ngPoint.MarkerSize = 50;
+                    ngPoint.MarkerSize = 8;
+                    ngPoint.MarkerStyle = MarkerStyle.Circle;
                     if (waste > maxY) maxY = waste;
                     ngPoint.SetValueXY(dateKeyEntry.Key, waste);
                     //ngPoint.ToolTip = ngtoolTip;
@@ -492,7 +495,7 @@ namespace KontrolaWizualnaRaport
                 string smt = "";
                 lotToSmtine.TryGetValue(item.NumerZlecenia, out smt);
                 if (smt != smtLine & smtLine != "Wszystkie") continue;
-
+                
                 if (item.FixedDateTime >= dateBegin & item.FixedDateTime <= dateEnd)
                 {
                     string model = "";
@@ -577,6 +580,9 @@ namespace KontrolaWizualnaRaport
 
             DataTable tempScrapTable = result.Clone();
             result.Rows.Add("NG:");
+
+            
+
             foreach (var keyEntry in ngLevel)
             {
                 double ng = 0;
@@ -649,6 +655,18 @@ namespace KontrolaWizualnaRaport
             chartWasteLevel.Legends[0].Position = new ElementPosition(8, 0, 30, 10);
             chartWasteLevel.Legends[0].BackColor = System.Drawing.Color.Transparent;
             Debug.WriteLine("X= "+chartWasteLevel.Legends[0].Position.X);
+
+            //var ngLimit = new HorizontalLineAnnotation();
+            //ngLimit.AxisY = ar.AxisY;
+            //ngLimit.AxisX = ar.AxisX;
+            //ngLimit.ClipToChartArea = chartWasteLevel.ChartAreas[0].Name;
+            //ngLimit.LineColor = System.Drawing.Color.Red;
+            //ngLimit.LineWidth = 2;
+            //ngLimit.AnchorY = 0;
+            //ngLimit.IsSizeAlwaysRelative = true;
+            //var scrapLimit = new HorizontalLineAnnotation();
+
+            //chartWasteLevel.Annotations.Add(ngLimit);
 
             foreach (var point in chartWasteLevel.Series[2].Points)
             {

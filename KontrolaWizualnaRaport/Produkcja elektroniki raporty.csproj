@@ -75,6 +75,7 @@
     <Compile Include="LedWasteDetails.Designer.cs">
       <DependentUpon>LedWasteDetails.cs</DependentUpon>
     </Compile>
+    <Compile Include="LotSummary.cs" />
     <Compile Include="MesModels.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

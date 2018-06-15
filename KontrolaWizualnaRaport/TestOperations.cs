@@ -11,6 +11,45 @@ namespace KontrolaWizualnaRaport
 {
     public class TestOperations
     {
+        public static string testerIdToName(string lineID)
+        {
+            string testerID = "";
+            switch (lineID)
+            {
+                case "1":
+                    {
+                        testerID = "Optical";
+                        break;
+                    }
+                case "2":
+                    {
+                        testerID = "Manual-2";
+                        break;
+                    }
+                case "3":
+                    {
+                        testerID = "Manual-1";
+                        break;
+                    }
+                case "4":
+                    {
+                        testerID = "test_SMT5";
+                        break;
+                    }
+                case "5":
+                    {
+                        testerID = "test_SMT6";
+                        break;
+                    }
+                case "0":
+                    {
+                        testerID = "Splitting";
+                        break;
+                    }
+            }
+            return testerID;
+        }
+
         public static Dictionary<string, Dictionary<string, List<double>>> CyCleTimePerMachinePerModelFamily (Dictionary<string, DataTable> InspectionRecordsPerMachine, Dictionary<string, string> lotModelDictionary)
         {
             Dictionary<string, Dictionary<string, List<double>>> result = new Dictionary<string, Dictionary<string, List<double>>>();

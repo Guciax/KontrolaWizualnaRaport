@@ -240,12 +240,11 @@ namespace KontrolaWizualnaRaport
                     ledDropped.Add(monthName, monthDropped);
                     ledWaste.Add(monthName, monthwaste);
                     monthMounted = 0;
-                     monthDropped = 0;
-                     monthwaste = 0;
+                    monthDropped = 0;
+                    monthwaste = 0;
                 }
                 string week = Charting.GetIso8601WeekOfYear(dateEntry.Key).ToString();
                 monthName = dateEntry.Key.ToString("MMM", CultureInfo.InvariantCulture);
-
 
                 if (!ledMounted.ContainsKey(week))
                 {
@@ -253,6 +252,7 @@ namespace KontrolaWizualnaRaport
                     ledDropped.Add(week, 0);
                     ledWaste.Add(week, 0);
                 }
+
                 foreach (var shiftEntry in dateEntry.Value)
                 {
                     foreach (var lotData in shiftEntry.Value)
@@ -271,7 +271,8 @@ namespace KontrolaWizualnaRaport
                         ledWaste[week] = Math.Round(ledDropped[week] / ledMounted[week] * 100, 2);
                         monthMounted += ledExpectedUsageA + ledExpectedUsageB;
                         monthDropped += droppedA + droppedB;
-                        monthwaste = Math.Round(ledDropped[week] / ledMounted[week] * 100, 2);
+                        //monthwaste = Math.Round(ledDropped[week] / ledMounted[week] * 100, 2);
+                        monthwaste = Math.Round(monthDropped / monthMounted * 100, 2);
                     }
                 }
 
@@ -750,12 +751,14 @@ namespace KontrolaWizualnaRaport
 
 
                     double totalQty = lotsPerDayShift.SelectMany(lots => lots.Value).Select(q => q.quantity).Sum();
-                    int lotsPerShift - lot
+                    //DateTime startTime = lotsPerDayShift.SelectMany(lot=>lot.Value).Select(time=>time.)
+
                     double min = Math.Round(lineEntry.Value.Select(q => q.quantity / q.duration).Min(), 0) * frequency;
                     double max = Math.Round(lineEntry.Value.Select(q => q.quantity / q.duration).Max(), 0) * frequency;
                     double avg = Math.Round(lineEntry.Value.Select(q => q.quantity / q.duration).Average(), 0) * frequency;
-                    double median = Math.Round(checkList[checkList.Count / 2], 0);
-                    result.Rows.Add(lineEntry.Key, totalQty, median, min, max);
+                   // double median = Math.Round(checkList[checkList.Count / 2], 0);
+
+                    //result.Rows.Add(lineEntry.Key, totalQty, median, min, max);
                 }
             }
             return result;

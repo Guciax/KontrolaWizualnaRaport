@@ -3,9 +3,6 @@ using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
 using System.Diagnostics;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 using static KontrolaWizualnaRaport.SMTOperations;
 
@@ -13,7 +10,6 @@ namespace KontrolaWizualnaRaport
 {
 
     class SQLoperations
-
     {
         private readonly Form1 form;
         private readonly TextBox console;
@@ -151,11 +147,18 @@ namespace KontrolaWizualnaRaport
 
             SqlCommand command = new SqlCommand();
             command.Connection = conn;
-            command.CommandText = String.Format(@"SELECT serial_no,inspection_time,wip_entity_name,tester_id,result FROM tb_tester_measurements WHERE inspection_time>@until and tester_id<>'0' order by inspection_time;");
+            command.CommandText = String.Format(@"SELECT serial_no,inspection_time,wip_entity_name,tester_id FROM MES.dbo.tb_tester_measurements WHERE inspection_time>@until and tester_id<>'0' order by inspection_time;");
             command.Parameters.AddWithValue("@until", untilDay);
-
+            Debug.WriteLine("allala");
             SqlDataAdapter adapter = new SqlDataAdapter(command);
-            adapter.Fill(sqlTable);
+            try
+            {
+                adapter.Fill(sqlTable);
+            }
+            catch(SqlException ex)
+            {
+                MessageBox.Show(ex.Message + Environment.NewLine + ex.HResult);
+            }
 
             sqlTable.Columns["inspection_time"].ColumnName = "Data";
             sqlTable.Columns["tester_id"].ColumnName = "Tester";
@@ -167,6 +170,7 @@ namespace KontrolaWizualnaRaport
             {
                 string lineID = row["Tester"].ToString();
                 string testerID = "";
+
                 switch (lineID)
                 {
                     case "1":
@@ -274,7 +278,6 @@ namespace KontrolaWizualnaRaport
         {
             Dictionary<string, MesModels> result = new Dictionary<string, MesModels>();
 
-
             DataTable sqlTable = new DataTable();
             SqlConnection conn = new SqlConnection();
             conn.ConnectionString = @"Data Source=MSTMS010;Initial Catalog=MES;User Id=mes;Password=mes;";
@@ -317,6 +320,195 @@ namespace KontrolaWizualnaRaport
             }
 
             return result;
+        }
+
+        public static void UpdateSmtRecord(List<Tuple<string, string>> colValuePairList, string lotNo)
+        {
+            SqlConnection conn = new SqlConnection();
+            conn.ConnectionString = @"Data Source=MSTMS010;Initial Catalog=MES;User Id=mes;Password=mes;";
+
+            SqlCommand command = new SqlCommand();
+            command.Connection = conn;
+            command.CommandText = "UPDATE dbo.tb_SMT_Karta_Pracy SET ";
+
+            for (int par = 0; par < colValuePairList.Count; par++) 
+            {
+                if (par > 0) 
+                {
+                    command.CommandText += ",";
+                }
+                command.CommandText += "@col" + par + "=@val" + par;
+                command.Parameters.AddWithValue("@col" + par, colValuePairList[par].Item1);
+                command.Parameters.AddWithValue("@val" + par, colValuePairList[par].Item2);
+            }
+
+            command.CommandText += " Where NrZlecenia=@lotNo;";
+            command.Parameters.AddWithValue("@lotNo", lotNo);
+
+            try
+            {
+                conn.Open();
+                command.ExecuteNonQuery();
+            }
+            catch(SqlException ex)
+            {
+                MessageBox.Show(ex.Message + Environment.NewLine + ex.HResult);
+            }
+            finally
+            {
+                conn.Close();
+            }
+        }
+
+        public static DataTable GetKittingInfoForLot(string lot)
+        {
+            DataTable result = new DataTable();
+
+            SqlConnection conn = new SqlConnection();
+            conn.ConnectionString = @"Data Source=MSTMS010;Initial Catalog=MES;User Id=mes;Password=mes;";
+
+            SqlCommand command = new SqlCommand();
+            command.Connection = conn;
+            command.CommandText =
+                @"SELECT Nr_Zlecenia_Produkcyjnego,NC12_wyrobu,Ilosc_wyrobu_zlecona,DataCzasWydruku,Data_Konca_Zlecenia,RankA,RankB,Ilosc_wyr_dobrego,Ilosc_wyr_do_poprawy,Ilosc_wyr_na_zlom,Numer_Klienta FROM tb_Zlecenia_produkcyjne where Nr_Zlecenia_Produkcyjnego=@lot;";
+            command.Parameters.AddWithValue("@lot" , lot);
+            SqlDataAdapter adapter = new SqlDataAdapter(command);
+            adapter.Fill(result);
+
+            return result;
+        }
+
+        public static DataTable GetSmtRecordsForLot(string lot)
+        {
+            DataTable result = new DataTable();
+
+            SqlConnection conn = new SqlConnection();
+            conn.ConnectionString = @"Data Source=MSTMS010;Initial Catalog=MES;User Id=mes;Password=mes;";
+
+            SqlCommand command = new SqlCommand();
+            command.Connection = conn;
+            command.CommandText = String.Format(@"SELECT DataCzasStart,DataCzasKoniec,LiniaSMT,OperatorSMT,NrZlecenia,Model,IloscWykonana,NGIlosc,ScrapIlosc,KoncowkiLED FROM MES.dbo.tb_SMT_Karta_Pracy WHERE NrZlecenia=@lot;");
+            command.Parameters.AddWithValue("@lot", lot);
+
+            SqlDataAdapter adapter = new SqlDataAdapter(command);
+            adapter.Fill(result);
+
+            return result;
+        }
+
+        public static DataTable GetVisInspForLotL(string lot)
+        {
+
+            DataTable tabletoFill = new DataTable();
+
+            SqlConnection conn = new SqlConnection();
+            conn.ConnectionString = @"Data Source=MSTMS010;Initial Catalog=MES;User Id=mes;Password=mes;";
+
+            SqlCommand command = new SqlCommand();
+            command.Connection = conn;
+            command.CommandText = @"SELECT Id,Data_czas,Operator,iloscDobrych,numerZlecenia,ngBrakLutowia,ngBrakDiodyLed,ngBrakResConn,ngPrzesuniecieLed,ngPrzesuniecieResConn,ngZabrudzenieLed,ngUszkodzenieMechaniczneLed,ngUszkodzenieConn,ngWadaFabrycznaDiody,ngUszkodzonePcb,ngWadaNaklejki,ngSpalonyConn,ngInne,scrapBrakLutowia,scrapBrakDiodyLed,scrapBrakResConn,scrapPrzesuniecieLed,scrapPrzesuniecieResConn,scrapZabrudzenieLed,scrapUszkodzenieMechaniczneLed,scrapUszkodzenieConn,scrapWadaFabrycznaDiody,scrapUszkodzonePcb,scrapWadaNaklejki,scrapSpalonyConn,scrapInne,ngTestElektryczny FROM tb_Kontrola_Wizualna_Karta_Pracy where numerZlecenia=@lot;";
+            //@"SELECT Data_czas,Operator,iloscDobrych,numerZlecenia,ngBrakLutowia,ngBrakDiodyLed,ngBrakResConn,ngPrzesuniecieLed,ngPrzesuniecieResConn,ngZabrudzenieLed,ngUszkodzenieMechaniczneLed,ngUszkodzenieConn,ngWadaFabrycznaDiody,ngUszkodzonePcb,ngWadaNaklejki,ngSpalonyConn,ngInne,scrapBrakLutowia,scrapBrakDiodyLed,scrapBrakResConn,scrapPrzesuniecieLed,scrapPrzesuniecieResConn,scrapZabrudzenieLed,scrapUszkodzenieMechaniczneLed,scrapUszkodzenieConn,scrapWadaFabrycznaDiody,scrapUszkodzonePcb,scrapWadaNaklejki,scrapSpalonyConn,scrapInne,ngTestElektryczny FROM tb_Kontrola_Wizualna_Karta_Pracy WHERE Data_czas > '" + DateTime.Now.AddDays(-90).ToShortDateString() + "';";
+            command.Parameters.AddWithValue("@lot", lot);
+            SqlDataAdapter adapter = new SqlDataAdapter(command);
+            //try
+            {
+                adapter.Fill(tabletoFill);
+            }
+            // catch (Exception e)
+            {
+                //console.Text+="OP LOADER: " + e.Message + Environment.NewLine;
+            }
+            return tabletoFill;
+        }
+
+        public static Dictionary<string, Dictionary<string, DataTable>> GetTestMeasurementsForLot(string lot)
+        {
+            DataTable sqlTable = new DataTable();
+
+            SqlConnection conn = new SqlConnection();
+            conn.ConnectionString = @"Data Source=MSTMS010;Initial Catalog=MES;User Id=mes;Password=mes;";
+
+            SqlCommand command = new SqlCommand();
+            command.Connection = conn;
+            command.CommandText = String.Format(@"SELECT serial_no,inspection_time,tester_id,wip_entity_id,wip_entity_name,program_id,result,ng_type,lm,lm_w,sdcm,cri,cct,v,i,w,x,y,r9,bin,lx,retest,module_num,lm1_gain,x1_offset,y1_offset,vf1_offset,cri1_offset,cct1_offset,lm1_master,x1_master,y1_master,vf1_master,cri1_master,cct1_master,hi_pot,light_on,optical,result_int FROM MES.dbo.tb_tester_measurements WHERE wip_entity_name=@lot order by inspection_time DESC;");
+            command.Parameters.AddWithValue("@lot", lot);
+            
+            SqlDataAdapter adapter = new SqlDataAdapter(command);
+            try
+            {
+                adapter.Fill(sqlTable);
+            }
+            catch (SqlException ex)
+            {
+                MessageBox.Show(ex.Message + Environment.NewLine + ex.HResult);
+            }
+
+            Dictionary<string, Dictionary<string, DataTable>> testerPcbMeasurements = new Dictionary<string, Dictionary<string, DataTable>>();
+            foreach (DataRow row in sqlTable.Rows)
+            {
+                string tester = TestOperations.testerIdToName(row["tester_id"].ToString());
+                if (tester == "") continue;
+                string pcb = row["serial_no"].ToString();
+
+
+                if (!testerPcbMeasurements.ContainsKey(tester))
+                {
+                    testerPcbMeasurements.Add(tester, new Dictionary<string, DataTable>());
+                }
+                if (!testerPcbMeasurements[tester].ContainsKey(pcb))
+                {
+                    testerPcbMeasurements[tester].Add(pcb, sqlTable.Clone());
+                    testerPcbMeasurements[tester][pcb].Rows.Add(row.ItemArray);
+                }
+            }
+           
+
+            return testerPcbMeasurements;
+        }
+
+        public static Dictionary<string, List<string>> GetBoxingInfo(List<string> inputPcbs)
+        {
+            Dictionary<string, List<string>> result = new Dictionary<string, List<string>>();
+            DataTable sqlTable = new DataTable();
+            
+            SqlConnection conn = new SqlConnection();
+            conn.ConnectionString = @"Data Source=MSTMS010;Initial Catalog=MES;User Id=mes;Password=mes;";
+
+            SqlCommand command = new SqlCommand();
+            command.Connection = conn;
+            command.CommandText = String.Format(@"SELECT serial_no,Box_LOT_NO,Boxing_Date FROM tb_WyrobLG_opakowanie WHERE ");
+            for(int i=0;i<inputPcbs.Count;i++)
+            {
+                if (i > 0) 
+                {
+                    command.CommandText += " OR ";
+                }
+                command.CommandText += "serial_no=@pcb" + i;
+                command.Parameters.AddWithValue("@pcb" + i, inputPcbs[i]);
+            }
+            command.CommandText += ";";
+
+            SqlDataAdapter adapter = new SqlDataAdapter(command);
+            adapter.Fill(sqlTable);
+
+            foreach (DataRow row in sqlTable.Rows)
+            {
+                string boxIdDate = row["Box_LOT_NO"].ToString() + " " + row["Boxing_Date"].ToString();
+                inputPcbs.Remove(row["serial_no"].ToString());
+
+                if(!result.ContainsKey(boxIdDate))
+                {
+                    result.Add(boxIdDate, new List<string>());
+                }
+                result[boxIdDate].Add(row["serial_no"].ToString());
+            }
+
+            //result.Add("Matching", new List<string>());
+            //foreach (var pcb in inputPcbs)
+            //{
+            //    result["Matching"].Add(pcb);
+            //}
+             return result;
         }
     }
 }

@@ -30,16 +30,16 @@
         {
             this.dataGridView1 = new System.Windows.Forms.DataGridView();
             this.panel1 = new System.Windows.Forms.Panel();
-            this.flowLayoutPanel1 = new System.Windows.Forms.FlowLayoutPanel();
             this.label1 = new System.Windows.Forms.Label();
+            this.flowLayoutPanel1 = new System.Windows.Forms.FlowLayoutPanel();
             this.tableLayoutPanel1 = new System.Windows.Forms.TableLayoutPanel();
-            this.dataGridViewModel = new System.Windows.Forms.DataGridView();
             this.dataGridViewLine = new System.Windows.Forms.DataGridView();
+            this.dataGridViewModel = new System.Windows.Forms.DataGridView();
             ((System.ComponentModel.ISupportInitialize)(this.dataGridView1)).BeginInit();
             this.panel1.SuspendLayout();
             this.tableLayoutPanel1.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.dataGridViewModel)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.dataGridViewLine)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.dataGridViewModel)).BeginInit();
             this.SuspendLayout();
             // 
             // dataGridView1
@@ -52,7 +52,7 @@
             this.dataGridView1.Dock = System.Windows.Forms.DockStyle.Fill;
             this.dataGridView1.Location = new System.Drawing.Point(0, 61);
             this.dataGridView1.Name = "dataGridView1";
-            this.dataGridView1.Size = new System.Drawing.Size(759, 428);
+            this.dataGridView1.Size = new System.Drawing.Size(469, 428);
             this.dataGridView1.TabIndex = 0;
             this.dataGridView1.CellContentClick += new System.Windows.Forms.DataGridViewCellEventHandler(this.dataGridView1_CellContentClick);
             // 
@@ -65,14 +65,6 @@
             this.panel1.Size = new System.Drawing.Size(759, 61);
             this.panel1.TabIndex = 1;
             // 
-            // flowLayoutPanel1
-            // 
-            this.flowLayoutPanel1.Dock = System.Windows.Forms.DockStyle.Bottom;
-            this.flowLayoutPanel1.Location = new System.Drawing.Point(0, 489);
-            this.flowLayoutPanel1.Name = "flowLayoutPanel1";
-            this.flowLayoutPanel1.Size = new System.Drawing.Size(759, 56);
-            this.flowLayoutPanel1.TabIndex = 0;
-            // 
             // label1
             // 
             this.label1.AutoSize = true;
@@ -82,6 +74,14 @@
             this.label1.Size = new System.Drawing.Size(86, 31);
             this.label1.TabIndex = 0;
             this.label1.Text = "label1";
+            // 
+            // flowLayoutPanel1
+            // 
+            this.flowLayoutPanel1.Dock = System.Windows.Forms.DockStyle.Bottom;
+            this.flowLayoutPanel1.Location = new System.Drawing.Point(0, 489);
+            this.flowLayoutPanel1.Name = "flowLayoutPanel1";
+            this.flowLayoutPanel1.Size = new System.Drawing.Size(759, 56);
+            this.flowLayoutPanel1.TabIndex = 0;
             // 
             // tableLayoutPanel1
             // 
@@ -99,19 +99,6 @@
             this.tableLayoutPanel1.Size = new System.Drawing.Size(290, 428);
             this.tableLayoutPanel1.TabIndex = 2;
             // 
-            // dataGridViewModel
-            // 
-            this.dataGridViewModel.AllowUserToAddRows = false;
-            this.dataGridViewModel.AllowUserToDeleteRows = false;
-            this.dataGridViewModel.AllowUserToResizeColumns = false;
-            this.dataGridViewModel.AllowUserToResizeRows = false;
-            this.dataGridViewModel.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
-            this.dataGridViewModel.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.dataGridViewModel.Location = new System.Drawing.Point(3, 3);
-            this.dataGridViewModel.Name = "dataGridViewModel";
-            this.dataGridViewModel.Size = new System.Drawing.Size(284, 208);
-            this.dataGridViewModel.TabIndex = 1;
-            // 
             // dataGridViewLine
             // 
             this.dataGridViewLine.AllowUserToAddRows = false;
@@ -125,13 +112,26 @@
             this.dataGridViewLine.Size = new System.Drawing.Size(284, 208);
             this.dataGridViewLine.TabIndex = 2;
             // 
+            // dataGridViewModel
+            // 
+            this.dataGridViewModel.AllowUserToAddRows = false;
+            this.dataGridViewModel.AllowUserToDeleteRows = false;
+            this.dataGridViewModel.AllowUserToResizeColumns = false;
+            this.dataGridViewModel.AllowUserToResizeRows = false;
+            this.dataGridViewModel.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
+            this.dataGridViewModel.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.dataGridViewModel.Location = new System.Drawing.Point(3, 3);
+            this.dataGridViewModel.Name = "dataGridViewModel";
+            this.dataGridViewModel.Size = new System.Drawing.Size(284, 208);
+            this.dataGridViewModel.TabIndex = 1;
+            // 
             // WasteReasonDetails
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(759, 545);
-            this.Controls.Add(this.tableLayoutPanel1);
             this.Controls.Add(this.dataGridView1);
+            this.Controls.Add(this.tableLayoutPanel1);
             this.Controls.Add(this.flowLayoutPanel1);
             this.Controls.Add(this.panel1);
             this.Name = "WasteReasonDetails";
@@ -141,8 +141,8 @@
             this.panel1.ResumeLayout(false);
             this.panel1.PerformLayout();
             this.tableLayoutPanel1.ResumeLayout(false);
-            ((System.ComponentModel.ISupportInitialize)(this.dataGridViewModel)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.dataGridViewLine)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.dataGridViewModel)).EndInit();
             this.ResumeLayout(false);
 
         }

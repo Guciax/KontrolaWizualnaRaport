@@ -28,7 +28,7 @@ namespace KontrolaWizualnaRaport
             return new Dictionary<string, string>[] { result1, result2, result3, result4 };
         }
 
-        public static DataTable ngRatePerOperator(List<WasteDataStructure> inspectionData)
+        public static DataTable ngRatePerOperator(List<WasteDataStructure> inspectionData, DateTime startDate, DateTime endDate)
         {
             DataTable result = new DataTable();
             Dictionary<string, List<WasteDataStructure>> inspectionDataPerOperator = inspectionData.GroupBy(op => op.Oper).ToDictionary(op => op.Key, op => op.ToList());
@@ -42,10 +42,26 @@ namespace KontrolaWizualnaRaport
 
             foreach (var operatorEntry in inspectionDataPerOperator)
             {
-                double totalInspected = operatorEntry.Value.Select(t => t.AllQty).Sum();
-                double totalNg = operatorEntry.Value.Select(t => t.AllNg).Sum();
+                //double totalInspected = operatorEntry.Value.Select(t => t.AllQty).Sum();
+                //double totalNg = operatorEntry.Value.Select(t => t.AllNg).Sum();
+                //double ngPercent = Math.Round(totalNg / totalInspected * 100, 2);
+                //double totalScrap = operatorEntry.Value.Select(t => t.AllScrap).Sum();
+                //double scrapPercent = Math.Round(totalScrap / totalInspected * 100, 2);
+
+                double totalInspected = 0;
+                double totalNg = 0;
+                double totalScrap = 0;
+
+
+                foreach (var wasteEntry in operatorEntry.Value)
+                {
+                    if (wasteEntry.FixedDateTime.Date < startDate.Date || wasteEntry.FixedDateTime.Date > endDate.Date) continue;
+                    totalInspected += wasteEntry.AllQty;
+                    totalNg += wasteEntry.AllNg;
+                    totalScrap += wasteEntry.AllScrap;
+                }
+
                 double ngPercent = Math.Round(totalNg / totalInspected * 100, 2);
-                double totalScrap = operatorEntry.Value.Select(t => t.AllScrap).Sum();
                 double scrapPercent = Math.Round(totalScrap / totalInspected * 100, 2);
 
                 result.Rows.Add(operatorEntry.Key, totalInspected, totalNg, ngPercent, totalScrap, scrapPercent);

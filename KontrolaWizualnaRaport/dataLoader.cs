@@ -105,9 +105,9 @@ namespace KontrolaWizualnaRaport
         }
         public static DateTime FixedShiftDate(DateTime inputDate)
         {
-            if (inputDate.Hour >= 22)
+            if (inputDate.Hour < 6)
             {
-                return inputDate.AddDays(1);
+                return inputDate.AddDays(-1);
 
             }
             else return inputDate;
