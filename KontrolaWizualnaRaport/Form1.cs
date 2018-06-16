@@ -176,13 +176,15 @@ namespace KontrolaWizualnaRaport
 
                             string[] smtLines = lotToSmtLine.Select(l => l.Value).Distinct().OrderBy(o => o).ToArray();
 
-                            comboBoxPrzyczynySmtLine.Items.Add("Wszystkie");
-                            comboBoxPrzyczynySmtLine.Text = "Wszystkie";
-                            comboBoxPrzyczynySmtLine.Items.AddRange(smtLines);
 
-                            comboBoxPoziomOdpaduSmtLine.Items.Add("Wszystkie");
-                            comboBoxPoziomOdpaduSmtLine.Text = "Wszystkie";
-                            comboBoxPoziomOdpaduSmtLine.Items.AddRange(smtLines);
+                            foreach (var smtLine in smtLines)
+                            {
+
+                                checkedListBoxViWasteLevel.Items.Add(smtLine, true);
+                                checkedListBoxViReasons.Items.Add(smtLine, true);
+                            }
+                            checkedListBoxViReasons.Parent = tabPage2;
+                            checkedListBoxViReasons.BringToFront();
 
                             comboBoxReasonSmtLine.Items.Add("Wszystkie");
                             comboBoxReasonSmtLine.Text = "Wszystkie";
@@ -492,21 +494,21 @@ namespace KontrolaWizualnaRaport
 
         private void dateTimePickerPrzyczynyOdpaduOd_ValueChanged(object sender, EventArgs e)
         {
-            dataGridViewNgScrapReasons.DataSource = Charting.DrawWasteReasonsCHart(chartPrzyczynyOdpaduNg, chartPrzyczynyOdpaduScrap, inspectionData, dateTimePickerPrzyczynyOdpaduOd.Value, dateTimePickerPrzyczynyOdpaduDo.Value, lotModelDictionary, comboBoxPrzyczynySmtLine.Text, lotToSmtLine, radioButtonReasonsLg.Checked, mstOrders);
+            dataGridViewNgScrapReasons.DataSource = Charting.DrawWasteReasonsCHart(chartPrzyczynyOdpaduNg, chartPrzyczynyOdpaduScrap, inspectionData, dateTimePickerPrzyczynyOdpaduOd.Value, dateTimePickerPrzyczynyOdpaduDo.Value, lotModelDictionary, checkedListBoxViReasons.CheckedItems.OfType<object>().Select(li => li.ToString()).ToArray(), lotToSmtLine, radioButtonReasonsLg.Checked, mstOrders);
             dataGridViewNgScrapReasons.Columns[0].Width = 150;
             dataGridViewNgScrapReasons.Columns[1].Width = 35;
         }
 
         private void dateTimePickerPrzyczynyOdpaduDo_ValueChanged(object sender, EventArgs e)
         {
-            dataGridViewNgScrapReasons.DataSource = Charting.DrawWasteReasonsCHart(chartPrzyczynyOdpaduNg, chartPrzyczynyOdpaduScrap, inspectionData, dateTimePickerPrzyczynyOdpaduOd.Value, dateTimePickerPrzyczynyOdpaduDo.Value, lotModelDictionary, comboBoxPrzyczynySmtLine.Text, lotToSmtLine, radioButtonReasonsLg.Checked, mstOrders);
+            dataGridViewNgScrapReasons.DataSource = Charting.DrawWasteReasonsCHart(chartPrzyczynyOdpaduNg, chartPrzyczynyOdpaduScrap, inspectionData, dateTimePickerPrzyczynyOdpaduOd.Value, dateTimePickerPrzyczynyOdpaduDo.Value, lotModelDictionary, checkedListBoxViReasons.CheckedItems.OfType<object>().Select(li => li.ToString()).ToArray(), lotToSmtLine, radioButtonReasonsLg.Checked, mstOrders);
             dataGridViewNgScrapReasons.Columns[0].Width = 150;
             dataGridViewNgScrapReasons.Columns[1].Width = 35;
         }
 
         private void dateTimePickerWasteLevelBegin_ValueChanged(object sender, EventArgs e)
         {
-            dataGridViewWasteLevel.DataSource = Charting.DrawWasteLevel(radioButtonWeekly.Checked, chartWasteLevel, inspectionData, dateTimePickerWasteLevelBegin.Value.Date, dateTimePickerWasteLevelEnd.Value.Date, lotModelDictionary, comboBoxModel, comboBoxPoziomOdpaduSmtLine.Text, lotToSmtLine, radioButtonWasteLevelLG.Checked, mstOrders);
+            dataGridViewWasteLevel.DataSource = Charting.DrawWasteLevel(radioButtonWeekly.Checked, chartWasteLevel, inspectionData, dateTimePickerWasteLevelBegin.Value.Date, dateTimePickerWasteLevelEnd.Value.Date, lotModelDictionary, comboBoxModel, checkedListBoxViWasteLevel.CheckedItems.OfType<object>().Select(li => li.ToString()).ToArray(), lotToSmtLine, radioButtonWasteLevelLG.Checked, mstOrders);
             ColumnsAutoSize(dataGridViewWasteLevel, DataGridViewAutoSizeColumnMode.DisplayedCellsExceptHeader);
         }
 
@@ -524,7 +526,7 @@ namespace KontrolaWizualnaRaport
 
         private void radioButtonDaily_CheckedChanged(object sender, EventArgs e)
         {
-            dataGridViewWasteLevel.DataSource = Charting.DrawWasteLevel(radioButtonWeekly.Checked, chartWasteLevel, inspectionData, dateTimePickerWasteLevelBegin.Value, dateTimePickerWasteLevelEnd.Value, lotModelDictionary, comboBoxModel, comboBoxPoziomOdpaduSmtLine.Text, lotToSmtLine, radioButtonWasteLevelLG.Checked, mstOrders);
+            dataGridViewWasteLevel.DataSource = Charting.DrawWasteLevel(radioButtonWeekly.Checked, chartWasteLevel, inspectionData, dateTimePickerWasteLevelBegin.Value, dateTimePickerWasteLevelEnd.Value, lotModelDictionary, comboBoxModel, checkedListBoxViWasteLevel.CheckedItems.OfType<object>().Select(li => li.ToString()).ToArray(), lotToSmtLine, radioButtonWasteLevelLG.Checked, mstOrders);
             foreach (DataGridViewColumn col in dataGridViewWasteLevel.Columns)
             {
                 col.AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells;
@@ -533,12 +535,12 @@ namespace KontrolaWizualnaRaport
 
         private void comboBoxModel_TextChanged(object sender, EventArgs e)
         {
-            dataGridViewWasteLevel.DataSource = Charting.DrawWasteLevel(radioButtonWeekly.Checked, chartWasteLevel, inspectionData, dateTimePickerWasteLevelBegin.Value, dateTimePickerWasteLevelEnd.Value, lotModelDictionary, comboBoxModel, comboBoxPoziomOdpaduSmtLine.Text, lotToSmtLine, radioButtonWasteLevelLG.Checked, mstOrders);
+            dataGridViewWasteLevel.DataSource = Charting.DrawWasteLevel(radioButtonWeekly.Checked, chartWasteLevel, inspectionData, dateTimePickerWasteLevelBegin.Value, dateTimePickerWasteLevelEnd.Value, lotModelDictionary, comboBoxModel, checkedListBoxViWasteLevel.CheckedItems.OfType<object>().Select(li => li.ToString()).ToArray(), lotToSmtLine, radioButtonWasteLevelLG.Checked, mstOrders);
         }
 
         private void dateTimePickerWasteLevelEnd_ValueChanged(object sender, EventArgs e)
         {
-            dataGridViewWasteLevel.DataSource = Charting.DrawWasteLevel(radioButtonWeekly.Checked, chartWasteLevel, inspectionData, dateTimePickerWasteLevelBegin.Value, dateTimePickerWasteLevelEnd.Value, lotModelDictionary, comboBoxModel, comboBoxPoziomOdpaduSmtLine.Text, lotToSmtLine, radioButtonWasteLevelLG.Checked, mstOrders);
+            dataGridViewWasteLevel.DataSource = Charting.DrawWasteLevel(radioButtonWeekly.Checked, chartWasteLevel, inspectionData, dateTimePickerWasteLevelBegin.Value, dateTimePickerWasteLevelEnd.Value, lotModelDictionary, comboBoxModel, checkedListBoxViWasteLevel.CheckedItems.OfType<object>().Select(li => li.ToString()).ToArray(), lotToSmtLine, radioButtonWasteLevelLG.Checked, mstOrders);
             ColumnsAutoSize(dataGridViewWasteLevel, DataGridViewAutoSizeColumnMode.AllCellsExceptHeader);
         }
 
@@ -850,19 +852,6 @@ namespace KontrolaWizualnaRaport
             catch(Exception exc) { }
 
             return result;
-        }
-
-        private void comboBoxSmtLine_SelectedIndexChanged(object sender, EventArgs e)
-        {
-            dataGridViewNgScrapReasons.DataSource = Charting.DrawWasteReasonsCHart(chartPrzyczynyOdpaduNg, chartPrzyczynyOdpaduScrap, inspectionData, dateTimePickerPrzyczynyOdpaduOd.Value, dateTimePickerPrzyczynyOdpaduDo.Value, lotModelDictionary, comboBoxPrzyczynySmtLine.Text, lotToSmtLine, radioButtonReasonsLg.Checked, mstOrders);
-            dataGridViewNgScrapReasons.Columns[0].Width = 150;
-            dataGridViewNgScrapReasons.Columns[1].Width = 35;
-        }
-
-        private void comboBoxPoziomOdpaduSmtLine_SelectedIndexChanged(object sender, EventArgs e)
-        {
-            dataGridViewWasteLevel.DataSource = Charting.DrawWasteLevel(radioButtonWeekly.Checked, chartWasteLevel, inspectionData, dateTimePickerWasteLevelBegin.Value, dateTimePickerWasteLevelEnd.Value, lotModelDictionary, comboBoxModel, comboBoxPoziomOdpaduSmtLine.Text, lotToSmtLine, radioButtonWasteLevelLG.Checked, mstOrders);
-            ColumnsAutoSize(dataGridViewWasteLevel, DataGridViewAutoSizeColumnMode.AllCellsExceptHeader);
         }
 
         private void comboBoxReasonSmtLine_SelectedIndexChanged(object sender, EventArgs e)
@@ -1204,12 +1193,12 @@ namespace KontrolaWizualnaRaport
 
         private void radioButtonReasonsLg_CheckedChanged(object sender, EventArgs e)
         {
-            dataGridViewNgScrapReasons.DataSource = Charting.DrawWasteReasonsCHart(chartPrzyczynyOdpaduNg, chartPrzyczynyOdpaduScrap, inspectionData, dateTimePickerPrzyczynyOdpaduOd.Value, dateTimePickerPrzyczynyOdpaduDo.Value, lotModelDictionary, comboBoxPrzyczynySmtLine.Text, lotToSmtLine, radioButtonReasonsLg.Checked, mstOrders);
+            dataGridViewNgScrapReasons.DataSource = Charting.DrawWasteReasonsCHart(chartPrzyczynyOdpaduNg, chartPrzyczynyOdpaduScrap, inspectionData, dateTimePickerPrzyczynyOdpaduOd.Value, dateTimePickerPrzyczynyOdpaduDo.Value, lotModelDictionary, checkedListBoxViReasons.CheckedItems.OfType<object>().Select(li => li.ToString()).ToArray(), lotToSmtLine, radioButtonReasonsLg.Checked, mstOrders);
         }
 
         private void radioButtonWasteLevelLG_CheckedChanged(object sender, EventArgs e)
         {
-            dataGridViewWasteLevel.DataSource = Charting.DrawWasteLevel(radioButtonWeekly.Checked, chartWasteLevel, inspectionData, dateTimePickerWasteLevelBegin.Value, dateTimePickerWasteLevelEnd.Value, lotModelDictionary, comboBoxModel, comboBoxPoziomOdpaduSmtLine.Text, lotToSmtLine, radioButtonWasteLevelLG.Checked, mstOrders);
+            dataGridViewWasteLevel.DataSource = Charting.DrawWasteLevel(radioButtonWeekly.Checked, chartWasteLevel, inspectionData, dateTimePickerWasteLevelBegin.Value, dateTimePickerWasteLevelEnd.Value, lotModelDictionary, comboBoxModel, checkedListBoxViWasteLevel.CheckedItems.OfType<object>().Select(li => li.ToString()).ToArray(), lotToSmtLine, radioButtonWasteLevelLG.Checked, mstOrders);
         }
 
         private void dataGridViewChangeOvers_SelectionChanged(object sender, EventArgs e)
@@ -1552,6 +1541,38 @@ namespace KontrolaWizualnaRaport
         private void dataGridViewViOperatorsTotal_DataBindingComplete(object sender, DataGridViewBindingCompleteEventArgs e)
         {
             this.dataGridViewViOperatorsTotal.Sort(this.dataGridViewViOperatorsTotal.Columns["Sprawdzone"], ListSortDirection.Descending);
+        }
+
+        private void checkedListBox1_MouseEnter(object sender, EventArgs e)
+        {
+            checkedListBoxViWasteLevel.Height = 120;
+        }
+
+        private void checkedListBox1_MouseLeave(object sender, EventArgs e)
+        {
+            checkedListBoxViWasteLevel.Height = 20;
+        }
+
+
+
+        private void checkedListBoxViWasteLevel_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            dataGridViewWasteLevel.DataSource = Charting.DrawWasteLevel(radioButtonWeekly.Checked, chartWasteLevel, inspectionData, dateTimePickerWasteLevelBegin.Value, dateTimePickerWasteLevelEnd.Value, lotModelDictionary, comboBoxModel, checkedListBoxViWasteLevel.CheckedItems.OfType<object>().Select(li => li.ToString()).ToArray(), lotToSmtLine, radioButtonWasteLevelLG.Checked, mstOrders);
+        }
+
+        private void checkedListBoxViReasons_MouseEnter(object sender, EventArgs e)
+        {
+            checkedListBoxViReasons.Height = 200;
+        }
+
+        private void checkedListBoxViReasons_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            dataGridViewNgScrapReasons.DataSource = Charting.DrawWasteReasonsCHart(chartPrzyczynyOdpaduNg, chartPrzyczynyOdpaduScrap, inspectionData, dateTimePickerPrzyczynyOdpaduOd.Value, dateTimePickerPrzyczynyOdpaduDo.Value, lotModelDictionary, checkedListBoxViReasons.CheckedItems.OfType<object>().Select(li => li.ToString()).ToArray(), lotToSmtLine, radioButtonReasonsLg.Checked, mstOrders);
+        }
+
+        private void checkedListBoxViReasons_MouseLeave(object sender, EventArgs e)
+        {
+            checkedListBoxViReasons.Height = 20;
         }
     }
 }

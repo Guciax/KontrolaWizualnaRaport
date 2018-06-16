@@ -466,7 +466,7 @@ namespace KontrolaWizualnaRaport
             return year + CultureInfo.InvariantCulture.Calendar.GetWeekOfYear(time, CalendarWeekRule.FirstFourDayWeek, DayOfWeek.Monday);
         }
 
-        public static DataTable DrawWasteLevel(bool weekly, Chart chartWasteLevel, List<WasteDataStructure> inputData, DateTime dateBegin, DateTime dateEnd, Dictionary<string, string> modelDictionary, ComboBox comboModel, string smtLine, Dictionary<string,string> lotToSmtine, bool customerLGI, List<excelOperations.order12NC> mstOrders)
+        public static DataTable DrawWasteLevel(bool weekly, Chart chartWasteLevel, List<WasteDataStructure> inputData, DateTime dateBegin, DateTime dateEnd, Dictionary<string, string> modelDictionary, ComboBox comboModel, string[] smtLines, Dictionary<string,string> lotToSmtine, bool customerLGI, List<excelOperations.order12NC> mstOrders)
         {
             DataTable result = new DataTable();
             Dictionary<string, double> ngLevel = new Dictionary<string, double>();
@@ -494,7 +494,7 @@ namespace KontrolaWizualnaRaport
 
                 string smt = "";
                 lotToSmtine.TryGetValue(item.NumerZlecenia, out smt);
-                if (smt != smtLine & smtLine != "Wszystkie") continue;
+                if ( !smtLines.Contains(smt)) continue;
                 
                 if (item.FixedDateTime >= dateBegin & item.FixedDateTime <= dateEnd)
                 {
@@ -683,7 +683,7 @@ namespace KontrolaWizualnaRaport
             return result;
         }
 
-        public static DataTable DrawWasteReasonsCHart(Chart ngChart, Chart scrapChart, List<WasteDataStructure> inputData, DateTime dateBegin, DateTime dateEnd, Dictionary<string, string> modelDictionary, string smtLine, Dictionary<string, string> lotToSmtLine, bool customerLGI, List<excelOperations.order12NC> mstOrders)
+        public static DataTable DrawWasteReasonsCHart(Chart ngChart, Chart scrapChart, List<WasteDataStructure> inputData, DateTime dateBegin, DateTime dateEnd, Dictionary<string, string> modelDictionary, string[] smtLines, Dictionary<string, string> lotToSmtLine, bool customerLGI, List<excelOperations.order12NC> mstOrders)
         {
             DataTable result = new DataTable();
             result.Columns.Add("Nazwa");
@@ -698,7 +698,7 @@ namespace KontrolaWizualnaRaport
                 if (customerLGI & mstOrderss.Contains(wasteRecord.NumerZlecenia)) continue;
                 if (!customerLGI & !mstOrderss.Contains(wasteRecord.NumerZlecenia)) continue;
 
-                if (wasteRecord.SmtLine != smtLine & smtLine != "Wszystkie") continue;
+                if (!smtLines.Contains( wasteRecord.SmtLine)) continue;
 
                 //only once
                 if (wastePerReason.Count==0)
