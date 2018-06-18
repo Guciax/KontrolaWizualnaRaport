@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -67,6 +68,42 @@ namespace KontrolaWizualnaRaport
                 result.Rows.Add(operatorEntry.Key, totalInspected, totalNg, ngPercent, totalScrap, scrapPercent);
             }
 
+            return result;
+        }
+
+        public static DataTable checkMstViIfDone(List<excelOperations.order12NC> mstOrders, List<WasteDataStructure> inspectionData)
+        {
+            DataTable result = new DataTable();
+            result.Columns.Add("12NC");
+            result.Columns.Add("NrZlecenia");
+            result.Columns.Add("Ilość");
+            result.Columns.Add("Data przesunięcia");
+            result.Columns.Add("Kontrola wzrokowa");
+            List<string> ordersInspected = inspectionData.Select(o => o.NumerZlecenia).ToList();
+            
+
+            foreach (var mstOrder in mstOrders)
+            {
+                string date = "";
+                string inspectionStatus = "";
+                if (ordersInspected.Contains(mstOrder.order))
+                    {
+                    inspectionStatus = "OK";
+                }
+                else
+                {
+                    inspectionStatus = "NIE";
+
+                }
+                //Debug.WriteLine(mstOrder.endDate);
+                if (mstOrder.endDate > new DateTime(2017, 01, 01))
+                {
+                    date = mstOrder.endDate.ToString("dd-MM-yyyy");
+                }
+                
+
+                result.Rows.Add(mstOrder.nc12, mstOrder.order, mstOrder.quantity, date, inspectionStatus);
+            }
             return result;
         }
     }

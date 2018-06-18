@@ -226,6 +226,8 @@ namespace KontrolaWizualnaRaport
                             dataGridViewViOperatorsTotal.DataSource = VIOperations.ngRatePerOperator(inspectionData, dateTimePickerViOperatorEfiiciencyStart.Value, dateTimePickerViOperatorEfiiciencyEnd.Value);
                             
                             SMTOperations.autoSizeGridColumns(dataGridViewViOperatorsTotal);
+
+                            dataGridViewMstOrders.DataSource = VIOperations.checkMstViIfDone(mstOrders, inspectionData);
                         }
                         break;
                     }
@@ -1552,9 +1554,7 @@ namespace KontrolaWizualnaRaport
         {
             checkedListBoxViWasteLevel.Height = 20;
         }
-
-
-
+        
         private void checkedListBoxViWasteLevel_SelectedIndexChanged(object sender, EventArgs e)
         {
             dataGridViewWasteLevel.DataSource = Charting.DrawWasteLevel(radioButtonWeekly.Checked, chartWasteLevel, inspectionData, dateTimePickerWasteLevelBegin.Value, dateTimePickerWasteLevelEnd.Value, lotModelDictionary, comboBoxModel, checkedListBoxViWasteLevel.CheckedItems.OfType<object>().Select(li => li.ToString()).ToArray(), lotToSmtLine, radioButtonWasteLevelLG.Checked, mstOrders);
@@ -1562,7 +1562,7 @@ namespace KontrolaWizualnaRaport
 
         private void checkedListBoxViReasons_MouseEnter(object sender, EventArgs e)
         {
-            checkedListBoxViReasons.Height = 200;
+            checkedListBoxViReasons.Height = 120;
         }
 
         private void checkedListBoxViReasons_SelectedIndexChanged(object sender, EventArgs e)
@@ -1573,6 +1573,19 @@ namespace KontrolaWizualnaRaport
         private void checkedListBoxViReasons_MouseLeave(object sender, EventArgs e)
         {
             checkedListBoxViReasons.Height = 20;
+        }
+
+        private void dataGridViewMstOrders_DataBindingComplete(object sender, DataGridViewBindingCompleteEventArgs e)
+        {
+            foreach (DataGridViewRow row in dataGridViewMstOrders.Rows)
+            {
+                if(row.Cells["Kontrola wzrokowa"].Value.ToString()=="NIE")
+                {
+                    row.Cells["Kontrola wzrokowa"].Style.BackColor = Color.Red;
+                    row.Cells["Kontrola wzrokowa"].Style.ForeColor = Color.White;
+                }
+            }
+            dataGridViewMstOrders.FirstDisplayedCell = dataGridViewMstOrders.Rows[dataGridViewMstOrders.Rows.Count - 1].Cells[0];
         }
     }
 }

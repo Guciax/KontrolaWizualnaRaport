@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -14,6 +15,7 @@ namespace KontrolaWizualnaRaport
             public string nc12;
             public string order;
             public string quantity;
+            public DateTime endDate;
         }
 
         public static List<order12NC> loadExcel(ref Dictionary<string, string> lotModelDictionary)
@@ -33,13 +35,14 @@ namespace KontrolaWizualnaRaport
 
                 if (pck.Workbook.Worksheets.Count != 0)
                 {
-                    
                     foreach (OfficeOpenXml.ExcelWorksheet worksheet in pck.Workbook.Worksheets)
                     {
                         int orderColIndex = 0;
                         int nc12ColIndex = 0;
                         int qtyColIndex = 0;
                         int firstRowData = 0;
+                        int endOrderIndex = 0;
+
                         for (int row = 1; row < 11; row++)
                         {
                             for (int col = 1; col < worksheet.Dimension.End.Column; col++)
@@ -58,27 +61,44 @@ namespace KontrolaWizualnaRaport
                                     {
                                         qtyColIndex = col;
                                     }
-                                    if (orderColIndex > 0 & nc12ColIndex > 0 & qtyColIndex > 0) 
+
+                                    if (worksheet.Cells[row, col].Value.ToString().Trim().ToUpper().Replace(" ", "") == "DATAPRZESUNIĘCIA")
                                     {
-                                        firstRowData = row + 1;
-                                        break;
+                                        endOrderIndex = col;
                                     }
+
                                 }
                             }
-                            if (orderColIndex > 0) break;
+                            if (orderColIndex > 0)
+                            {
+                                firstRowData = row + 1;
+                                break;
+                            }
                         }
+                       // Debug.WriteLine("przes: " + endOrderIndex);
 
                         for (int row = firstRowData; row < worksheet.Dimension.End.Row; row++)
                         {
                             if (worksheet.Cells[row, nc12ColIndex].Value != null)
                             {
-                                string nc12 = worksheet.Cells[row, nc12ColIndex].Value.ToString().Replace(" ", "").Trim();
+                                if (worksheet.Cells[row, endOrderIndex].Value == null) continue;
+                                    string nc12 = worksheet.Cells[row, nc12ColIndex].Value.ToString().Replace(" ", "").Trim();
                                 string orderNo = worksheet.Cells[row, orderColIndex].Value.ToString().Replace(" ", "").Trim();
                                 string qty = worksheet.Cells[row, qtyColIndex].Value.ToString().Replace(" ", "").Trim();
+
                                 order12NC newItem = new order12NC();
                                 newItem.order = orderNo;
                                 newItem.nc12 = nc12;
                                 newItem.quantity = qty;
+
+                                if (endOrderIndex > 0)
+                                {
+                                    DateTime endDate = new DateTime(0001, 01, 01);
+                                    DateTime.TryParse(fixDateStringFormat( worksheet.Cells[row, endOrderIndex].Value.ToString().Replace(" ", "").Trim().Replace(".", "-")), out endDate);
+                                    newItem.endDate = endDate;
+                                    //Debug.WriteLine(endDate.ToShortDateString());
+                                }
+
                                 result.Add(newItem);
                             }
                         }
@@ -92,6 +112,32 @@ namespace KontrolaWizualnaRaport
                 lotModelDictionary.Add(item.order, item.nc12);
             }
 
+            return result;
+        }
+
+        public static string fixDateStringFormat(string inputDate)
+        {
+            string result = "";
+            string onlyDate = inputDate.Substring(0, 10);
+            Char splitChar;
+            if (onlyDate.Contains("."))
+            {
+                splitChar = '.';
+            }
+            else
+            {
+                splitChar = '-';
+            }
+            string[] splittedDate = onlyDate.Split(splitChar);
+            if(splittedDate[0].Length==4)
+            {
+                result = splittedDate[2] + "-" + splittedDate[1] + "-" + splittedDate[0];
+            }
+            else
+            {
+                result = splittedDate[0] + "-" + splittedDate[1] + "-" + splittedDate[2];
+            }
+            //Debug.WriteLine("fixed Date: " + result);
             return result;
         }
     }

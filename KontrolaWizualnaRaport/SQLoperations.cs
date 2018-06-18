@@ -107,7 +107,8 @@ namespace KontrolaWizualnaRaport
             command.Parameters.AddWithValue("@until", untilDay);
 
             SqlDataAdapter adapter = new SqlDataAdapter(command);
-            adapter.Fill(sqlTable);
+
+                adapter.Fill(sqlTable);
 
             sqlTable.Columns["Boxing_Date"].ColumnName = "Data";
             sqlTable.Columns["NC12_wyrobu"].ColumnName = "Model";
