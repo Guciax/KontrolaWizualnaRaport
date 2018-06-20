@@ -8,13 +8,14 @@ namespace KontrolaWizualnaRaport
 {
     class MesModels
     {
-        public MesModels( int ledSumQty, int ledAQty, int ledBQty, string type)
+        public MesModels( int ledSumQty, int ledAQty, int ledBQty, string type, int pcbsOnCarrier)
         {
 
             LedSumQty = ledSumQty;
             LedAQty = ledAQty;
             LedBQty = ledBQty;
             Type = type;
+            PcbsOnCarrier = pcbsOnCarrier;
         }
 
 
@@ -22,5 +23,6 @@ namespace KontrolaWizualnaRaport
         public int LedAQty { get; }
         public int LedBQty { get; }
         public string Type { get; }
+        public int PcbsOnCarrier { get; }
     }
 }

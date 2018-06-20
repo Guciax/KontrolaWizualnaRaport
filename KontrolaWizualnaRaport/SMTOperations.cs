@@ -388,8 +388,8 @@ namespace KontrolaWizualnaRaport
                         //107577:2OPF00050A:0|107658:2OPF00050A:0#107580:2OPF00050A:27|107657:2OPF00050A:23
                         string lot = row["NrZlecenia"].ToString();
                         string model = row["Model"].ToString();
-                        int requiredRankA = mesModels["LLFML"+model].LedAQty;
-                        int requiredRankB = mesModels["LLFML" + model].LedBQty;
+                        int requiredRankA = mesModels[model].LedAQty;
+                        int requiredRankB = mesModels[model].LedBQty;
                         string[] ledDropped = row["KoncowkiLED"].ToString().Split('#');
                         int reelsUsed = ledDropped.Length * 2;
                         int ledALeftTotal = 0;
@@ -613,23 +613,44 @@ namespace KontrolaWizualnaRaport
             }
         }
 
-        public static Dictionary<string, Dictionary<string, List<durationQuantity>>> smtQtyPerModelPerLine (DataTable smtRecords, bool showAllModels)
+        public static Dictionary<string, Dictionary<string, List<durationQuantity>>> smtQtyPerModelPerLine (DataTable smtRecords, bool showAllModels, Dictionary<string, MesModels> mesModels)
         {
             Dictionary<string, Dictionary<string, List<durationQuantity>>> result = new Dictionary<string, Dictionary<string, List<durationQuantity>>>();
+            Dictionary<string, durationQuantity> previousLotPerLine = new Dictionary<string, durationQuantity>();
+
             foreach (DataRow row in smtRecords.Rows)
             {
                 string model = row["Model"].ToString();
+                if (!mesModels.ContainsKey(model)) continue;
+
                 string modelShort = model.Substring(0, 6) + "X0X" + model.Substring(9, 1);
                 string line = row["LiniaSMT"].ToString();
                 double qty = 0;
                 if (!double.TryParse(row["IloscWykonana"].ToString(), out qty)) continue;
+
                 //DataCzasStart,DataCzasKoniec
                 DateTime dateStart = new DateTime();
                 DateTime dateEnd = new DateTime();
                 if (!DateTime.TryParse(row["DataCzasStart"].ToString(), out dateStart) || !DateTime.TryParse(row["DataCzasKoniec"].ToString(), out dateEnd)) continue;
-                var lotDuration = (dateEnd - dateStart).TotalHours;
+                var lotDurationStartToEnd = (dateEnd - dateStart).TotalHours;
+                durationQuantity previousLot;
+                if (!previousLotPerLine.TryGetValue(line, out previousLot))
+                {
+                    previousLot.end = new DateTime(2017, 01, 01);
+                }
+                var lotDurationEndToEnd = (dateEnd - previousLot.end).TotalHours;
 
-                if (lotDuration < 0.25) continue;
+                int pcbOncarrier = mesModels[model].PcbsOnCarrier;
+                double carriersPerLot = qty / (double)pcbOncarrier;
+
+                double secondsPerCarrierStartToEnd = lotDurationStartToEnd * 3600 / carriersPerLot;
+                double secondsPerCarrierEndToEnd = lotDurationEndToEnd * 3600 / carriersPerLot;
+                
+
+                if (secondsPerCarrierEndToEnd < 30 || secondsPerCarrierStartToEnd < 30) continue;
+
+                //if (lotDurationStartToEnd < 0.25) continue;
+                //if (lotDurationEndToEnd < 0.25) continue;
 
                 //Debug.WriteLine(lotDuration);
                 if (!result.ContainsKey(model) & showAllModels)
@@ -653,11 +674,17 @@ namespace KontrolaWizualnaRaport
                 }
 
                 durationQuantity newItem = new durationQuantity();
-                newItem.duration = lotDuration;
+                newItem.durationStartToEnd = lotDurationStartToEnd;
+                newItem.duractionEndToEnd = lotDurationEndToEnd;
                 newItem.quantity = qty;
                 newItem.start = dateStart;
                 newItem.end = dateEnd;
                 newItem.lot = row["NrZlecenia"].ToString();
+                if (!previousLotPerLine.ContainsKey(line))
+                {
+                    previousLotPerLine.Add(line, new durationQuantity());
+                }
+                previousLotPerLine[line] = newItem;
 
                 if (showAllModels)
                 {
@@ -666,12 +693,15 @@ namespace KontrolaWizualnaRaport
                 result[modelShort][line].Add(newItem);
             }
 
+
+
             return result;
         }
 
         public struct durationQuantity
         {
-            public double duration;
+            public double durationStartToEnd;
+            public double duractionEndToEnd;
             public double quantity;
             public string lot;
             public DateTime start;
@@ -701,16 +731,16 @@ namespace KontrolaWizualnaRaport
                     List<double> checkList = new List<double>();
                     foreach (var lot in lineEntry.Value)
                     {
-                        checkList.Add(lot.quantity / lot.duration * frequency);
-                        Debug.WriteLine(lot.quantity + "szt. " + lot.start.ToShortTimeString() + "-" + lot.end.ToShortTimeString() + " " + lot.duration * 60 + "min. " + 8*lot.quantity / lot.duration + "szt./zm ");
+                        checkList.Add(lot.quantity / lot.durationStartToEnd * frequency);
+                        Debug.WriteLine(lot.quantity + "szt. " + lot.start.ToShortTimeString() + "-" + lot.end.ToShortTimeString() + " " + lot.durationStartToEnd * 60 + "min. " + 8*lot.quantity / lot.durationStartToEnd + "szt./zm ");
                     }
                     
 
                     checkList.Sort();
                     double totalQty = lineEntry.Value.Select(q => q.quantity).Sum() * frequency;
-                    double min = Math.Round(lineEntry.Value.Select(q => q.quantity / q.duration).Min(),0) * frequency;
-                    double max = Math.Round(lineEntry.Value.Select(q => q.quantity / q.duration).Max(), 0) * frequency;
-                    double avg = Math.Round(lineEntry.Value.Select(q => q.quantity / q.duration).Average(), 0) * frequency;
+                    double min = Math.Round(lineEntry.Value.Select(q => q.quantity / q.durationStartToEnd).Min(),0) * frequency;
+                    double max = Math.Round(lineEntry.Value.Select(q => q.quantity / q.durationStartToEnd).Max(), 0) * frequency;
+                    double avg = Math.Round(lineEntry.Value.Select(q => q.quantity / q.durationStartToEnd).Average(), 0) * frequency;
                     double median = Math.Round(checkList[checkList.Count / 2], 0) ;
                     result.Rows.Add(lineEntry.Key, totalQty, median ,min, max);
                 }
@@ -738,27 +768,24 @@ namespace KontrolaWizualnaRaport
                 if (modelEntry.Key != model) continue;
                 foreach (var lineEntry in modelEntry.Value)
                 {
-                    Dictionary<dateShiftNo, List<durationQuantity>> lotsPerDayShift = new Dictionary<dateShiftNo, List<durationQuantity>>();
+                    List<double> checkList = new List<double>();
                     foreach (var lot in lineEntry.Value)
                     {
-                        dateShiftNo shiftInfo = whatDayShiftIsit(lot.end);
-                        if (!lotsPerDayShift.ContainsKey(shiftInfo))
-                        {
-                            lotsPerDayShift.Add(shiftInfo, new List<durationQuantity>());
-                        }
-                        lotsPerDayShift[shiftInfo].Add(lot);
+                        if (lot.duractionEndToEnd > 2 || lot.duractionEndToEnd< 0.2) continue;
+                        checkList.Add(lot.quantity / lot.duractionEndToEnd * frequency);
+                        Debug.WriteLine(lot.quantity + "szt. " + lot.duractionEndToEnd * 60 + "min. " );
                     }
 
-
-                    double totalQty = lotsPerDayShift.SelectMany(lots => lots.Value).Select(q => q.quantity).Sum();
-                    //DateTime startTime = lotsPerDayShift.SelectMany(lot=>lot.Value).Select(time=>time.)
-
-                    double min = Math.Round(lineEntry.Value.Select(q => q.quantity / q.duration).Min(), 0) * frequency;
-                    double max = Math.Round(lineEntry.Value.Select(q => q.quantity / q.duration).Max(), 0) * frequency;
-                    double avg = Math.Round(lineEntry.Value.Select(q => q.quantity / q.duration).Average(), 0) * frequency;
-                   // double median = Math.Round(checkList[checkList.Count / 2], 0);
-
-                    //result.Rows.Add(lineEntry.Key, totalQty, median, min, max);
+                    if (checkList.Count > 0)
+                    {
+                        checkList.Sort();
+                        double totalQty = lineEntry.Value.Select(q => q.quantity).Sum() * frequency;
+                        double min = Math.Round(lineEntry.Value.Select(q => q.quantity / q.duractionEndToEnd).Min(), 0) * frequency;
+                        double max = Math.Round(lineEntry.Value.Select(q => q.quantity / q.duractionEndToEnd).Max(), 0) * frequency;
+                        double avg = Math.Round(lineEntry.Value.Select(q => q.quantity / q.duractionEndToEnd).Average(), 0) * frequency;
+                        double median = Math.Round(checkList[checkList.Count / 2], 0);
+                        result.Rows.Add(lineEntry.Key, totalQty, median, min, max);
+                    }
                 }
             }
             return result;

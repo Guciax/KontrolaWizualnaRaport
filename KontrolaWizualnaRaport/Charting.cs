@@ -494,9 +494,10 @@ namespace KontrolaWizualnaRaport
 
                 string smt = "";
                 lotToSmtine.TryGetValue(item.NumerZlecenia, out smt);
-                if ( !smtLines.Contains(smt)) continue;
+                if ( !smtLines.Contains(smt) & customerLGI) continue;
                 
-                if (item.FixedDateTime >= dateBegin & item.FixedDateTime <= dateEnd)
+                
+                if (item.FixedDateTime.Date >= dateBegin & item.FixedDateTime.Date <= dateEnd)
                 {
                     string model = "";
                     if (!modelDictionary.TryGetValue(item.NumerZlecenia, out model)) model = "???";
@@ -698,7 +699,7 @@ namespace KontrolaWizualnaRaport
                 if (customerLGI & mstOrderss.Contains(wasteRecord.NumerZlecenia)) continue;
                 if (!customerLGI & !mstOrderss.Contains(wasteRecord.NumerZlecenia)) continue;
 
-                if (!smtLines.Contains( wasteRecord.SmtLine)) continue;
+                if (!smtLines.Contains( wasteRecord.SmtLine) & customerLGI) continue;
 
                 //only once
                 if (wastePerReason.Count==0)
@@ -831,7 +832,7 @@ namespace KontrolaWizualnaRaport
             return result;
         }
 
-        public static void DrawWasteLevelPerReason(Chart targetChart, string targetModel, List<WasteDataStructure> inputData, string reason, Dictionary<string, string> modelDictionary, string smtLine, Dictionary<string, string> lotToSmtLine)
+        public static void DrawWasteLevelPerReason(Chart targetChart, string targetModel, List<WasteDataStructure> inputData, string[] reasons, Dictionary<string, string> modelDictionary, string[] smtLines, Dictionary<string, string> lotToSmtLine)
         {
             DataTable result = new DataTable();
             Dictionary<DateTime, Dictionary<string, double>> wasteInDayPerModel = new Dictionary<DateTime, Dictionary<string, double>>();
@@ -840,8 +841,7 @@ namespace KontrolaWizualnaRaport
 
             foreach (var record in inputData)
             {
-
-                if (record.SmtLine != smtLine & smtLine != "Wszystkie") continue;
+                if (!smtLines.Contains(record.SmtLine)) continue;
 
                 if (!wasteInDayPerModel.ContainsKey(record.FixedDateTime.Date))
                 {
@@ -863,20 +863,25 @@ namespace KontrolaWizualnaRaport
                 }
 
                 var typ = typeof(WasteDataStructure);
-                string reasonNg = "ng" + reason;
-                string reasonScrap = "ccrap" + reason;
+                string reasonNg = "ng" + reasons;
+                string reasonScrap = "ccrap" + reasons;
 
                 foreach (var wasteReason in record.WastePerReason)
                 {
-                    if (wasteReason.Key==reasonNg)
+                    foreach (var reason in reasons)
                     {
-                        double value = (double)wasteReason.Value;
-                        wasteInDayPerModel[record.FixedDateTime.Date][record.Model] += value;
-                    }
-                    else if (wasteReason.Key == reasonScrap)
-                    {
-                        double value = (double)wasteReason.Value;
-                        scrapInDayPerModel[record.FixedDateTime.Date][record.Model] += value;
+                        if (wasteReason.Key.Contains(reason))
+                        {
+                            double value = (double)wasteReason.Value;
+                            if (wasteReason.Key.StartsWith("ng"))
+                            {
+                                wasteInDayPerModel[record.FixedDateTime.Date][record.Model] += value;
+                            }
+                            else
+                            {
+                                scrapInDayPerModel[record.FixedDateTime.Date][record.Model] += value;
+                            }
+                        }
                     }
                 }
 
@@ -965,7 +970,7 @@ namespace KontrolaWizualnaRaport
 
         }
 
-        public static void DrawWasteParetoPerReason(Chart paretoQtyChart, Chart paretoPercentageChart, List<WasteDataStructure> inputData, string reason, Dictionary<string, string> modelDictionary, string smtLine, Dictionary<string,string> lotToSmtLine)
+        public static void DrawWasteParetoPerReason(Chart paretoQtyChart, Chart paretoPercentageChart, List<WasteDataStructure> inputData, string[] reasons, Dictionary<string, string> modelDictionary, string[] smtLines, Dictionary<string,string> lotToSmtLine)
         {
             DataTable result = new DataTable();
 
@@ -974,7 +979,7 @@ namespace KontrolaWizualnaRaport
 
             foreach (var record in inputData)
             {
-                if (record.SmtLine != smtLine & smtLine != "Wszystkie") continue;
+                if (!smtLines.Contains(record.SmtLine)) continue;
                 if (record.Model == "") continue;
 
                 if (!modelProductionPareto.ContainsKey(record.Model))
@@ -982,21 +987,25 @@ namespace KontrolaWizualnaRaport
                 modelProductionPareto[record.Model] += record.AllQty;
 
                 var typ = typeof(WasteDataStructure);
-                string reasonNg = "ng" + reason;
-                string reasonScrap = "scrap" + reason;
+                string reasonNg = "ng" + reasons;
+                string reasonScrap = "scrap" + reasons;
 
                 foreach (var reasonEntry in record.WastePerReason)
                 {
-                    if (reasonEntry.Key==reasonNg)
+                    //only ng for now:(
+                    if (reasonEntry.Key.StartsWith("scrap")) continue;
+                        foreach (var reason in reasons)
                     {
-                        double value = (double)reasonEntry.Value;
-
-                        if (!modelWastePareto.ContainsKey(record.Model))
+                        if (reasonEntry.Key.Contains(reason))
                         {
-                            modelWastePareto.Add(record.Model, 0);
+                            double value = (double)reasonEntry.Value;
+                            if (!modelWastePareto.ContainsKey(record.Model))
+                            {
+                                modelWastePareto.Add(record.Model, 0);
 
+                            }
+                            modelWastePareto[record.Model] += value;
                         }
-                        modelWastePareto[record.Model] += value;
                     }
                 }
             }
@@ -1255,7 +1264,8 @@ namespace KontrolaWizualnaRaport
             {
                 foreach (var lot in lineEntry.Value)
                 {
-                    double eff = lot.quantity / lot.duration * frequency;
+                    if (lot.duractionEndToEnd > 2 || lot.duractionEndToEnd < 0.2) continue;
+                    double eff = lot.quantity / lot.duractionEndToEnd * frequency;
                     if (eff > maxValue) maxValue = eff;
                     if (eff < minValue) minValue = eff;
                 }
@@ -1274,9 +1284,11 @@ namespace KontrolaWizualnaRaport
                 {
                     pointsPerLine.Add(lineEntry.Key, new SortedDictionary<int, int>());
                 }
+
                 foreach (var lot in lineEntry.Value)
                 {
-                    int value = GetClosetsPOint(lot.quantity/ lot.duration * frequency, histogramValues);
+                    if (lot.duractionEndToEnd > 2 || lot.duractionEndToEnd < 0.2) continue;
+                    int value = GetClosetsPOint(lot.quantity/ lot.duractionEndToEnd * frequency, histogramValues);
                     if (pointsPerLine[lineEntry.Key].ContainsKey(value))
                     {
                         pointsPerLine[lineEntry.Key][value]++;

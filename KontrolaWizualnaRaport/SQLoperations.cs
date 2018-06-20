@@ -118,7 +118,7 @@ namespace KontrolaWizualnaRaport
             {
                 DateTime inspTime = DateTime.Parse(row["Data"].ToString());
                 dateShiftNo shiftInfo = SMTOperations.whatDayShiftIsit(inspTime);
-                string model = row["Model"].ToString();
+                string model = row["Model"].ToString().Replace("LLFML", "");
 
                 if (!result.ContainsKey(shiftInfo.date.Date))
                 {
@@ -140,6 +140,7 @@ namespace KontrolaWizualnaRaport
 
         public static Dictionary<DateTime, SortedDictionary<int, Dictionary<string, Dictionary<string, DataTable>>>> GetTestMeasurements (int daysAgo)
         {
+            Dictionary<DateTime, SortedDictionary<int, Dictionary<string, Dictionary<string, DataTable>>>> result = new Dictionary<DateTime, SortedDictionary<int, Dictionary<string, Dictionary<string, DataTable>>>>();
             DataTable sqlTable = new DataTable();
             string untilDay = DateTime.Now.Date.AddDays(daysAgo * (-1)).AddHours(6).ToString("yyyy-MM-dd") ;
 
@@ -158,7 +159,8 @@ namespace KontrolaWizualnaRaport
             }
             catch(SqlException ex)
             {
-                MessageBox.Show(ex.Message + Environment.NewLine + ex.HResult);
+                MessageBox.Show(ex.ErrorCode+Environment.NewLine+ ex.Message + Environment.NewLine + ex.HResult);
+                return result;
             }
 
             sqlTable.Columns["inspection_time"].ColumnName = "Data";
@@ -166,7 +168,7 @@ namespace KontrolaWizualnaRaport
             sqlTable.Columns["serial_no"].ColumnName = "PCB";
             sqlTable.Columns["wip_entity_name"].ColumnName = "LOT";
 
-            Dictionary<DateTime, SortedDictionary<int, Dictionary<string, Dictionary<string, DataTable>>>> result = new Dictionary<DateTime, SortedDictionary<int, Dictionary<string, Dictionary<string, DataTable>>>>();
+            
             foreach (DataRow row in sqlTable.Rows)
             {
                 string lineID = row["Tester"].ToString();
@@ -286,18 +288,20 @@ namespace KontrolaWizualnaRaport
             SqlCommand command = new SqlCommand();
             command.Connection = conn;
             command.CommandText =
-                @"SELECT MODEL_ID,PKG_SUM_QTY,A_PKG_QTY,B_PKG_QTY FROM tb_MES_models;";
+                @"SELECT MODEL_ID,PKG_SUM_QTY,A_PKG_QTY,B_PKG_QTY,SMT_Carrier_QTY FROM tb_MES_models;";
 
             SqlDataAdapter adapter = new SqlDataAdapter(command);
             adapter.Fill(sqlTable);
 
             foreach (DataRow row in sqlTable.Rows)
             {
-                string model = row["MODEL_ID"].ToString();
+                string model = row["MODEL_ID"].ToString().Replace("LLFML","");
                 if (result.ContainsKey(model)) continue;
                 int ledSum = int.Parse(row["PKG_SUM_QTY"].ToString());
                 int ledSumA = int.Parse(row["A_PKG_QTY"].ToString());
                 int ledSumB = int.Parse(row["B_PKG_QTY"].ToString());
+                int pcbOnCarrier = int.Parse(row["SMT_Carrier_QTY"].ToString());
+
                 string type = "";
                 if (model.Contains("22-")|| model.Contains("33-")|| model.Contains("32-")|| model.Contains("53-"))
                 {
@@ -315,7 +319,7 @@ namespace KontrolaWizualnaRaport
                 {
                     type = "veryShort";
                 }
-                MesModels newModel = new MesModels(ledSum, ledSumA, ledSumB, type);
+                MesModels newModel = new MesModels(ledSum, ledSumA, ledSumB, type, pcbOnCarrier);
 
                 result.Add(model, newModel);
             }
@@ -478,7 +482,7 @@ namespace KontrolaWizualnaRaport
             SqlCommand command = new SqlCommand();
             command.Connection = conn;
             command.CommandText = String.Format(@"SELECT serial_no,Box_LOT_NO,Boxing_Date FROM tb_WyrobLG_opakowanie WHERE ");
-            for(int i=0;i<inputPcbs.Count;i++)
+            for (int i = 0; i < inputPcbs.Count; i++) 
             {
                 if (i > 0) 
                 {

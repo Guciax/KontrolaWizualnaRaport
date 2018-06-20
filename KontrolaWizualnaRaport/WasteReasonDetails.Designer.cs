@@ -87,15 +87,14 @@
             // 
             this.tableLayoutPanel1.ColumnCount = 1;
             this.tableLayoutPanel1.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 100F));
-            this.tableLayoutPanel1.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Absolute, 20F));
             this.tableLayoutPanel1.Controls.Add(this.dataGridViewLine, 0, 1);
             this.tableLayoutPanel1.Controls.Add(this.dataGridViewModel, 0, 0);
             this.tableLayoutPanel1.Dock = System.Windows.Forms.DockStyle.Right;
             this.tableLayoutPanel1.Location = new System.Drawing.Point(469, 61);
             this.tableLayoutPanel1.Name = "tableLayoutPanel1";
             this.tableLayoutPanel1.RowCount = 2;
-            this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 50F));
-            this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 50F));
+            this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 65F));
+            this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 35F));
             this.tableLayoutPanel1.Size = new System.Drawing.Size(290, 428);
             this.tableLayoutPanel1.TabIndex = 2;
             // 
@@ -107,9 +106,9 @@
             this.dataGridViewLine.AllowUserToResizeRows = false;
             this.dataGridViewLine.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             this.dataGridViewLine.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.dataGridViewLine.Location = new System.Drawing.Point(3, 217);
+            this.dataGridViewLine.Location = new System.Drawing.Point(3, 281);
             this.dataGridViewLine.Name = "dataGridViewLine";
-            this.dataGridViewLine.Size = new System.Drawing.Size(284, 208);
+            this.dataGridViewLine.Size = new System.Drawing.Size(284, 144);
             this.dataGridViewLine.TabIndex = 2;
             // 
             // dataGridViewModel
@@ -122,7 +121,7 @@
             this.dataGridViewModel.Dock = System.Windows.Forms.DockStyle.Fill;
             this.dataGridViewModel.Location = new System.Drawing.Point(3, 3);
             this.dataGridViewModel.Name = "dataGridViewModel";
-            this.dataGridViewModel.Size = new System.Drawing.Size(284, 208);
+            this.dataGridViewModel.Size = new System.Drawing.Size(284, 272);
             this.dataGridViewModel.TabIndex = 1;
             // 
             // WasteReasonDetails

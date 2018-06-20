@@ -51,6 +51,11 @@ namespace KontrolaWizualnaRaport
             planModelDictionary = lotList[3];
             mesModels = SQLoperations.GetMesModels();
             dateTimePickerViOperatorEfiiciencyStart.Value = DateTime.Now.AddDays(-7);
+            cBListViReasonAnalysesSmtLines.Parent = tabPage6;
+            cBListViReasonList.Parent = tabPage6;
+            cBListViReasonAnalysesSmtLines.BringToFront();
+            cBListViReasonList.BringToFront();
+
         }
 
         private void tabControl2_SelectedIndexChanged(object sender, EventArgs e)
@@ -65,7 +70,7 @@ namespace KontrolaWizualnaRaport
                             SortedDictionary<DateTime, SortedDictionary<int, DataTable>> sortedTableByDayAndShift = SMTOperations.sortTableByDayAndShift(smtRecords, "DataCzasKoniec");
                             SMTOperations.shiftSummaryDataSource(sortedTableByDayAndShift, dataGridViewSmtProduction);
 
-                            smtModelLineQuantity = SMTOperations.smtQtyPerModelPerLine(smtRecords, radioButtonSmtShowAllModels.Checked);
+                            smtModelLineQuantity = SMTOperations.smtQtyPerModelPerLine(smtRecords, radioButtonSmtShowAllModels.Checked, mesModels);
                             comboBoxSmtModels.Items.AddRange(smtModelLineQuantity.Select(m => m.Key).OrderBy(m => m).ToArray());
 
                             ChangeOverTools.BuildSmtChangeOverGrid(ChangeOverTools.BuildDateShiftLineDictionary(smtRecords), dataGridViewChangeOvers);
@@ -144,7 +149,7 @@ namespace KontrolaWizualnaRaport
                             new Thread(() => 
                             {
                                 Thread.CurrentThread.IsBackground = true;
-                                testData = SQLoperations.GetTestMeasurements(10);
+                                testData = SQLoperations.GetTestMeasurements(20);
                                 loadDone = true;
                             }).Start();
                         }
@@ -182,13 +187,13 @@ namespace KontrolaWizualnaRaport
 
                                 checkedListBoxViWasteLevel.Items.Add(smtLine, true);
                                 checkedListBoxViReasons.Items.Add(smtLine, true);
+                                cBListViReasonAnalysesSmtLines.Items.Add(smtLine, true);
                             }
                             checkedListBoxViReasons.Parent = tabPage2;
                             checkedListBoxViReasons.BringToFront();
 
-                            comboBoxReasonSmtLine.Items.Add("Wszystkie");
-                            comboBoxReasonSmtLine.Text = "Wszystkie";
-                            comboBoxReasonSmtLine.Items.AddRange(smtLines);
+
+
 
                             comboBoxModel.Items.AddRange(lotModelDictionary.Select(m => m.Value.Replace("LLFML", "")).Distinct().OrderBy(o => o).ToArray());
 
@@ -208,16 +213,21 @@ namespace KontrolaWizualnaRaport
                             ColumnsAutoSize(dataGridViewPowyzej50, DataGridViewAutoSizeColumnMode.AllCells);
                             dataGridViewPowyzej50.Sort(dataGridViewPowyzej50.Columns["Ile"], ListSortDirection.Descending);
 
-                            string[] uniqueWaste = null;
-
+                            
+                            HashSet<string> wasteReasonList = new HashSet<string>();
                             foreach (var wasteReason in inspectionData)
                             {
-
-                                uniqueWaste = wasteReason.WastePerReason.Select(r => r.Key.Replace("ng", "").Replace("scrap", "")).ToArray();
+                                foreach (var r in wasteReason.WastePerReason)
+                                {
+                                    wasteReasonList.Add(r.Key.Replace("ng", "").Replace("scrap", ""));
+                                }
                                 break;
                             }
 
-                            comboBoxReasonAnalyses.Items.AddRange(uniqueWaste);
+                            cBListViReasonList.Items.AddRange(wasteReasonList.ToArray());
+
+
+
                             comboBox3.Items.AddRange(modelFamilyList(inspectionData, lotModelDictionary));
                             comboBox4.Items.AddRange(uniqueModelsList(inspectionData, lotModelDictionary));
 
@@ -240,7 +250,7 @@ namespace KontrolaWizualnaRaport
             SortedDictionary<DateTime, SortedDictionary<int, DataTable>> sortedTableByDayAndShift = SMTOperations.sortTableByDayAndShift(smtRecords, "DataCzasKoniec");
             SMTOperations.shiftSummaryDataSource(sortedTableByDayAndShift, dataGridViewSmtProduction);
 
-            smtModelLineQuantity = SMTOperations.smtQtyPerModelPerLine(smtRecords, radioButtonSmtShowAllModels.Checked);
+            smtModelLineQuantity = SMTOperations.smtQtyPerModelPerLine(smtRecords, radioButtonSmtShowAllModels.Checked, mesModels);
             comboBoxSmtModels.Items.AddRange(smtModelLineQuantity.Select(m => m.Key).OrderBy(m => m).ToArray());
 
             ChangeOverTools.BuildSmtChangeOverGrid(ChangeOverTools.BuildDateShiftLineDictionary(smtRecords), dataGridViewChangeOvers);
@@ -257,6 +267,7 @@ namespace KontrolaWizualnaRaport
                     lineOptions.Add(c.Text, ((CheckBox)c).Checked);
                 }
             }
+
             Charting.DrawLedWasteChart(ledWasteDictionary, chartLedWasteChart, comboBoxSmtLewWasteFreq.Text, lineOptions);
             SMTOperations.FillOutLedWasteTotalByLine(ledWasteDictionary, dataGridViewSmtLedWasteTotalPerLine, comboBoxSmtLedWasteLines.Text);
         }
@@ -266,7 +277,8 @@ namespace KontrolaWizualnaRaport
         {
             if (loadDone)
             {
-                TestOperations.FillOutTesterTable(testData, dataGridViewTest, lotModelDictionary);
+                if (testData.Count > 0) 
+                    TestOperations.FillOutTesterTable(testData, dataGridViewTest, lotModelDictionary);
                 timerTestLoadDone.Enabled = false;
                 PictureBox loadPB = (PictureBox)dataGridViewTest.Tag;
                 dataGridViewTest.Controls.Remove(loadPB);
@@ -548,62 +560,7 @@ namespace KontrolaWizualnaRaport
 
         private void textBox2_TextChanged(object sender, EventArgs e)
         {
-            DataTable gridSource = new DataTable();
-            gridSource.Columns.Add("Pole");
-            gridSource.Columns.Add("Wartość");
-
-            foreach (var record in inspectionData)
-            {
-                if (record.NumerZlecenia == textBox2.Text)
-                {
-                    
-                    string model = "nieznany";
-                    lotModelDictionary.TryGetValue(record.NumerZlecenia, out model);
-                    //gridSource.Rows.Add("Model", lotModelDictionary[record.NumerZlecenia]);
-                    string orderQty = "nieznane";
-                    lotToOrderedQty.TryGetValue(record.NumerZlecenia, out orderQty);
-                    //gridSource.Rows.Add("Ordered Qty", lotToOrderedQty[record.NumerZlecenia]);
-
-                    PropertyInfo[] properties = typeof(WasteDataStructure).GetProperties();
-                    foreach (PropertyInfo property in properties)
-                    {
-                        try
-                        {
-                            string name = property.Name;
-                            string value = property.GetValue(record, null).ToString();
-
-                            if (property.Name == "WastePerReason")
-                            {
-                                var dicValue = (Dictionary<string, Int32>)property.GetValue(record, null);
-                                Dictionary<string, Int32> ngs = dicValue;
-
-                                foreach (var ng in ngs)
-                                {
-                                    if (ng.Value > 0)
-                                    {
-                                        gridSource.Rows.Add(ng.Key, ng.Value);
-                                    }
-                                }
-
-                            }
-                            else
-                            {
-                                gridSource.Rows.Add(name, value);
-                            }
-                        }
-                        catch(Exception ex) { }
-                    }
-                    break;
-                }
-            }
-            dataGridView3.DataSource = gridSource;
-            ColumnsAutoSize(dataGridView3, DataGridViewAutoSizeColumnMode.AllCells);
-        }
-
-        private void comboBox2_SelectedIndexChanged(object sender, EventArgs e)
-        {
-            Charting.DrawWasteLevelPerReason(chartReasonLevel, "all", inspectionData, comboBoxReasonAnalyses.Text, lotModelDictionary, comboBoxReasonSmtLine.Text, lotToSmtLine);
-            Charting.DrawWasteParetoPerReason(chartReasonPareto, chartReasonsParetoPercentage, inspectionData, comboBoxReasonAnalyses.Text, lotModelDictionary, comboBoxReasonSmtLine.Text, lotToSmtLine);
+            
         }
 
         private void comboBox3_SelectedIndexChanged(object sender, EventArgs e)
@@ -716,7 +673,7 @@ namespace KontrolaWizualnaRaport
                             pt.BorderWidth = 0;
                         }
 
-                        Charting.DrawWasteLevelPerReason(chartReasonLevel, "all", inspectionData, comboBoxReasonAnalyses.Text, lotModelDictionary, comboBoxReasonSmtLine.Text, lotToSmtLine);
+                        Charting.DrawWasteLevelPerReason(chartReasonLevel, "all", inspectionData, cBListViReasonList.CheckedItems.OfType<object>().Select(w => w.ToString()).ToArray(), lotModelDictionary, cBListViReasonAnalysesSmtLines.CheckedItems.OfType<object>().Select(li => li.ToString()).ToArray(), lotToSmtLine);
                         currentReasonOnChart = "all";
                     }
                     continue;
@@ -726,7 +683,7 @@ namespace KontrolaWizualnaRaport
                 var p = (DataPoint)(result.Object);
                 if (currentReasonOnChart != p.AxisLabel)
                 {
-                    Charting.DrawWasteLevelPerReason(chartReasonLevel, p.AxisLabel, inspectionData, comboBoxReasonAnalyses.Text, lotModelDictionary, comboBoxReasonSmtLine.Text, lotToSmtLine);
+                    Charting.DrawWasteLevelPerReason(chartReasonLevel, p.AxisLabel, inspectionData, cBListViReasonList.CheckedItems.OfType<object>().Select(w => w.ToString()).ToArray(), lotModelDictionary, cBListViReasonAnalysesSmtLines.CheckedItems.OfType<object>().Select(li => li.ToString()).ToArray(), lotToSmtLine);
                     currentReasonOnChart = p.AxisLabel;
                     //Debug.WriteLine(p.AxisLabel);
                     p.BorderWidth = 4;
@@ -776,31 +733,14 @@ namespace KontrolaWizualnaRaport
 
         }
 
-        private void button1_Click(object sender, EventArgs e)
-        {
-            listView1.Items.Clear();
-            foreach (var line in richTextBox1.Lines)
-            {
-                ListViewItem itm = new ListViewItem();
-                itm.Name = line.Trim();
-                itm.Text = line.Trim();
-                if (lotToSmtLine.ContainsKey(line))
-                    itm.ForeColor = Color.Red;
 
-                listView1.Items.Add(itm);
-            }
-        }
         
         private void listBox1_DrawItem(object sender, DrawItemEventArgs e)
         {
 
         }
 
-        private void listView1_SelectedIndexChanged(object sender, EventArgs e)
-        {
-            if (listView1.SelectedItems.Count > 0)
-                textBox2.Text = listView1.Items[listView1.SelectedItems[0].Index].Name;
-        }
+
 
 
 
@@ -854,12 +794,6 @@ namespace KontrolaWizualnaRaport
             catch(Exception exc) { }
 
             return result;
-        }
-
-        private void comboBoxReasonSmtLine_SelectedIndexChanged(object sender, EventArgs e)
-        {
-            Charting.DrawWasteLevelPerReason(chartReasonLevel, "all", inspectionData, comboBoxReasonAnalyses.Text, lotModelDictionary, comboBoxReasonSmtLine.Text, lotToSmtLine);
-            Charting.DrawWasteParetoPerReason(chartReasonPareto, chartReasonsParetoPercentage, inspectionData, comboBoxReasonAnalyses.Text, lotModelDictionary, comboBoxReasonSmtLine.Text, lotToSmtLine);
         }
 
         private void radioButtonCapaLGI_CheckedChanged(object sender, EventArgs e)
@@ -1030,7 +964,7 @@ namespace KontrolaWizualnaRaport
         {
             if (comboBoxSmtModels.Text != "")
             {
-                dataGridViewSmtModelStats.DataSource = SMTOperations.MakeTableForModelEfficiency(smtModelLineQuantity, comboBoxSmtModels.Text, radioButtonSmtPerHour.Checked);
+                dataGridViewSmtModelStats.DataSource = SMTOperations.MakeTableForModelEfficiency2(smtModelLineQuantity, comboBoxSmtModels.Text, radioButtonSmtPerHour.Checked);
                 Charting.DrawSmtEfficiencyHistogramForModel(chartSmt, smtModelLineQuantity[comboBoxSmtModels.Text], radioButtonSmtPerHour.Checked);
             }
         }
@@ -1234,7 +1168,7 @@ namespace KontrolaWizualnaRaport
                             pt.BorderWidth = 0;
                         }
 
-                        Charting.DrawWasteLevelPerReason(chartReasonLevel, "all", inspectionData, comboBoxReasonAnalyses.Text, lotModelDictionary, comboBoxReasonSmtLine.Text, lotToSmtLine);
+                        Charting.DrawWasteLevelPerReason(chartReasonLevel, "all", inspectionData, cBListViReasonList.CheckedItems.OfType<object>().Select(w => w.ToString()).ToArray(), lotModelDictionary, cBListViReasonAnalysesSmtLines.CheckedItems.OfType<object>().Select(li => li.ToString()).ToArray(), lotToSmtLine);
                         currentReasonOnChart = "all";
                     }
                     continue;
@@ -1244,7 +1178,7 @@ namespace KontrolaWizualnaRaport
                 var p = (DataPoint)(result.Object);
                 if (currentReasonOnChart != p.AxisLabel)
                 {
-                    Charting.DrawWasteLevelPerReason(chartReasonLevel, p.AxisLabel, inspectionData, comboBoxReasonAnalyses.Text, lotModelDictionary, comboBoxReasonSmtLine.Text, lotToSmtLine);
+                    Charting.DrawWasteLevelPerReason(chartReasonLevel, p.AxisLabel, inspectionData, cBListViReasonList.CheckedItems.OfType<object>().Select(w => w.ToString()).ToArray(), lotModelDictionary, cBListViReasonAnalysesSmtLines.CheckedItems.OfType<object>().Select(li => li.ToString()).ToArray(), lotToSmtLine);
                     currentReasonOnChart = p.AxisLabel;
                     //Debug.WriteLine(p.AxisLabel);
                     p.BorderWidth = 4;
@@ -1586,6 +1520,38 @@ namespace KontrolaWizualnaRaport
                 }
             }
             dataGridViewMstOrders.FirstDisplayedCell = dataGridViewMstOrders.Rows[dataGridViewMstOrders.Rows.Count - 1].Cells[0];
+        }
+
+        private void cBListViReasonAnalysesSmtLines_MouseEnter(object sender, EventArgs e)
+        {
+            cBListViReasonAnalysesSmtLines.Height = 120;
+        }
+
+        private void cBListViReasonAnalysesSmtLines_MouseLeave(object sender, EventArgs e)
+        {
+            cBListViReasonAnalysesSmtLines.Height = 20;
+        }
+
+        private void cBListViReasonList_MouseEnter(object sender, EventArgs e)
+        {
+            cBListViReasonList.Height = 230;
+        }
+
+        private void cBListViReasonList_MouseLeave(object sender, EventArgs e)
+        {
+            cBListViReasonList.Height = 20;
+        }
+
+        private void cBListViReasonAnalysesSmtLines_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            Charting.DrawWasteLevelPerReason(chartReasonLevel, "all", inspectionData, cBListViReasonList.CheckedItems.OfType<object>().Select(w => w.ToString()).ToArray(), lotModelDictionary, cBListViReasonAnalysesSmtLines.CheckedItems.OfType<object>().Select(li => li.ToString()).ToArray(), lotToSmtLine);
+            Charting.DrawWasteParetoPerReason(chartReasonPareto, chartReasonsParetoPercentage, inspectionData, cBListViReasonList.CheckedItems.OfType<object>().Select(w => w.ToString()).ToArray(), lotModelDictionary, cBListViReasonAnalysesSmtLines.CheckedItems.OfType<object>().Select(li => li.ToString()).ToArray(), lotToSmtLine);
+        }
+
+        private void cBListViReasonList_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            Charting.DrawWasteLevelPerReason(chartReasonLevel, "all", inspectionData, cBListViReasonList.CheckedItems.OfType<object>().Select(w => w.ToString()).ToArray(), lotModelDictionary, cBListViReasonAnalysesSmtLines.CheckedItems.OfType<object>().Select(li => li.ToString()).ToArray(), lotToSmtLine);
+            Charting.DrawWasteParetoPerReason(chartReasonPareto, chartReasonsParetoPercentage, inspectionData, cBListViReasonList.CheckedItems.OfType<object>().Select(w => w.ToString()).ToArray(), lotModelDictionary, cBListViReasonAnalysesSmtLines.CheckedItems.OfType<object>().Select(li => li.ToString()).ToArray(), lotToSmtLine);
         }
     }
 }
