@@ -56,7 +56,7 @@ namespace KontrolaWizualnaRaport
             SqlCommand command = new SqlCommand();
             command.Connection = conn;
             command.CommandText =
-                @"SELECT Nr_Zlecenia_Produkcyjnego,NC12_wyrobu,Ilosc_wyrobu_zlecona,LiniaProdukcyjna,DataCzasWydruku,Data_Konca_Zlecenia FROM tb_Zlecenia_produkcyjne;";
+                @"SELECT Nr_Zlecenia_Produkcyjnego,Data_Poczatku_Zlecenia,NC12_wyrobu,Ilosc_wyrobu_zlecona,LiniaProdukcyjna,DataCzasWydruku,Data_Konca_Zlecenia FROM tb_Zlecenia_produkcyjne;";
 
             SqlDataAdapter adapter = new SqlDataAdapter(command);
             adapter.Fill(result);

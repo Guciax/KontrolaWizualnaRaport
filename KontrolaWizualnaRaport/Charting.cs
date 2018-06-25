@@ -1319,7 +1319,11 @@ namespace KontrolaWizualnaRaport
                 newSeries.BorderWidth = 3;
                 foreach (var point in lineEntry.Value)
                 {
-                    newSeries.Points.AddXY(point.Key, point.Value);
+                    DataPoint pt = new DataPoint();
+                    pt.SetValueXY(point.Key, point.Value);
+                    pt.MarkerStyle = MarkerStyle.Circle;
+                    pt.MarkerSize = 10;
+                    newSeries.Points.Add(pt);
                 }
                 chart.Series.Add(newSeries);
 

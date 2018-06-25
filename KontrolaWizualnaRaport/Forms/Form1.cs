@@ -43,7 +43,8 @@ namespace KontrolaWizualnaRaport
 
         private void Form1_Load(object sender, EventArgs e)
         {
-            dateTimePickerSmtStart.Value = DateTime.Now.Date.AddDays(-20);
+            dateTimePickerSmtStart.Value = DateTime.Now.Date.AddDays(-40);
+            smtRecords = SQLoperations.GetSmtRecordsFromDb(dateTimePickerSmtStart.Value, dateTimePickerSmtEnd.Value);
             lotTable = SQLoperations.lotTable();
             Dictionary<string, string>[] lotList = VIOperations.lotArray(lotTable);
             lotModelDictionary = lotList[0];
@@ -66,7 +67,7 @@ namespace KontrolaWizualnaRaport
                     {
                         if (smtModelLineQuantity.Count < 1)
                         {
-                            smtRecords = SQLoperations.GetSmtRecordsFromDb(dateTimePickerSmtStart.Value, dateTimePickerSmtEnd.Value);
+                           
                             SortedDictionary<DateTime, SortedDictionary<int, DataTable>> sortedTableByDayAndShift = SMTOperations.sortTableByDayAndShift(smtRecords, "DataCzasKoniec");
                             SMTOperations.shiftSummaryDataSource(sortedTableByDayAndShift, dataGridViewSmtProduction);
 
@@ -103,7 +104,8 @@ namespace KontrolaWizualnaRaport
                     {
                         if (dataGridViewKitting.Rows.Count == 0)
                         {
-                            KittingOperations.FillGrid(lotTable, dataGridViewKitting);
+                            KittingOperations.FillGridWorkReport(lotTable, dataGridViewKitting);
+                            KittingOperations.FillGridReadyLots(dataGridViewKittingReadyLots, lotTable, smtRecords);
                         }
                         break;
                     }
@@ -233,7 +235,7 @@ namespace KontrolaWizualnaRaport
 
                             dataGridView2.DataSource = UnknownOrderNumberTable();
 
-                            dataGridViewViOperatorsTotal.DataSource = VIOperations.ngRatePerOperator(inspectionData, dateTimePickerViOperatorEfiiciencyStart.Value, dateTimePickerViOperatorEfiiciencyEnd.Value);
+                             VIOperations.ngRatePerOperator(inspectionData, dateTimePickerViOperatorEfiiciencyStart.Value, dateTimePickerViOperatorEfiiciencyEnd.Value, dataGridViewViOperatorsTotal);
                             
                             SMTOperations.autoSizeGridColumns(dataGridViewViOperatorsTotal);
 
@@ -1464,19 +1466,27 @@ namespace KontrolaWizualnaRaport
 
         private void dateTimePickerViOperatorEfiiciencyStart_ValueChanged(object sender, EventArgs e)
         {
-            dataGridViewViOperatorsTotal.DataSource = VIOperations.ngRatePerOperator(inspectionData, dateTimePickerViOperatorEfiiciencyStart.Value, dateTimePickerViOperatorEfiiciencyEnd.Value);
+            VIOperations.ngRatePerOperator(inspectionData, dateTimePickerViOperatorEfiiciencyStart.Value, dateTimePickerViOperatorEfiiciencyEnd.Value, dataGridViewViOperatorsTotal);
             
         }
 
         private void dateTimePickerViOperatorEfiiciencyEnd_ValueChanged(object sender, EventArgs e)
         {
-            dataGridViewViOperatorsTotal.DataSource = VIOperations.ngRatePerOperator(inspectionData, dateTimePickerViOperatorEfiiciencyStart.Value, dateTimePickerViOperatorEfiiciencyEnd.Value);
-
+            VIOperations.ngRatePerOperator(inspectionData, dateTimePickerViOperatorEfiiciencyStart.Value, dateTimePickerViOperatorEfiiciencyEnd.Value, dataGridViewViOperatorsTotal);
         }
 
         private void dataGridViewViOperatorsTotal_DataBindingComplete(object sender, DataGridViewBindingCompleteEventArgs e)
         {
-            this.dataGridViewViOperatorsTotal.Sort(this.dataGridViewViOperatorsTotal.Columns["Sprawdzone"], ListSortDirection.Descending);
+            foreach (DataGridViewRow row in dataGridViewViOperatorsTotal.Rows)
+            {
+                if (row.Cells["h / zmiane"].Value.ToString()=="12")
+                {
+                    foreach (DataGridViewCell cell in row.Cells)
+                    {
+                        cell.Style.BackColor = Color.LightBlue;
+                    }
+                }
+            }
         }
 
         private void checkedListBox1_MouseEnter(object sender, EventArgs e)
@@ -1552,6 +1562,95 @@ namespace KontrolaWizualnaRaport
         {
             Charting.DrawWasteLevelPerReason(chartReasonLevel, "all", inspectionData, cBListViReasonList.CheckedItems.OfType<object>().Select(w => w.ToString()).ToArray(), lotModelDictionary, cBListViReasonAnalysesSmtLines.CheckedItems.OfType<object>().Select(li => li.ToString()).ToArray(), lotToSmtLine);
             Charting.DrawWasteParetoPerReason(chartReasonPareto, chartReasonsParetoPercentage, inspectionData, cBListViReasonList.CheckedItems.OfType<object>().Select(w => w.ToString()).ToArray(), lotModelDictionary, cBListViReasonAnalysesSmtLines.CheckedItems.OfType<object>().Select(li => li.ToString()).ToArray(), lotToSmtLine);
+        }
+
+        private void dataGridViewViOperatorsTotal_CellValueChanged(object sender, DataGridViewCellEventArgs e)
+        {
+            if (e.ColumnIndex==3)
+            {
+                double h = double.Parse( dataGridViewViOperatorsTotal.Rows[e.RowIndex].Cells[e.ColumnIndex].Value.ToString());
+                double dayAvg  = double.Parse(dataGridViewViOperatorsTotal.Rows[e.RowIndex].Cells[2].Value.ToString());
+                dataGridViewViOperatorsTotal.Rows[e.RowIndex].Cells[4].Value = Math.Round(dayAvg / h, 0);
+                Color rowClr = Color.LightBlue;
+                if (h==8)
+                {
+                    rowClr = Color.White ;
+                }
+
+                foreach (DataGridViewCell cell in dataGridViewViOperatorsTotal.Rows[e.RowIndex].Cells)
+                {
+                    cell.Style.BackColor = rowClr;
+                }
+            }
+        }
+
+        private void dataGridViewViOperatorsTotal_CellDoubleClick(object sender, DataGridViewCellEventArgs e)
+        {
+
+        }
+
+        private void dataGridViewViOperatorsTotal_SelectionChanged(object sender, EventArgs e)
+        {
+            if (dataGridViewViOperatorsTotal.SelectedCells.Count > 0)
+            {
+                int rowInd = dataGridViewViOperatorsTotal.SelectedCells[0].RowIndex;
+                if (rowInd >= 0)
+                {
+                    if (dataGridViewViOperatorsTotal.Rows[rowInd].Cells[0].Tag != null)
+                    {
+                        DataTable tagTable = (DataTable)dataGridViewViOperatorsTotal.Rows[rowInd].Cells[0].Tag;
+                        
+                        dataGridViewViOperatorDetails.DataSource = tagTable;
+                        if (tagTable.Rows.Count > 0)
+                        {
+                            dataGridViewViOperatorDetails.FirstDisplayedCell = dataGridViewViOperatorDetails.Rows[dataGridViewViOperatorDetails.Rows.Count - 1].Cells[0];
+                            VIOperations.Save12hOperators(dataGridViewViOperatorsTotal);
+                        }
+                    }
+                }
+            }
+        }
+
+        private void dataGridViewViOperatorDetails_DataBindingComplete(object sender, DataGridViewBindingCompleteEventArgs e)
+        {
+            Color rowCol = Color.LightBlue;
+
+            foreach (DataGridViewRow row in dataGridViewViOperatorDetails.Rows)
+            {
+                foreach (DataGridViewCell cell in row.Cells)
+                {
+                    cell.Style.BackColor = rowCol;
+                }
+
+
+                if (row.Cells["Data"].Value != null)
+                {
+                    if (row.Cells["Data"].Value.ToString() != "")
+                    {
+                        if (rowCol == Color.LightBlue)
+                        {
+                            rowCol = Color.White;
+                        }
+                        else
+                        {
+                            rowCol = Color.LightBlue;
+                        }
+                    }
+                }
+
+
+            }
+
+            SMTOperations.autoSizeGridColumns(dataGridViewViOperatorDetails);
+        }
+
+        private void dataGridViewKittingReadyLots_CellDoubleClick(object sender, DataGridViewCellEventArgs e)
+        {
+            DataGridViewCell cell = dataGridViewKittingReadyLots.Rows[e.RowIndex].Cells[e.ColumnIndex];
+            DataTable sourceTable = (DataTable)cell.Tag;
+            string title = dataGridViewKittingReadyLots.Rows[e.RowIndex].Cells["Model"].Value.ToString();
+            SimpleDetailsDT dtForm = new SimpleDetailsDT(sourceTable, title);
+            dtForm.Show();
         }
     }
 }

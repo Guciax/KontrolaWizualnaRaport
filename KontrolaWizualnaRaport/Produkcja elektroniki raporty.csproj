@@ -62,28 +62,40 @@
       <DependentUpon>Drukuj.cs</DependentUpon>
     </Compile>
     <Compile Include="excelOperations.cs" />
-    <Compile Include="Form1.cs">
+    <Compile Include="Forms\Form1.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="Form1.Designer.cs">
+    <Compile Include="Forms\Form1.Designer.cs">
       <DependentUpon>Form1.cs</DependentUpon>
     </Compile>
     <Compile Include="KittingOperations.cs" />
-    <Compile Include="LedWasteDetails.cs">
+    <Compile Include="Forms\LedWasteDetails.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="LedWasteDetails.Designer.cs">
+    <Compile Include="Forms\LedWasteDetails.Designer.cs">
       <DependentUpon>LedWasteDetails.cs</DependentUpon>
     </Compile>
     <Compile Include="LotSummary.cs" />
     <Compile Include="MesModels.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="SMTOperations.cs" />
-    <Compile Include="SmtShiftDetails.cs">
+    <Compile Include="Forms\showViOperatorDetails.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="SmtShiftDetails.Designer.cs">
+    <Compile Include="Forms\showViOperatorDetails.Designer.cs">
+      <DependentUpon>showViOperatorDetails.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Forms\SimpleDetailsDT.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Forms\SimpleDetailsDT.Designer.cs">
+      <DependentUpon>SimpleDetailsDT.cs</DependentUpon>
+    </Compile>
+    <Compile Include="SMTOperations.cs" />
+    <Compile Include="Forms\SmtShiftDetails.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Forms\SmtShiftDetails.Designer.cs">
       <DependentUpon>SmtShiftDetails.cs</DependentUpon>
     </Compile>
     <Compile Include="SplittingOperations.cs" />
@@ -91,19 +103,19 @@
     <Compile Include="TestOperations.cs" />
     <Compile Include="VIOperations.cs" />
     <Compile Include="wastePerReasonStructure.cs" />
-    <Compile Include="WasteReasonDetails.cs">
+    <Compile Include="Forms\WasteReasonDetails.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="WasteReasonDetails.Designer.cs">
+    <Compile Include="Forms\WasteReasonDetails.Designer.cs">
       <DependentUpon>WasteReasonDetails.cs</DependentUpon>
     </Compile>
     <EmbeddedResource Include="Drukuj.resx">
       <DependentUpon>Drukuj.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="Form1.resx">
+    <EmbeddedResource Include="Forms\Form1.resx">
       <DependentUpon>Form1.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="LedWasteDetails.resx">
+    <EmbeddedResource Include="Forms\LedWasteDetails.resx">
       <DependentUpon>LedWasteDetails.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Properties\Resources.resx">
@@ -116,10 +128,16 @@
       <DependentUpon>Resources.resx</DependentUpon>
       <DesignTime>True</DesignTime>
     </Compile>
-    <EmbeddedResource Include="SmtShiftDetails.resx">
+    <EmbeddedResource Include="Forms\showViOperatorDetails.resx">
+      <DependentUpon>showViOperatorDetails.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Forms\SimpleDetailsDT.resx">
+      <DependentUpon>SimpleDetailsDT.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Forms\SmtShiftDetails.resx">
       <DependentUpon>SmtShiftDetails.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="WasteReasonDetails.resx">
+    <EmbeddedResource Include="Forms\WasteReasonDetails.resx">
       <DependentUpon>WasteReasonDetails.cs</DependentUpon>
     </EmbeddedResource>
     <None Include="Properties\Settings.settings">

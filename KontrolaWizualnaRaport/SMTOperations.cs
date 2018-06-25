@@ -364,6 +364,7 @@ namespace KontrolaWizualnaRaport
                 }
             }
             autoSizeGridColumns(grid);
+            grid.FirstDisplayedCell = grid.Rows[grid.Rows.Count - 1].Cells[0];
             grid.ResumeLayout();
         }
 
