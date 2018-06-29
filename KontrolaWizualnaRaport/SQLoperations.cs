@@ -120,20 +120,20 @@ namespace KontrolaWizualnaRaport
                 dateShiftNo shiftInfo = SMTOperations.whatDayShiftIsit(inspTime);
                 string model = row["Model"].ToString().Replace("LLFML", "");
 
-                if (!result.ContainsKey(shiftInfo.date.Date))
+                if (!result.ContainsKey(shiftInfo.fixedDate.Date))
                 {
-                    result.Add(shiftInfo.date.Date, new SortedDictionary<int, Dictionary<string, DataTable>>());
+                    result.Add(shiftInfo.fixedDate.Date, new SortedDictionary<int, Dictionary<string, DataTable>>());
                 }
-                if (!result[shiftInfo.date.Date].ContainsKey(shiftInfo.shift))
+                if (!result[shiftInfo.fixedDate.Date].ContainsKey(shiftInfo.shift))
                 {
-                    result[shiftInfo.date.Date].Add(shiftInfo.shift, new Dictionary<string, DataTable>());
+                    result[shiftInfo.fixedDate.Date].Add(shiftInfo.shift, new Dictionary<string, DataTable>());
                 }
-                if (!result[shiftInfo.date.Date][shiftInfo.shift].ContainsKey(model))
+                if (!result[shiftInfo.fixedDate.Date][shiftInfo.shift].ContainsKey(model))
                 {
-                    result[shiftInfo.date.Date][shiftInfo.shift].Add(model, sqlTable.Clone());
+                    result[shiftInfo.fixedDate.Date][shiftInfo.shift].Add(model, sqlTable.Clone());
 
                 }
-                result[shiftInfo.date.Date][shiftInfo.shift][model].Rows.Add(row.ItemArray);
+                result[shiftInfo.fixedDate.Date][shiftInfo.shift][model].Rows.Add(row.ItemArray);
             }
             return result;
         }
@@ -208,24 +208,24 @@ namespace KontrolaWizualnaRaport
                 dateShiftNo shiftInfo = SMTOperations.whatDayShiftIsit(inspTime);
                 string lot = row["LOT"].ToString();
                 
-                if (!result.ContainsKey(shiftInfo.date.Date))
+                if (!result.ContainsKey(shiftInfo.fixedDate.Date))
                 {
-                    result.Add(shiftInfo.date.Date, new SortedDictionary<int, Dictionary<string, Dictionary<string, DataTable>>>());
+                    result.Add(shiftInfo.fixedDate.Date, new SortedDictionary<int, Dictionary<string, Dictionary<string, DataTable>>>());
                 }
-                if (!result[shiftInfo.date.Date].ContainsKey(shiftInfo.shift))
+                if (!result[shiftInfo.fixedDate.Date].ContainsKey(shiftInfo.shift))
                 {
-                    result[shiftInfo.date.Date].Add(shiftInfo.shift, new Dictionary<string, Dictionary<string, DataTable>>());
+                    result[shiftInfo.fixedDate.Date].Add(shiftInfo.shift, new Dictionary<string, Dictionary<string, DataTable>>());
                 }
-                if (!result[shiftInfo.date.Date][shiftInfo.shift].ContainsKey(testerID))
+                if (!result[shiftInfo.fixedDate.Date][shiftInfo.shift].ContainsKey(testerID))
                 {
-                    result[shiftInfo.date.Date][shiftInfo.shift].Add(testerID, new Dictionary<string, DataTable>());
+                    result[shiftInfo.fixedDate.Date][shiftInfo.shift].Add(testerID, new Dictionary<string, DataTable>());
                 }
-                if (!result[shiftInfo.date.Date][shiftInfo.shift][testerID].ContainsKey(lot))
+                if (!result[shiftInfo.fixedDate.Date][shiftInfo.shift][testerID].ContainsKey(lot))
                 {
-                    result[shiftInfo.date.Date][shiftInfo.shift][testerID].Add(lot, sqlTable.Clone());
+                    result[shiftInfo.fixedDate.Date][shiftInfo.shift][testerID].Add(lot, sqlTable.Clone());
                 }
 
-                result[shiftInfo.date.Date][shiftInfo.shift][testerID][lot].Rows.Add(row.ItemArray);
+                result[shiftInfo.fixedDate.Date][shiftInfo.shift][testerID][lot].Rows.Add(row.ItemArray);
             }
 
             return result;
@@ -383,6 +383,22 @@ namespace KontrolaWizualnaRaport
             return result;
         }
 
+        public static DataTable GetLedRework()
+        {
+            DataTable result = new DataTable();
+
+            SqlConnection conn = new SqlConnection();
+            conn.ConnectionString = @"Data Source=MSTMS010;Initial Catalog=MES;User Id=mes;Password=mes;";
+
+            SqlCommand command = new SqlCommand();
+            command.Connection = conn;
+            command.CommandText = String.Format(@"SELECT Data,Operator,Model,SerialNo,OpisNaprawy,NaprawianyKomponent,WynikNaprawy FROM tb_NaprawaLED_Karta_Pracy order by Data;");
+
+            SqlDataAdapter adapter = new SqlDataAdapter(command);
+            adapter.Fill(result);
+
+            return result;
+        }
         public static DataTable GetSmtRecordsForLot(string lot)
         {
             DataTable result = new DataTable();

@@ -55,6 +55,8 @@
     <Compile Include="Charting.cs" />
     <Compile Include="dataLoader.cs" />
     <Compile Include="dataStructure.cs" />
+    <Compile Include="DateTimeParser.cs" />
+    <Compile Include="dateTools.cs" />
     <Compile Include="Drukuj.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -91,6 +93,7 @@
     <Compile Include="Forms\SimpleDetailsDT.Designer.cs">
       <DependentUpon>SimpleDetailsDT.cs</DependentUpon>
     </Compile>
+    <Compile Include="Rework.cs" />
     <Compile Include="SMTOperations.cs" />
     <Compile Include="Forms\SmtShiftDetails.cs">
       <SubType>Form</SubType>

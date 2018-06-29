@@ -22,21 +22,21 @@ namespace KontrolaWizualnaRaport
                 dateShiftNo endDateShiftInfo = whatDayShiftIsit(endDate);
                 int shiftNumer = endDateShiftInfo.shift;
 
-                if (!result.ContainsKey(endDateShiftInfo.date.Date))
+                if (!result.ContainsKey(endDateShiftInfo.fixedDate.Date))
                 {
-                    result.Add(endDateShiftInfo.date.Date, new Dictionary<int, Dictionary<string, HashSet<string>>>());
+                    result.Add(endDateShiftInfo.fixedDate.Date, new Dictionary<int, Dictionary<string, HashSet<string>>>());
                 }
-                if (!result[endDateShiftInfo.date.Date].ContainsKey(shiftNumer))
+                if (!result[endDateShiftInfo.fixedDate.Date].ContainsKey(shiftNumer))
                 {
-                    result[endDateShiftInfo.date.Date].Add(shiftNumer, new Dictionary<string, HashSet<string>>());
+                    result[endDateShiftInfo.fixedDate.Date].Add(shiftNumer, new Dictionary<string, HashSet<string>>());
                 }
-                if (!result[endDateShiftInfo.date.Date][shiftNumer].ContainsKey(line))
+                if (!result[endDateShiftInfo.fixedDate.Date][shiftNumer].ContainsKey(line))
                 {
-                    result[endDateShiftInfo.date.Date][shiftNumer].Add(line, new HashSet<string>());
+                    result[endDateShiftInfo.fixedDate.Date][shiftNumer].Add(line, new HashSet<string>());
                 }
 
                 string model = row["Model"].ToString();
-                result[endDateShiftInfo.date.Date][shiftNumer][line].Add(model);
+                result[endDateShiftInfo.fixedDate.Date][shiftNumer][line].Add(model);
             }
             return result;
         }

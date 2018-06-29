@@ -31,6 +31,7 @@ namespace KontrolaWizualnaRaport
                 {
                     rowColor = System.Drawing.Color.LightBlue;
                 }
+                var week = dateTools.GetIso8601WeekOfYear(dayEntry.Key);
 
                 foreach (var shiftEntry in dayEntry.Value)
                 {
@@ -40,7 +41,7 @@ namespace KontrolaWizualnaRaport
                         qty += double.Parse(row["Ilosc_wyrobu_zlecona"].ToString());
                     }
 
-                    grid.Rows.Add(dayEntry.Key.ToShortDateString(), shiftEntry.Key.ToString(), qty);
+                    grid.Rows.Add(dayEntry.Key.ToShortDateString(),week, shiftEntry.Key.ToString(), qty);
                     foreach (DataGridViewCell cell in grid.Rows[grid.Rows.Count - 1].Cells)
                     {
                         cell.Style.BackColor = rowColor;
@@ -52,6 +53,7 @@ namespace KontrolaWizualnaRaport
                 }
             }
             grid.FirstDisplayedScrollingRowIndex = grid.RowCount - 1;
+            SMTOperations.autoSizeGridColumns(grid);
         }
 
         public static void FillGridReadyLots(DataGridView grid, DataTable lotTable, DataTable smtRecords)

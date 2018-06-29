@@ -275,7 +275,7 @@ namespace KontrolaWizualnaRaport
             chart.Series.Add(lineSeriesB);
         }
 
-        public static void DrawLedWasteChart(SortedDictionary<DateTime, SortedDictionary<int, List<LedWasteStruc>>> ledWasteDictionary, Chart chart, string frequency, Dictionary<string, bool> lineOptions)
+        public static void DrawLedWasteChart(SortedDictionary<DateTime, SortedDictionary<int, List<LotLedWasteStruc>>> ledWasteDictionary, Chart chart, string frequency, Dictionary<string, bool> lineOptions, Dictionary<string, System.Drawing.Color> lineColors)
         {
             Dictionary<string, Dictionary<string, double>> dataPointsProd = new Dictionary<string, Dictionary<string, double>>();
             Dictionary<string, Dictionary<string, double>> dataPointsDropped = new Dictionary<string, Dictionary<string, double>>();
@@ -383,9 +383,18 @@ namespace KontrolaWizualnaRaport
             ar.AxisY.MinorGrid.LineColor = System.Drawing.Color.Silver;
             ar.AxisY.MajorGrid.LineColor = System.Drawing.Color.Gray;
             ar.AxisY.MinorGrid.Enabled = true;
+            ar.AxisY2.Enabled = AxisEnabled.True;
+
             ar.AxisY2.MajorGrid.Enabled = false;
             ar.AxisY.LabelStyle.Format = "{0.00} %";
+            ar.AxisY2.LabelStyle.Format = "{0.00} %";
             ar.AxisX.IsMarginVisible = false;
+            ar.AxisY.IsMarginVisible = false;
+            ar.Position.X = 0;
+            ar.Position.Width = 100;
+            ar.Position.Height = 100;
+            ar.Position.Y = 0;
+
 
             chart.ChartAreas.Add(ar);
             double maxY = 0;
@@ -395,6 +404,7 @@ namespace KontrolaWizualnaRaport
                 lineSeries.ChartType = SeriesChartType.Line;
                 lineSeries.BorderWidth = 3;
                 lineSeries.Name = lineEntry.Key;
+                lineSeries.Color = lineColors[lineEntry.Key];
 
 
                 foreach (var dateKeyEntry in lineEntry.Value)
@@ -430,6 +440,7 @@ namespace KontrolaWizualnaRaport
                 productionLevel.Points.Add(pt);
             }
             //chart.Series.Add(productionLevel);
+
         }
             
         private static WasteStruc CreateWasteStruc(string name)

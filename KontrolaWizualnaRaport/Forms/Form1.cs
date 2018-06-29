@@ -39,7 +39,8 @@ namespace KontrolaWizualnaRaport
         Dictionary<DateTime, SortedDictionary<int, Dictionary<string, Dictionary<string, DataTable>>>> testData = new Dictionary<DateTime, SortedDictionary<int, Dictionary<string, Dictionary<string, DataTable>>>>();
         Dictionary<DateTime, SortedDictionary<int, Dictionary<string, DataTable>>> boxingData = new Dictionary<DateTime, SortedDictionary<int, Dictionary<string, DataTable>>>();
         Dictionary<string, MesModels> mesModels = new Dictionary<string, MesModels>();
-        SortedDictionary<DateTime, SortedDictionary<int, List<LedWasteStruc>>> ledWasteDictionary = new SortedDictionary<DateTime, SortedDictionary<int, List<LedWasteStruc>>>();
+        SortedDictionary<DateTime, SortedDictionary<int, List<LotLedWasteStruc>>> ledWasteDictionary = new SortedDictionary<DateTime, SortedDictionary<int, List<LotLedWasteStruc>>>();
+        Dictionary<string, Color> lineColors = new Dictionary<string, Color>();
 
         private void Form1_Load(object sender, EventArgs e)
         {
@@ -56,13 +57,17 @@ namespace KontrolaWizualnaRaport
             cBListViReasonList.Parent = tabPage6;
             cBListViReasonAnalysesSmtLines.BringToFront();
             cBListViReasonList.BringToFront();
-
         }
 
         private void tabControl2_SelectedIndexChanged(object sender, EventArgs e)
         {
             switch (tabControl2.SelectedTab.Text)
             {
+                case "SerwisLED":
+                    {
+                        Rework.FillOutGridDailyProdReport(dataGridViewReworkDailyReport, Rework.SortSqlTableBydateShiftPcb(SQLoperations.GetLedRework()));
+                        break;
+                    }
                 case "SMT":
                     {
                         if (smtModelLineQuantity.Count < 1)
@@ -80,16 +85,19 @@ namespace KontrolaWizualnaRaport
                             SMTOperations.FillOutLedWasteByModel(ledWasteDictionary, dataGridViewSmtLedWasteByModel, comboBoxSmtLedWasteLine.Text);
                             SMTOperations.FillOutLedWasteTotalWeekly(ledWasteDictionary, dataGridViewSmtWasteTotal);
                             Dictionary<string, bool> lineOptions = new Dictionary<string, bool>();
+                            lineColors = new Dictionary<string, Color>();
 
                             foreach (Control c in panelSmtLedWasteCheckContainer.Controls)
                             {
                                 if ((c is CheckBox) )
                                 {
-                                    lineOptions.Add(c.Text, ((CheckBox)c).Checked);
+                                    lineOptions.Add(c.Text.Trim(), ((CheckBox)c).Checked);
+                                    lineColors.Add(c.Text.Trim(), c.BackColor);
                                 }
                             }
 
-                            Charting.DrawLedWasteChart(ledWasteDictionary, chartLedWasteChart, comboBoxSmtLewWasteFreq.Text, lineOptions);
+                            Charting.DrawLedWasteChart(ledWasteDictionary, chartLedWasteChart, comboBoxSmtLewWasteFreq.Text, lineOptions, lineColors);
+
                             comboBoxSmtLedWasteLine.Items.Add("Wszystkie");
                             comboBoxSmtLedWasteLine.Items.AddRange(smtModelLineQuantity.SelectMany(m => m.Value).Select(l => l.Key).Distinct().OrderBy(l =>l).ToArray());
                             comboBoxSmtLedWasteLine.Text = "Wszystkie";
@@ -266,11 +274,11 @@ namespace KontrolaWizualnaRaport
             {
                 if ((c is CheckBox))
                 {
-                    lineOptions.Add(c.Text, ((CheckBox)c).Checked);
+                    lineOptions.Add(c.Text.Trim(), ((CheckBox)c).Checked);
                 }
             }
 
-            Charting.DrawLedWasteChart(ledWasteDictionary, chartLedWasteChart, comboBoxSmtLewWasteFreq.Text, lineOptions);
+            Charting.DrawLedWasteChart(ledWasteDictionary, chartLedWasteChart, comboBoxSmtLewWasteFreq.Text, lineOptions, lineColors);
             SMTOperations.FillOutLedWasteTotalByLine(ledWasteDictionary, dataGridViewSmtLedWasteTotalPerLine, comboBoxSmtLedWasteLines.Text);
         }
 
@@ -743,40 +751,59 @@ namespace KontrolaWizualnaRaport
         }
 
 
-
-
-
-        private DataGridViewCell[] GetCellsFromOneDay(DataGridViewCell dateCell, DataGridView grid)
+        private DataGridViewCell[] GetCellsForDayOrWeek(DataGridViewCell dateCell, DataGridView grid)
         {
             List<DataGridViewCell> cellsList = new List<DataGridViewCell>();
             int rowIndex = dateCell.RowIndex;
             int upLimit = rowIndex;
             int bottomLimit = rowIndex;
+            int colIndex = dateCell.ColumnIndex;
+            bool keepLooping = true;
 
-            Color cellColor = dateCell.Style.BackColor;
-            if (TryGetCellColor(rowIndex + 1, grid) == cellColor)
+            do
             {
-                upLimit++;
-                if (TryGetCellColor(rowIndex + 2, grid) == cellColor)
+                if (upLimit < grid.Rows.Count - 1)  
                 {
-                    upLimit++;
+                    if (grid.Rows[upLimit+1].Cells[colIndex].Value.ToString() == grid.Rows[upLimit].Cells[colIndex].Value.ToString())
+                    {
+                        upLimit++;
+                    }
+                    else
+                    {
+                        keepLooping = false;
+                    }
                 }
-            }
+                else
+                {
+                    keepLooping = false;
+                }
+            } while (keepLooping);
 
-            if (TryGetCellColor(rowIndex - 1, grid) == cellColor)
+            keepLooping = true;
+            do
             {
-                bottomLimit--;
-                if (TryGetCellColor(rowIndex - 2, grid) == cellColor)
+                if (bottomLimit > 0)
                 {
-                    bottomLimit--;
+                    if (grid.Rows[bottomLimit - 1].Cells[colIndex].Value.ToString() == grid.Rows[bottomLimit].Cells[colIndex].Value.ToString())
+                    {
+                        bottomLimit--;
+                    }
+                    else
+                    {
+                        keepLooping = false;
+                    }
                 }
-            }
+                else
+                {
+                    keepLooping = false;
+                }
+            } while (keepLooping);
 
-            for (int r = bottomLimit; r <= upLimit; r++) 
+            for (int r = bottomLimit; r <= upLimit; r++)
             {
                 foreach (DataGridViewCell cell in grid.Rows[r].Cells)
                 {
-                    if (cell.Tag!=null)
+                    if (cell.Tag!=null & !cell.OwningColumn.HeaderText.ToLower().Contains("dzien") & !cell.OwningColumn.HeaderText.ToLower().Contains("zmiana") & !cell.OwningColumn.HeaderText.ToLower().Contains("tydz") )
                     {
                         cellsList.Add(cell);
                     }
@@ -784,18 +811,6 @@ namespace KontrolaWizualnaRaport
             }
 
             return cellsList.ToArray();
-        }
-
-        private Color TryGetCellColor(int row, DataGridView grid)
-        {
-            Color result = Color.Black;
-            try
-            {
-                result = grid.Rows[row].Cells[0].Style.BackColor;
-            }
-            catch(Exception exc) { }
-
-            return result;
         }
 
         private void radioButtonCapaLGI_CheckedChanged(object sender, EventArgs e)
@@ -814,10 +829,11 @@ namespace KontrolaWizualnaRaport
 
         private void SumOfSelectedCells(DataGridView grid, Label lbl)
         {
+            
             Int32 sum = 0;
             foreach (DataGridViewCell cell in grid.SelectedCells)
             {
-                if (cell.ColumnIndex > 1)
+                if (cell.ColumnIndex > 2)
                 {
                     sum += GetCellValue(cell);
                 }
@@ -983,12 +999,13 @@ namespace KontrolaWizualnaRaport
 
         private void showJobDetails(DataGridViewCellEventArgs e, DataGridView grid, string station)
         {
+            string[] dateColumns = new string[] { "mies", "tydz", "dzien", "zmiana" };
             DataGridViewCell cell = grid.Rows[e.RowIndex].Cells[e.ColumnIndex];
             if (cell.Value != null)
             {
                 if (cell.Value.ToString() != "0")
                 {
-                    if (cell.ColumnIndex > 0)
+                    if (!dateColumns.Contains(cell.OwningColumn.HeaderText.ToLower()))
                     {
                         DataTable dt = (DataTable)cell.Tag;
                         if (dt.Columns.Contains("NC12_wyrobu"))
@@ -1012,7 +1029,7 @@ namespace KontrolaWizualnaRaport
                     }
                     else
                     {
-                        DataGridViewCell[] dayCells = GetCellsFromOneDay(cell, grid);
+                        DataGridViewCell[] dayCells = GetCellsForDayOrWeek(cell, grid);
                         Dictionary<string, double> quantityPerModel = new Dictionary<string, double>();
                         DataTable combinedTable = new DataTable();
                         foreach (var c in dayCells)
@@ -1235,10 +1252,10 @@ namespace KontrolaWizualnaRaport
             {
                 if ((c is CheckBox))
                 {
-                    lineOptions.Add(c.Text, ((CheckBox)c).Checked);
+                    lineOptions.Add(c.Text.Trim(), ((CheckBox)c).Checked);
                 }
             }
-            Charting.DrawLedWasteChart(ledWasteDictionary, chartLedWasteChart, comboBoxSmtLewWasteFreq.Text, lineOptions);
+            Charting.DrawLedWasteChart(ledWasteDictionary, chartLedWasteChart, comboBoxSmtLewWasteFreq.Text, lineOptions, lineColors);
         }
 
         private void checkBoxSmt1_CheckStateChanged(object sender, EventArgs e)
@@ -1248,10 +1265,10 @@ namespace KontrolaWizualnaRaport
             {
                 if ((c is CheckBox))
                 {
-                    lineOptions.Add(c.Text, ((CheckBox)c).Checked);
+                    lineOptions.Add(c.Text.Trim(), ((CheckBox)c).Checked);
                 }
             }
-            Charting.DrawLedWasteChart(ledWasteDictionary, chartLedWasteChart, comboBoxSmtLewWasteFreq.Text, lineOptions);
+            Charting.DrawLedWasteChart(ledWasteDictionary, chartLedWasteChart, comboBoxSmtLewWasteFreq.Text, lineOptions, lineColors);
         }
 
         private void comboBoxSmtLedWasteLine_SelectedIndexChanged(object sender, EventArgs e)
@@ -1646,11 +1663,28 @@ namespace KontrolaWizualnaRaport
 
         private void dataGridViewKittingReadyLots_CellDoubleClick(object sender, DataGridViewCellEventArgs e)
         {
-            DataGridViewCell cell = dataGridViewKittingReadyLots.Rows[e.RowIndex].Cells[e.ColumnIndex];
-            DataTable sourceTable = (DataTable)cell.Tag;
-            string title = dataGridViewKittingReadyLots.Rows[e.RowIndex].Cells["Model"].Value.ToString();
-            SimpleDetailsDT dtForm = new SimpleDetailsDT(sourceTable, title);
-            dtForm.Show();
+            if (e.ColumnIndex > -1 & e.RowIndex > -1)
+            {
+                DataGridViewCell cell = dataGridViewKittingReadyLots.Rows[e.RowIndex].Cells[e.ColumnIndex];
+                DataTable sourceTable = (DataTable)cell.Tag;
+                string title = dataGridViewKittingReadyLots.Rows[e.RowIndex].Cells["Model"].Value.ToString();
+                SimpleDetailsDT dtForm = new SimpleDetailsDT(sourceTable, title, -1);
+                dtForm.Show();
+            }
+        }
+
+        private void dataGridViewReworkDailyReport_CellDoubleClick(object sender, DataGridViewCellEventArgs e)
+        {
+            if (e.ColumnIndex > -1 & e.RowIndex > -1)
+            {
+                DataGridViewCell cell = dataGridViewReworkDailyReport.Rows[e.RowIndex].Cells[e.ColumnIndex];
+                if (cell.Tag!=null)
+                {
+                    DataTable sourceTable = (DataTable)cell.Tag;
+                    SimpleDetailsDT detailForm = new SimpleDetailsDT(sourceTable, "", 0);
+                    detailForm.Show();
+                }
+                }
         }
     }
 }

@@ -124,6 +124,7 @@ namespace KontrolaWizualnaRaport
             Color rowColor = Color.White;
 
             grid.Columns.Add("Data", "Data");
+            grid.Columns.Add("Tydzt", "Tydz");
             grid.Columns.Add("Zmiana", "Zmiana");
             grid.Columns.Add("Optical", "Optical");
             grid.Columns.Add("Manual-1", "Manual-1");
@@ -146,7 +147,7 @@ namespace KontrolaWizualnaRaport
                 {
                     rowColor = System.Drawing.Color.LightBlue;
                 }
-
+                var week = dateTools.GetIso8601WeekOfYear(dateEntry.Key);
                 foreach (var shiftEntry in dateEntry.Value)
                 {
                     string date = dateEntry.Key.Date.ToString("yyyy-MM-dd");
@@ -201,11 +202,11 @@ namespace KontrolaWizualnaRaport
 
                         qtyPerMachine[machineEntry.Key] += pcbPerMachine.Count;
                     }
-                    grid.Rows.Add(date, shift, qtyPerMachine["Optical"], qtyPerMachine["Manual-1"], qtyPerMachine["Manual-2"], qtyPerMachine["test_SMT5"], qtyPerMachine["test_SMT6"]);
+                    grid.Rows.Add(date, week, shift, qtyPerMachine["Optical"], qtyPerMachine["Manual-1"], qtyPerMachine["Manual-2"], qtyPerMachine["test_SMT5"], qtyPerMachine["test_SMT6"]);
                     foreach (DataGridViewCell cell in grid.Rows[grid.Rows.Count - 1].Cells)
                     {
                         cell.Style.BackColor = rowColor;
-                        if (cell.ColumnIndex > 1)
+                        if (cell.ColumnIndex > 2)
                         {
                             string tester = cell.OwningColumn.Name;
                             cell.Tag = tagPerMachine[tester];

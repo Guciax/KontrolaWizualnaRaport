@@ -29,7 +29,7 @@ namespace KontrolaWizualnaRaport
                 {
                     rowColor = System.Drawing.Color.LightBlue;
                 }
-
+                var week = dateTools.GetIso8601WeekOfYear(dayEntry.Key);
                 foreach (var shiftEntry in dayEntry.Value)
                 {
                     double qty = 0;
@@ -38,7 +38,7 @@ namespace KontrolaWizualnaRaport
                         qty += double.Parse(row["Ilosc_wyrobu_zlecona"].ToString());
                     }
 
-                    grid.Rows.Add(dayEntry.Key.ToShortDateString(), shiftEntry.Key.ToString(), qty);
+                    grid.Rows.Add(dayEntry.Key.ToShortDateString(),week, shiftEntry.Key.ToString(), qty);
                     foreach (DataGridViewCell cell in grid.Rows[grid.Rows.Count - 1].Cells)
                     {
                         cell.Style.BackColor = rowColor;

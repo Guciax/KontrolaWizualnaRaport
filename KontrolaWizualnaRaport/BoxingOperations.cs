@@ -82,13 +82,14 @@ namespace KontrolaWizualnaRaport
             grid.FirstDisplayedScrollingRowIndex = grid.RowCount - 1;
         }
 
-            public static void FillOutBoxingTable(Dictionary<DateTime, SortedDictionary<int, Dictionary<string, DataTable>>> boxingData, DataGridView grid)
+        public static void FillOutBoxingTable(Dictionary<DateTime, SortedDictionary<int, Dictionary<string, DataTable>>> boxingData, DataGridView grid)
         {
             grid.Rows.Clear();
             grid.Columns.Clear();
             Color rowColor = Color.White;
 
             grid.Columns.Add("Data", "Data");
+            grid.Columns.Add("Tydz", "tydz");
             grid.Columns.Add("Zmiana", "Zmiana");
             grid.Columns.Add("Ilosc", "Ilosc");
 
@@ -108,7 +109,7 @@ namespace KontrolaWizualnaRaport
                 {
                     rowColor = System.Drawing.Color.LightBlue;
                 }
-
+                var week = dateTools.GetIso8601WeekOfYear(dateEntry.Key);
                 foreach (var shiftEntry in dateEntry.Value)
                 {
                     string date = dateEntry.Key.Date.ToString("yyyy-MM-dd");
@@ -120,7 +121,7 @@ namespace KontrolaWizualnaRaport
                     shiftTable.Columns.Add("Zmiana");
                     shiftTable.Columns.Add("Ilosc");
                     shiftTable.Columns.Add("Model");
-                    double shiftQty=0;
+                    double shiftQty = 0;
                     Dictionary<string, double> qtyPerModel = new Dictionary<string, double>();
                     foreach (var modelEntry in shiftEntry.Value)
                     {
@@ -137,7 +138,7 @@ namespace KontrolaWizualnaRaport
                         shiftQty += modelEntry.Value;
                     }
 
-                    grid.Rows.Add(date, shift, shiftQty);
+                    grid.Rows.Add(date, week, shift, shiftQty);
                     foreach (DataGridViewCell cell in grid.Rows[grid.Rows.Count - 1].Cells)
                     {
                         cell.Style.BackColor = rowColor;
@@ -147,7 +148,6 @@ namespace KontrolaWizualnaRaport
                             cell.Tag = shiftTable;
                         }
                     }
-
                 }
             }
             SMTOperations.autoSizeGridColumns(grid);
